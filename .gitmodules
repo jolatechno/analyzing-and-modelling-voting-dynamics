@@ -1,0 +1,3 @@
+[submodule "modular_election_simulation_framework"]
+	path = modular_election_simulation_framework
+	url = https://github.com/jolatechno/modular_election_simulation_framework.git
