@@ -48,7 +48,7 @@ def get_config(filename):
 
 config = get_config(base_path + config_file)
 
-output_file = config["output_file_simultion"]
+output_file = config["output_file_simulation"]
 
 base_path_figure = "figures/" + config["simulation"]["postprocessing"]["base_filename"]
 
@@ -83,6 +83,8 @@ general_election_proportions  = np.zeros((N_try, N_it//n_election, N_candidates)
 counties_election_results     = np.zeros((N_try, N_it//n_election, N_counties))
 counties_election_proportions = np.zeros((N_try, N_it//n_election, N_counties, N_candidates))
 
+normalized_distortion_coefs = np.zeros((N_nodes, N_it//n_save))
+
 with h5py.File(base_path + output_file, "r") as file:
 	latitude [:]    = file["geo_data"]["lat"]
 	longitude[:]    = file["geo_data"]["lon"]
@@ -99,6 +101,8 @@ with h5py.File(base_path + output_file, "r") as file:
 	for k in range(N_candidates):
 		field_name = "stuborn_equilibrium_" + str(k)
 		stuborn_equilibrium[k, :] = file["initial_state"][field_name]
+	
+	normalized_distortion_coefs[:, 0] = file["segregation_initial_state"]["normalized_distortion_coefs"]
 
 	for i in range(N_try):
 		for k in range(2*N_candidates):
@@ -111,6 +115,9 @@ with h5py.File(base_path + output_file, "r") as file:
 			for k in range(2*N_candidates):
 				field_name = "proportions_" + str(k)
 				simulation_data[i, j, k, :] = file[state_name][field_name]
+
+			segregation_state_name = "segregation_state_" + str(i) + "_" + str(it)
+			normalized_distortion_coefs[:, j] = file[segregation_state_name]["normalized_distortion_coefs"]
 
 		for j in range(0, N_it//n_election):
 			it = j*n_election
@@ -130,6 +137,8 @@ with h5py.File(base_path + output_file, "r") as file:
 				for l in range(N_candidates):
 					field_name = "proportion_" + str(l)
 					counties_election_proportions[i, j, k, l] = file[counties_election_name][county_name][field_name][0]
+
+print(normalized_distortion_coefs)
 
 """ -------------------------------------------------------
 -----------------------------------------------------------
@@ -245,7 +254,7 @@ ax3.set_title(f"Trajectories of the { candidates[candidate_idx] } vote\nstuborne
 ax3.set_ylabel("number of steps")
 ax3.set_xlabel("Stuborn proportion")
 
-fig.savefig(base_path_figure + "stuborness_proportion.png", dpi=500)
+fig.savefig(base_path_figure + "stuborness_proportion.png", dpi=200)
 
 
 #########################################################
@@ -314,4 +323,28 @@ ax2b.set_ylabel("Winning candidate index")
 ax2b.legend()
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "election_results.png", dpi=500)
+fig.savefig(base_path_figure + "election_results.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
+fig, ax = plt.subplots(1, 1, figsize=(10,5))
+
+for node,i in enumerate(nodes):
+	if N_nodes-i <= 10:
+		ax.plot(normalized_distortion_coefs[node, :], iterations_saved,
+		         "k--", alpha=1, linewidth=1.1)
+	else:
+		ax.plot(normalized_distortion_coefs[node, :], iterations_saved,
+		         "-", alpha=0.2, linewidth=0.3)
+
+ax.set_title("Trajectories of the normalized distortion coeffecients")
+ax.set_ylabel("number of steps")
+ax.set_xlabel("normalized distortion coeffecients")
+ax.set_ylim([1e-6, 0.1])
+ax.set_yscale("log")
+
+fig.savefig(base_path_figure + "normalized_distortion_coefs.png", dpi=200)

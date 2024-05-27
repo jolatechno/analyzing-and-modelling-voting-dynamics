@@ -16,7 +16,7 @@
 			"base_filename" : "segregation/paris_"
 		}
 	},
-	"output_file_simultion" : "simulation-output-fromdata.h5",
+	"output_file_simulation" : "simulation-output-fromdata.h5",
 	"simulation" : {
 		"N_select"                           : 15,
 		"dt"                                 : 0.2,

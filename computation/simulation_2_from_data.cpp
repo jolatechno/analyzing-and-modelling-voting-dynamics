@@ -6,6 +6,7 @@
 #include "../modular_election_simulation_framework/src/core/networks/network_partition.hpp"
 #include "../modular_election_simulation_framework/src/core/networks/network_util.hpp"
 #include "../modular_election_simulation_framework/src/core/agent_population/agent_population.hpp"
+#include "../modular_election_simulation_framework/src/core/agent_population/agent_population_util.hpp"
 
 #include "../modular_election_simulation_framework/src/implementations/voter_model.hpp"
 #include "../modular_election_simulation_framework/src/implementations/voter_model_stuborn.hpp"
@@ -18,6 +19,10 @@
 #include "../modular_election_simulation_framework/src/util/json_util.hpp"
 #include "../modular_election_simulation_framework/src/util/hdf5_util.hpp"
 #include "../modular_election_simulation_framework/src/util/util.hpp"
+
+#include "../modular_election_simulation_framework/src/core/segregation/multiscalar.hpp"
+#include "../modular_election_simulation_framework/src/core/segregation/multiscalar_util.hpp"
+#include "../modular_election_simulation_framework/src/core/segregation/map_util.hpp"
 
 
 const std::vector<std::string> candidates_from_left_to_right = {
@@ -54,8 +59,8 @@ int main(int argc, char *argv[]) {
 	std::string config_name = util::get_first_cmd_arg(argc, argv);
 	auto config             = util::json::read_config((root + config_file).c_str(), config_name);
 
-	const std::string input_file_name  = root + std::string(config["preprocessed_file"    ].asString());
-	const std::string output_file_name = root + std::string(config["output_file_simultion"].asString());
+	const std::string input_file_name  = root + std::string(config["preprocessed_file"     ].asString());
+	const std::string output_file_name = root + std::string(config["output_file_simulation"].asString());
 
 
 	const size_t N_select                           = config["simulation"]["N_select"                          ].asInt();
@@ -142,6 +147,24 @@ int main(int argc, char *argv[]) {
 
 	BPsimulation::io::write_agent_states_to_file(network, agent_full_serializer, output_file, "/initial_state");
 
+	{
+		std::string segregation_dir_name = "/segregation_initial_state";
+		H5::Group segregation = output_file.createGroup(segregation_dir_name);
+
+		auto vote_proportions = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(network);
+		BPsimulation::implem::util::accumulate_stuborn_votes(vote_proportions);
+
+		auto normalized_distortion_coefs = segregation::multiscalar::get_normalized_distortion_coefs_fast(vote_proportions,
+			(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&lat, &lon](size_t i) {
+				auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
+				auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
+
+				return std::pair<std::vector<size_t>, std::vector<double>>(traj_idxes_slice[0], {});
+			});
+		
+		util::hdf5io::H5WriteVector(segregation, normalized_distortion_coefs, "normalized_distortion_coefs");
+	}
+
 
 	BPsimulation::implem::Nvoter_majority_election_result<N_candidates>* general_election_results;
 	std::vector<BPsimulation::core::election::ElectionResultTemplate*> counties_election_results, stuborness_results;
@@ -154,6 +177,21 @@ int main(int argc, char *argv[]) {
 			if (it%n_save == 0 && it > 0) {
 				std::string dir_name = "/states_" + std::to_string(itry) + "_" + std::to_string(it);
 				BPsimulation::io::write_agent_states_to_file(network, agent_partial_serializer, output_file, dir_name.c_str());
+			
+
+				std::string segregation_dir_name = "/segregation_state_" + std::to_string(itry) + "_" + std::to_string(it);
+				H5::Group segregation = output_file.createGroup(segregation_dir_name);
+
+				auto vote_proportions            = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(network);
+				auto normalized_distortion_coefs = segregation::multiscalar::get_normalized_distortion_coefs_fast(vote_proportions,
+					(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&lat, &lon](size_t i) {
+						auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
+						auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
+
+						return std::pair<std::vector<size_t>, std::vector<double>>(traj_idxes_slice[0], {});
+					});
+				
+				util::hdf5io::H5WriteVector(segregation, normalized_distortion_coefs, "normalized_distortion_coefs");
 			}
 
 			if (it%n_election == 0) {
