@@ -138,8 +138,6 @@ with h5py.File(base_path + output_file, "r") as file:
 					field_name = "proportion_" + str(l)
 					counties_election_proportions[i, j, k, l] = file[counties_election_name][county_name][field_name][0]
 
-print(normalized_distortion_coefs)
-
 """ -------------------------------------------------------
 -----------------------------------------------------------
 ------------------------------------------------------- """
@@ -335,16 +333,16 @@ fig, ax = plt.subplots(1, 1, figsize=(10,5))
 
 for node,i in enumerate(nodes):
 	if N_nodes-i <= 10:
-		ax.plot(normalized_distortion_coefs[node, :], iterations_saved,
+		ax.plot(iterations_saved, normalized_distortion_coefs[node, :],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax.plot(normalized_distortion_coefs[node, :], iterations_saved,
+		ax.plot(iterations_saved, normalized_distortion_coefs[node, :],
 		         "-", alpha=0.2, linewidth=0.3)
 
 ax.set_title("Trajectories of the normalized distortion coeffecients")
 ax.set_ylabel("number of steps")
 ax.set_xlabel("normalized distortion coeffecients")
-ax.set_ylim([1e-6, 0.1])
+#ax.set_ylim([1e-6, 0.1])
 ax.set_yscale("log")
 
 fig.savefig(base_path_figure + "normalized_distortion_coefs.png", dpi=200)
