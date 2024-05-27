@@ -329,7 +329,7 @@ fig.savefig(base_path_figure + "election_results.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(10,5))
+fig, ax = plt.subplots(1, 1, figsize=(10,10))
 
 for node,i in enumerate(nodes):
 	if N_nodes-i <= 10:
@@ -340,9 +340,8 @@ for node,i in enumerate(nodes):
 		         "-", alpha=0.2, linewidth=0.3)
 
 ax.set_title("Trajectories of the normalized distortion coeffecients")
-ax.set_ylabel("number of steps")
-ax.set_xlabel("normalized distortion coeffecients")
-#ax.set_ylim([1e-6, 0.1])
+ax.set_ylabel("normalized distortion coeffecients")
+ax.set_xlabel("number of steps")
 ax.set_yscale("log")
 
 fig.savefig(base_path_figure + "normalized_distortion_coefs.png", dpi=200)
