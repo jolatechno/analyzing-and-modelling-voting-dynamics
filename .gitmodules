@@ -1,3 +1,9 @@
 [submodule "modular_election_simulation_framework"]
 	path = modular_election_simulation_framework
 	url = https://github.com/jolatechno/modular_election_simulation_framework.git
+[submodule "computation/analyzing-and-modelling-voting-dynamics"]
+	path = computation/analyzing-and-modelling-voting-dynamics
+	url = git@github.com:jolatechno/analyzing-and-modelling-voting-dynamics.git
+[submodule "computation/modular_election_simulation_framework"]
+	path = computation/modular_election_simulation_framework
+	url = https://github.com/jolatechno/modular_election_simulation_framework.git

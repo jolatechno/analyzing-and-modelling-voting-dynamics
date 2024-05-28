@@ -1,12 +1,12 @@
 #include <iostream>
 
-#include "../modular_election_simulation_framework/src/core/segregation/multiscalar.hpp"
-#include "../modular_election_simulation_framework/src/core/segregation/multiscalar_util.hpp"
-#include "../modular_election_simulation_framework/src/core/segregation/map_util.hpp"
+#include "./modular_election_simulation_framework/src/core/segregation/multiscalar.hpp"
+#include "./modular_election_simulation_framework/src/core/segregation/multiscalar_util.hpp"
+#include "./modular_election_simulation_framework/src/core/segregation/map_util.hpp"
 
-#include "../modular_election_simulation_framework/src/util/json_util.hpp"
-#include "../modular_election_simulation_framework/src/util/hdf5_util.hpp"
-#include "../modular_election_simulation_framework/src/util/util.hpp"
+#include "./modular_election_simulation_framework/src/util/json_util.hpp"
+#include "./modular_election_simulation_framework/src/util/hdf5_util.hpp"
+#include "./modular_election_simulation_framework/src/util/util.hpp"
 
 
 const std::vector<std::string> candidates_from_left_to_right = {
