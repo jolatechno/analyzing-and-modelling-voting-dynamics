@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 		auto vote_proportions = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(network);
 		BPsimulation::implem::util::accumulate_stuborn_votes(vote_proportions);
 
-		auto normalized_distortion_coefs = segregation::multiscalar::get_normalized_distortion_coefs_fast(vote_proportions,
+		auto normalized_distortion_coefs = segregation::multiscalar::get_distortion_coefs_fast(vote_proportions,
 			(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&lat, &lon](size_t i) {
 				auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
 				auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
 				H5::Group segregation = output_file.createGroup(segregation_dir_name);
 
 				auto vote_proportions            = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(network);
-				auto normalized_distortion_coefs = segregation::multiscalar::get_normalized_distortion_coefs_fast(vote_proportions,
+				auto normalized_distortion_coefs = segregation::multiscalar::get_distortion_coefs_fast(vote_proportions,
 					(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&lat, &lon](size_t i) {
 						auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
 						auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
