@@ -71,19 +71,36 @@ int main(int argc, char *argv[]) {
 	double normalization_factor = 1.d, normalization_factor_pop = 1.d, normalization_factor_dist = 1.d;
 	{
 		auto distances = segregation::map::util::get_distances(lat, lon);
+
 		util::hdf5io::H5WriteIrregular2DVector(output_geo_data, distances, "distances");
 
 
-		normalization_factor = segregation::multiscalar::get_normalization_factor(votes);
-		util::hdf5io::H5WriteSingle(full_analysis, normalization_factor, "normalization_factor");
+		auto worst_population_trajectory = segregation::multiscalar::util::get_worst_population_trajectory(votes);
+		auto worst_KLdiv_trajectory      = segregation::multiscalar::util::get_worst_KLdiv_trajectory(votes);
+
+		H5::Group normalization_factors = full_analysis.createGroup("normalization_factors");
+		util::hdf5io::H5WriteVector(normalization_factors, worst_population_trajectory, "worst_population_trajectory");
+		util::hdf5io::H5WriteVector(normalization_factors, worst_KLdiv_trajectory,      "worst_KLdiv_trajectory");
+
+
+		{
+			     normalization_factor = segregation::multiscalar::get_normalization_factor(votes);
+			auto worst_Xvalues        = segregation::multiscalar::util::get_worst_Xvalues({}, votes[0].size());
+
+			util::hdf5io::H5WriteSingle(normalization_factors, normalization_factor, "normalization_factor");
+			util::hdf5io::H5WriteVector(normalization_factors, worst_Xvalues,        "worst_Xvalues");
+		}
 
 
 		{
 			auto traj_idxes                 = segregation::multiscalar::get_closest_neighbors(distances);
 			auto accumulated_trajectory_pop = segregation::multiscalar::util::get_accumulated_trajectory(votes, traj_idxes);
+			auto worst_Xvalues              = segregation::multiscalar::util::get_worst_Xvalues(accumulated_trajectory_pop);
 
 			normalization_factor_pop = segregation::multiscalar::get_normalization_factor(votes, accumulated_trajectory_pop);
-			util::hdf5io::H5WriteSingle(full_analysis, normalization_factor_pop, "normalization_factor_pop");
+
+			util::hdf5io::H5WriteSingle(normalization_factors, normalization_factor_pop, "normalization_factor_pop");
+			util::hdf5io::H5WriteVector(normalization_factors, worst_Xvalues,            "worst_Xvalues_pop");
 		}
 
 
@@ -91,9 +108,12 @@ int main(int argc, char *argv[]) {
 			for (size_t i = 0; i < distances.size(); ++i) {
 				std::sort(distances[i].begin(), distances[i].end());
 			}
+			auto worst_Xvalues = segregation::multiscalar::util::get_worst_Xvalues(distances);
 
 			normalization_factor_dist = segregation::multiscalar::get_normalization_factor(votes, distances);
-			util::hdf5io::H5WriteSingle(full_analysis, normalization_factor_dist, "normalization_factor_dist");
+
+			util::hdf5io::H5WriteSingle(normalization_factors, normalization_factor_dist, "normalization_factor_dist");
+			util::hdf5io::H5WriteVector(normalization_factors, worst_Xvalues,             "worst_Xvalues_pop_dist");
 		}
 	}
 
