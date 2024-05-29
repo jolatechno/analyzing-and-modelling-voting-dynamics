@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 		auto vote_trajectories     = segregation::multiscalar::get_trajectories(votes, traj_idxes_slice);
 		auto KLdiv_trajectories    = segregation::multiscalar::get_KLdiv_trajectories(vote_trajectories);
 		auto focal_distances_idxes = segregation::multiscalar::get_focal_distance_indexes(KLdiv_trajectories, convergence_thresholds);
-		auto distortion_coefs      = segregation::multiscalar::get_normalization_factor_from_KLdiv(KLdiv_trajectories);
+		auto distortion_coefs      = segregation::multiscalar::get_distortion_coefs_from_KLdiv(KLdiv_trajectories);
 
 
 		H5::Group partial_analysis = output_file.createGroup("partial_analysis");
