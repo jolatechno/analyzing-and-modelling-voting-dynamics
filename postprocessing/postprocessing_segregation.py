@@ -143,7 +143,7 @@ fig.savefig(base_path_figure + "map.png", dpi=200)
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,5))
 
 
-ax1.hist(dist_coef_idx, density=True, bins=20)
+ax1.hist(dist_coef_idx, density=True, bins=30)
 
 ax1.set_title("normalized distortion coefficient\nbased on number of voting bureau")
 ax1.set_ylabel("density")
@@ -153,7 +153,7 @@ ax1.set_xlabel("distortion coefficient")
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-ax2.hist(dist_coef_pop, density=True, bins=20)
+ax2.hist(dist_coef_pop, density=True, bins=30)
 
 ax2.set_title("normalized distortion coefficient\nbased on agregated population")
 ax2.set_ylabel("density")
@@ -163,12 +163,11 @@ ax2.set_xlabel("distortion coefficient")
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-ax3.hist(dist_coef_dist, density=True, bins=50)
+ax3.hist(dist_coef_dist, density=True, bins=30)
 
 ax3.set_title("normalized distortion coefficient\nbased on distance")
 ax3.set_ylabel("density")
 ax3.set_xlabel("distortion coefficient")
-ax3.set_yscale("log")
 
 
 fig.savefig(base_path_figure + "histograms.png", dpi=200)
