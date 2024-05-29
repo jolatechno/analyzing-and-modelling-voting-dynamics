@@ -1,16 +1,16 @@
 #include <iostream>
 
-#include "./modular_election_simulation_framework/src/core/network.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_file_io.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_generator.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_partition.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_util.hpp"
-#include "./modular_election_simulation_framework/src/core/agent_population/agent_population.hpp"
-#include "./modular_election_simulation_framework/src/implementations/voter_model.hpp"
-#include "./modular_election_simulation_framework/src/implementations/voter_model_stuborn.hpp"
-#include "./modular_election_simulation_framework/src/implementations/population_voter_model.hpp"
-#include "./modular_election_simulation_framework/src/implementations/population_voter_model_stuborn.hpp"
-#include "./modular_election_simulation_framework/src/util/util.hpp"
+#include "modular_election_simulation_framework/src/core/network.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_file_io.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_generator.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_partition.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_util.hpp"
+#include "modular_election_simulation_framework/src/core/agent_population/agent_population.hpp"
+#include "modular_election_simulation_framework/src/implementations/voter_model.hpp"
+#include "modular_election_simulation_framework/src/implementations/voter_model_stuborn.hpp"
+#include "modular_election_simulation_framework/src/implementations/population_voter_model.hpp"
+#include "modular_election_simulation_framework/src/implementations/population_voter_model_stuborn.hpp"
+#include "modular_election_simulation_framework/src/util/util.hpp"
 
 
 const size_t N_select               = 10;

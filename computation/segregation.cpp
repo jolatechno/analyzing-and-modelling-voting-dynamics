@@ -1,12 +1,12 @@
 #include <iostream>
 
-#include "./modular_election_simulation_framework/src/core/segregation/multiscalar.hpp"
-#include "./modular_election_simulation_framework/src/core/segregation/multiscalar_util.hpp"
-#include "./modular_election_simulation_framework/src/core/segregation/map_util.hpp"
+#include "modular_election_simulation_framework/src/core/segregation/multiscalar.hpp"
+#include "modular_election_simulation_framework/src/core/segregation/multiscalar_util.hpp"
+#include "modular_election_simulation_framework/src/core/segregation/map_util.hpp"
 
-#include "./modular_election_simulation_framework/src/util/json_util.hpp"
-#include "./modular_election_simulation_framework/src/util/hdf5_util.hpp"
-#include "./modular_election_simulation_framework/src/util/util.hpp"
+#include "modular_election_simulation_framework/src/util/json_util.hpp"
+#include "modular_election_simulation_framework/src/util/hdf5_util.hpp"
+#include "modular_election_simulation_framework/src/util/util.hpp"
 
 
 const std::vector<std::string> candidates_from_left_to_right = {
@@ -117,15 +117,19 @@ int main(int argc, char *argv[]) {
 	H5::Group full_analysis = output_file.createGroup("full_analysis");
 	util::hdf5io::H5WriteVector(full_analysis, populations, "voter_population");
 
+	auto distances = segregation::map::util::get_distances(lat, lon);
+	util::hdf5io::H5WriteIrregular2DVector(output_geo_data, distances, "distances");
+
 	{
 		auto normalized_distortion_coefs = segregation::multiscalar::get_normalized_distortion_coefs_fast(votes,
-			(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&lat, &lon](size_t i) {
-				auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
+			(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&distances](size_t i) {
+				auto distances_slice  = std::vector<std::vector<float>>(distances.begin()+i, distances.begin()+i+1);
 				auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
 
 				return std::pair<std::vector<size_t>, std::vector<double>>(traj_idxes_slice[0], {});
 			});
-		std::cout << "\nnormalized distortion coefs: " << normalized_distortion_coefs << "  <<  (" << *std::max_element(normalized_distortion_coefs.begin(), normalized_distortion_coefs.end()) << ")\n";
+		std::cout << "\nnormalized distortion coefs: " << normalized_distortion_coefs;
+		std::cout << "  <<  (" << *std::max_element(normalized_distortion_coefs.begin(), normalized_distortion_coefs.end()) << ")\n";
 		
 		util::hdf5io::H5WriteVector(full_analysis, normalized_distortion_coefs,      "normalized_distortion_coefs");
 	}
@@ -133,30 +137,32 @@ int main(int argc, char *argv[]) {
 
 	{
 		auto normalized_distortion_coefs_pop = segregation::multiscalar::get_normalized_distortion_coefs_fast(votes,
-			(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&votes, &lat, &lon](size_t i) {
-				auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
+			(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&votes, &distances](size_t i) {
+				auto distances_slice  = std::vector<std::vector<float>>(distances.begin()+i, distances.begin()+i+1);
 				auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
 
 				auto accumulated_trajectory_pop = segregation::multiscalar::util::get_accumulated_trajectory(votes, traj_idxes_slice);
 
 				return std::pair<std::vector<size_t>, std::vector<double>>(traj_idxes_slice[0], accumulated_trajectory_pop[0]);
 			});
-		std::cout << "\nnormalized distortion coefs (pop): " << normalized_distortion_coefs_pop << "  <<  (" << *std::max_element(normalized_distortion_coefs_pop.begin(), normalized_distortion_coefs_pop.end()) << ")\n";
+		std::cout << "\nnormalized distortion coefs (pop): " << normalized_distortion_coefs_pop;
+		std::cout << "  <<  (" << *std::max_element(normalized_distortion_coefs_pop.begin(), normalized_distortion_coefs_pop.end()) << ")\n";
 		
 		util::hdf5io::H5WriteVector(full_analysis, normalized_distortion_coefs_pop,  "normalized_distortion_coefs_pop");
 	}
 
 	{
 		auto normalized_distortion_coefs_dist = segregation::multiscalar::get_normalized_distortion_coefs_fast(votes,
-			(std::function<std::pair<std::vector<size_t>, std::vector<float>>(size_t)>) [&votes, &lat, &lon](size_t i) {
-				auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
+			(std::function<std::pair<std::vector<size_t>, std::vector<float>>(size_t)>) [&votes, &distances](size_t i) {
+				auto distances_slice  = std::vector<std::vector<float>>(distances.begin()+i, distances.begin()+i+1);
 				auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
 
 				std::sort(distances_slice[0].begin(), distances_slice[0].end());
 
 				return std::pair<std::vector<size_t>, std::vector<float>>(traj_idxes_slice[0], distances_slice[0]);
 			});
-		std::cout << "\nnormalized distortion coefs (dist): " << normalized_distortion_coefs_dist << "  <<  (" << *std::max_element(normalized_distortion_coefs_dist.begin(), normalized_distortion_coefs_dist.end()) << ")\n";
+		std::cout << "\nnormalized distortion coefs (dist): " << normalized_distortion_coefs_dist;
+		std::cout << "  <<  (" << *std::max_element(normalized_distortion_coefs_dist.begin(), normalized_distortion_coefs_dist.end()) << ")\n";
 
 		util::hdf5io::H5WriteVector(full_analysis, normalized_distortion_coefs_dist, "normalized_distortion_coefs_dist");
 	}

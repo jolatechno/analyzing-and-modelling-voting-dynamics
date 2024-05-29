@@ -1,17 +1,17 @@
 #include <iostream>
 
-#include "./modular_election_simulation_framework/src/core/network.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_file_io.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_generator.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_partition.hpp"
-#include "./modular_election_simulation_framework/src/core/networks/network_util.hpp"
-#include "./modular_election_simulation_framework/src/core/agent_population/agent_population.hpp"
-#include "./modular_election_simulation_framework/src/implementations/Nvoter_model.hpp"
-#include "./modular_election_simulation_framework/src/implementations/population_Nvoter_model.hpp"
+#include "modular_election_simulation_framework/src/core/network.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_file_io.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_generator.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_partition.hpp"
+#include "modular_election_simulation_framework/src/core/networks/network_util.hpp"
+#include "modular_election_simulation_framework/src/core/agent_population/agent_population.hpp"
+#include "modular_election_simulation_framework/src/implementations/Nvoter_model.hpp"
+#include "modular_election_simulation_framework/src/implementations/population_Nvoter_model.hpp"
 
-#include "./modular_election_simulation_framework/src/util/json_util.hpp"
-#include "./modular_election_simulation_framework/src/util/hdf5_util.hpp"
-#include "./modular_election_simulation_framework/src/util/util.hpp"
+#include "modular_election_simulation_framework/src/util/json_util.hpp"
+#include "modular_election_simulation_framework/src/util/hdf5_util.hpp"
+#include "modular_election_simulation_framework/src/util/util.hpp"
 
 
 const std::vector<std::string> candidates_from_left_to_right = {
