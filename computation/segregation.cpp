@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 
 	{
 		auto normalized_distortion_coefs_dist = segregation::multiscalar::get_distortion_coefs_fast(votes,
-			(std::function<std::pair<std::vector<size_t>, std::vector<float>>(size_t)>) [&votes, &lat, &lon](size_t i) {
+			(std::function<std::pair<std::vector<size_t>, std::vector<float>>(size_t)>) [&lat, &lon](size_t i) {
 				auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});
 				auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
 
