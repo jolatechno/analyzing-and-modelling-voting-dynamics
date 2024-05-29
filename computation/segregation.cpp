@@ -66,18 +66,42 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	double normalized_factor = 1.d, normalized_factor_pop = 1.d, normalized_factor_dist = 1.d;
+	H5::Group full_analysis = output_file.createGroup("full_analysis");
+
+	double normalization_factor = 1.d, normalization_factor_pop = 1.d, normalization_factor_dist = 1.d;
 	{
 		auto distances = segregation::map::util::get_distances(lat, lon);
 		util::hdf5io::H5WriteIrregular2DVector(output_geo_data, distances, "distances");
 
-		/* TODO */
+
+		normalization_factor = segregation::multiscalar::get_normalization_factor(votes);
+		util::hdf5io::H5WriteSingle(full_analysis, normalization_factor, "normalization_factor");
+
+
+		{
+			auto traj_idxes                 = segregation::multiscalar::get_closest_neighbors(distances);
+			auto accumulated_trajectory_pop = segregation::multiscalar::util::get_accumulated_trajectory(votes, traj_idxes);
+
+			normalization_factor_pop = segregation::multiscalar::get_normalization_factor(votes, accumulated_trajectory_pop);
+			util::hdf5io::H5WriteSingle(full_analysis, normalization_factor_pop, "normalization_factor_pop");
+		}
+
+
+		{
+			for (size_t i = 0; i < distances.size(); ++i) {
+				std::sort(distances[i].begin(), distances[i].end());
+			}
+
+			normalization_factor_dist = segregation::multiscalar::get_normalization_factor(votes, distances);
+			util::hdf5io::H5WriteSingle(full_analysis, normalization_factor_dist, "normalization_factor_dist");
+		}
 	}
 
 
-	auto convergence_thresholds = util::math::logspace<double>(1e-7d, 9.d, N_thresh);
-
 	{
+		auto convergence_thresholds = util::math::logspace<double>(1e-7d, 9.d, N_thresh);
+
+
 		std::vector<size_t> full_analyze_idxs(lat.size());
 		std::iota(full_analyze_idxs.begin(), full_analyze_idxs.end(), 0);
 		std::shuffle(full_analyze_idxs.begin(), full_analyze_idxs.end(), util::get_random_generator());
@@ -92,7 +116,7 @@ int main(int argc, char *argv[]) {
 		auto vote_trajectories     = segregation::multiscalar::get_trajectories(votes, traj_idxes_slice);
 		auto KLdiv_trajectories    = segregation::multiscalar::get_KLdiv_trajectories(vote_trajectories);
 		auto focal_distances_idxes = segregation::multiscalar::get_focal_distance_indexes(KLdiv_trajectories, convergence_thresholds);
-		auto distortion_coefs      = segregation::multiscalar::get_distortion_coefs_from_KLdiv(KLdiv_trajectories);
+		auto distortion_coefs      = segregation::multiscalar::get_distortion_coefs_from_KLdiv(KLdiv_trajectories, std::vector<std::vector<float>>{}, normalization_factor);
 
 
 		H5::Group partial_analysis = output_file.createGroup("partial_analysis");
@@ -123,7 +147,6 @@ int main(int argc, char *argv[]) {
 
 	std::cout << "Computing full analysis...\n";
 
-	H5::Group full_analysis = output_file.createGroup("full_analysis");
 	util::hdf5io::H5WriteVector(full_analysis, populations, "voter_population");
 
 	{
@@ -133,7 +156,7 @@ int main(int argc, char *argv[]) {
 				auto traj_idxes_slice = segregation::multiscalar::get_closest_neighbors(distances_slice);
 
 				return std::pair<std::vector<size_t>, std::vector<double>>(traj_idxes_slice[0], {});
-			}, normalized_factor);
+			}, normalization_factor);
 		std::cout << "\nnormalized distortion coefs: " << normalized_distortion_coefs;
 		std::cout << "  <<  (" << *std::max_element(normalized_distortion_coefs.begin(), normalized_distortion_coefs.end()) << ")\n";
 		
@@ -150,7 +173,7 @@ int main(int argc, char *argv[]) {
 				auto accumulated_trajectory_pop = segregation::multiscalar::util::get_accumulated_trajectory(votes, traj_idxes_slice);
 
 				return std::pair<std::vector<size_t>, std::vector<double>>(traj_idxes_slice[0], accumulated_trajectory_pop[0]);
-			}, normalized_factor_pop);
+			}, normalization_factor_pop);
 		std::cout << "\nnormalized distortion coefs (pop): " << normalized_distortion_coefs_pop;
 		std::cout << "  <<  (" << *std::max_element(normalized_distortion_coefs_pop.begin(), normalized_distortion_coefs_pop.end()) << ")\n";
 		
@@ -166,7 +189,7 @@ int main(int argc, char *argv[]) {
 				std::sort(distances_slice[0].begin(), distances_slice[0].end());
 
 				return std::pair<std::vector<size_t>, std::vector<float>>(traj_idxes_slice[0], distances_slice[0]);
-			}, normalized_factor_dist);
+			}, normalization_factor_dist);
 		std::cout << "\nnormalized distortion coefs (dist): " << normalized_distortion_coefs_dist;
 		std::cout << "  <<  (" << *std::max_element(normalized_distortion_coefs_dist.begin(), normalized_distortion_coefs_dist.end()) << ")\n";
 
