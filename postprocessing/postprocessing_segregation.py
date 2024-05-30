@@ -130,7 +130,7 @@ with h5py.File(base_path + output_file, "r") as file:
 #########################################################
 
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(17,6))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
 ax1.scatter(longitude, latitude, c=dist_coef_idx, s=30, alpha=0.6)
@@ -139,7 +139,7 @@ pl = ax1.scatter(longitude, latitude, c=dist_coef_idx, s=1)
 
 cbar = fig.colorbar(pl, label="distortion coefficient")
 
-ax1.set_aspect('equal', adjustable='box')
+#ax1.set_aspect('equal', adjustable='box')
 ax1.set_title("map of the distortion coefficient based\non the number of voting bureau")
 
 """ -------------------------------------------------------
@@ -152,10 +152,24 @@ pl = ax2.scatter(longitude, latitude, c=dist_coef_pop, s=1)
 
 cbar = fig.colorbar(pl, label="distortion coefficient")
 
-ax2.set_aspect('equal', adjustable='box')
+#ax2.set_aspect('equal', adjustable='box')
 ax2.set_title("map of the distortion coefficient based\non the agreagated population")
 
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
 
+ax3.scatter(longitude, latitude, c=dist_coef_dist, s=30, alpha=0.6)
+ax3.scatter(longitude, latitude, c=dist_coef_dist, s=10, alpha=0.6)
+pl = ax3.scatter(longitude, latitude, c=dist_coef_dist, s=1)
+
+cbar = fig.colorbar(pl, label="distortion coefficient")
+
+#ax3.set_aspect('equal', adjustable='box')
+ax3.set_title("map of the distortion coefficient based\non distances")
+
+
+fig.tight_layout(pad=2.0)
 fig.savefig(base_path_figure + "map.png", dpi=200)
 
 
@@ -219,30 +233,36 @@ fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14,7))
+fig, ax = plt.subplots(1, 1, figsize=(7,7))
 
 
 for i in range(N_full_analyze):
-	ax1.plot(KL_div_traj[i], "-")
+	ax.plot(KL_div_traj[i], "-")
 
-ax1.set_title("KL-divergence trajectories")
-ax1.set_ylabel("KL-divergence")
-ax1.set_xlabel("number of voting bureau")
-ax1.set_ylim([0, 0.5])
-
-""" -------------------------------------------------------
------------------------------------------------------------
-------------------------------------------------------- """
-
-for i in range(N_full_analyze):
-	ax2.plot(convergence_thresholds, focal_distances[i], "-")
-
-ax2.yaxis.set_label_position("right")
-ax2.yaxis.tick_right()
-ax2.set_title("Focal-distance based on the number of voting bureau")
-ax2.set_ylabel("focal distance [number of voting bureau]")
-ax2.set_xlabel("convergence threshold")
-ax2.set_xlim([0, 0.5])
+ax.set_title("KL-divergence trajectories")
+ax.set_ylabel("KL-divergence")
+ax.set_xlabel("number of voting bureau")
+ax.set_ylim([0, 0.5])
 
 
 fig.savefig(base_path_figure + "KL-traj.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
+fig, ax = plt.subplots(1, 1, figsize=(7,7))
+
+
+for i in range(N_full_analyze):
+	ax.plot(convergence_thresholds, focal_distances[i], "-")
+
+ax.set_title("Focal-distance based on the number of voting bureau")
+ax.set_ylabel("focal distance [number of voting bureau]")
+ax.set_xlabel("convergence threshold")
+ax.set_xlim([0, 0.5])
+
+
+fig.savefig(base_path_figure + "focal_distances.png", dpi=200)
