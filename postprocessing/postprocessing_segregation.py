@@ -51,6 +51,8 @@ output_file = config["output_file_segregation"]
 
 base_path_figure = "figures/" + config["segregation"]["postprocessing"]["base_filename"]
 
+interesting_candidates = config["segregation"]["postprocessing"]["interesting_candidates"]
+
 N_full_analyze    = config["segregation"]["N_full_analyze"]
 N_thresh          = config["segregation"]["N_thresh"]
 with h5py.File(base_path + output_file, "r") as file:
@@ -220,7 +222,6 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 fig, axes = plt.subplots(1, 3, figsize=(18,5))
 
 
-interesting_candidates = [2, 7, 10]
 for i_ax in range(3):
 	for i in range(N_full_analyze):
 		axes[i_ax].plot(vote_traj[interesting_candidates[i_ax]][i], "-")

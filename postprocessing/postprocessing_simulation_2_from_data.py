@@ -52,6 +52,8 @@ output_file = config["output_file_simulation"]
 
 base_path_figure = "figures/" + config["simulation"]["postprocessing"]["base_filename"]
 
+interesting_candidates = config["simulation"]["postprocessing"]["interesting_candidates"]
+
 N_counties = config["simulation"]["N_counties"]
 N_try      = config["simulation"]["N_try"]
 N_it       = config["simulation"]["N_it"]
@@ -199,59 +201,24 @@ fig.savefig(base_path_figure + "total_stuborness_proportion.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,5))
+fig, axes = plt.subplots(1, 3, figsize=(15,5))
 
-candidate_idx = 4
-for node,i in enumerate(nodes):
-	if N_nodes-i <= 10:
-		ax1.plot(simulation_data[0, :, N_candidates+candidate_idx, node], iterations_saved,
-		         "k--", alpha=1, linewidth=1.1)
-	else:
-		ax1.plot(simulation_data[0, :, N_candidates+candidate_idx, node], iterations_saved,
-		         "-", alpha=0.2, linewidth=0.3)
 
-ax1.set_title(f"Trajectories of the { candidates[candidate_idx] } vote\nstuborness for each node (try 0)")
-ax1.set_ylabel("number of steps")
-ax1.set_xlabel("Stuborn proportion")
+for i_ax in range(3):
+	for node,i in enumerate(nodes):
+		if N_nodes-i <= 10:
+			axes[i_ax].plot(simulation_data[0, :, N_candidates+interesting_candidates[i_ax], node], iterations_saved,
+			         "k--", alpha=1, linewidth=1.1)
+		else:
+			axes[i_ax].plot(simulation_data[0, :, N_candidates+interesting_candidates[i_ax], node], iterations_saved,
+			         "-", alpha=0.2, linewidth=0.3)
 
-""" -------------------------------------------------------
------------------------------------------------------------
-------------------------------------------------------- """
+	axes[i_ax].set_title(f"Trajectories of the { candidates[interesting_candidates[i_ax]] } vote\nstuborness for each node (try 0)")
+	axes[i_ax].set_ylabel("number of steps")
+	axes[i_ax].set_xlabel("Stuborn proportion")
 
-candidate_idx = 5
-for node,i in enumerate(nodes):
-	if N_nodes-i <= 10:
-		ax2.plot(simulation_data[0, :, N_candidates+candidate_idx, node], iterations_saved,
-		         "k--", alpha=1, linewidth=1.1)
-	else:
-		ax2.plot(simulation_data[0, :, N_candidates+candidate_idx, node], iterations_saved,
-		         "-", alpha=0.2, linewidth=0.3)
 
-ax2.yaxis.set_label_position("right")
-ax2.yaxis.tick_right()
-ax2.set_title(f"Trajectories of the { candidates[candidate_idx] } vote\nstuborness for each node (try 0)")
-ax2.set_ylabel("number of steps")
-ax2.set_xlabel("Stuborn proportion")
-
-""" -------------------------------------------------------
------------------------------------------------------------
-------------------------------------------------------- """
-
-candidate_idx = 7
-for node,i in enumerate(nodes):
-	if N_nodes-i <= 10:
-		ax3.plot(simulation_data[0, :, N_candidates+candidate_idx, node], iterations_saved,
-		         "k--", alpha=1, linewidth=1.1)
-	else:
-		ax3.plot(simulation_data[0, :, N_candidates+candidate_idx, node], iterations_saved,
-		         "-", alpha=0.2, linewidth=0.3)
-
-ax3.yaxis.set_label_position("right")
-ax3.yaxis.tick_right()
-ax3.set_title(f"Trajectories of the { candidates[candidate_idx] } vote\nstuborness for each node (try 0)")
-ax3.set_ylabel("number of steps")
-ax3.set_xlabel("Stuborn proportion")
-
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "stuborness_proportion.png", dpi=200)
 
 
