@@ -79,6 +79,9 @@ int main(int argc, char *argv[]) {
 	const int    n_election = config["simulation"]["n_election"].asInt();
 	const int    n_save     = config["simulation"]["n_save"    ].asInt();
 
+	const bool read_network_from_file = config["simulation"]["read_network_from_file"].asBool();
+	const int  n_attachment           = config["simulation"]["n_attachment"          ].asInt();
+
 	H5::H5File output_file(output_file_name.c_str(), H5F_ACC_TRUNC);
 	H5::H5File input_file( input_file_name .c_str(), H5F_ACC_RDWR);
 
@@ -97,20 +100,26 @@ int main(int argc, char *argv[]) {
 	auto *election_serializer      = new BPsimulation::implem::NVoterMajorityElectionSerializer<N_candidates>();
 
 
-	auto *network = new BPsimulation::SocialNetwork<BPsimulation::implem::AgentPopulationNVoterStuborn<N_candidates>>();
-	BPsimulation::io::read_network_from_file(network, input_file);
-	BPsimulation::io::write_network_to_file( network, output_file);
-	N_nodes = network->num_nodes();
-
-
 	std::vector<float> lat, lon;
 	H5::Group geo_data = input_file.openGroup("geo_data");
 	util::hdf5io::H5ReadVector(geo_data, lat, "lat");
 	util::hdf5io::H5ReadVector(geo_data, lon, "lon");
+	N_nodes = lat.size();
 
 	H5::Group output_geo_data = output_file.createGroup("geo_data");
 	util::hdf5io::H5WriteVector(output_geo_data, lat, "lat");
 	util::hdf5io::H5WriteVector(output_geo_data, lon, "lon");
+
+
+	auto *network = new BPsimulation::SocialNetwork<BPsimulation::implem::AgentPopulationNVoterStuborn<N_candidates>>(N_nodes);
+	if (read_network_from_file) {
+		BPsimulation::io::read_network_from_file(network, input_file);
+	} else {
+		auto distances = segregation::map::util::get_distances(lat, lon);
+		BPsimulation::random::closest_neighbor_limited_attachment(network, distances, n_attachment);
+	}
+	BPsimulation::io::write_network_to_file(network, output_file);
+
 
 	std::vector<std::vector<size_t>> counties = {{}, {}};
 	float median = get_median(lat);

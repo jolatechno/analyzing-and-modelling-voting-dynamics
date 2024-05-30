@@ -20,7 +20,7 @@
 	},
 	"output_file_simulation" : "simulation-output-fromdata.h5",
 	"simulation" : {
-		"N_select"                           : 15,
+		"N_select"                           : 50,
 		"dt"                                 : 0.2,
 		"overtoon_multiplier"                : 0.7,
 		"overtoon_radicalization_multiplier" : 0.2,
@@ -32,6 +32,8 @@
 		"N_it"       : 2101,
 		"n_election" : 350,
 		"n_save"     : 15,
+		"read_network_from_file" : false,
+		"n_attachment"           : 4,
 		"postprocessing" : {
 			"base_filename" : "simulation_fromdata/",
 			"interesting_candidates" : [4, 5, 7]
@@ -43,6 +45,8 @@
 		"N_try"      : 20,
 		"N_it"       : 2001,
 		"n_save"     : 20,
+		"read_network_from_file" : false,
+		"n_attachment"           : 4,
 		"postprocessing" : {
 			"base_filename" : "convergence_time/"
 		}
