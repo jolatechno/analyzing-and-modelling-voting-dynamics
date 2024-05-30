@@ -276,13 +276,51 @@ fig.savefig(base_path_figure + "map.png", dpi=200)
 
 
 output_file = config["output_file_segregation"]
-dist_coef_pop  = np.zeros(N_total_nodes)
+dist_coef      = np.zeros(N_nodes)
+dist_coef_pop  = np.zeros(N_nodes)
+dist_coef_dist = np.zeros(N_nodes)
 
 with h5py.File(base_path + output_file, "r") as file:
+	dist_coef     [:] = file["full_analysis"]["normalized_distortion_coefs"]
 	dist_coef_pop [:] = file["full_analysis"]["normalized_distortion_coefs_pop"]
+	dist_coef_dist[:] = file["full_analysis"]["normalized_distortion_coefs_dist"]
 
 
 #########################################################
 #########################################################
 #########################################################
+
+
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+
+
+ax1.plot(dist_coef, distortion_coefficients, "+")
+
+ax1.set_title("normalized distortion coefficient\nbased on number of voting bureau versus\nbased on agregated population")
+ax1.set_ylabel("distortion coefficient [based on convegrence time]")
+ax1.set_xlabel("distortion coefficient [based on number of voting bureau]")
+
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
+
+ax2.plot(dist_coef_pop, distortion_coefficients, "+")
+
+ax2.set_title("normalized distortion coefficient\nbased on distance versus\nbased on agregated population")
+ax2.set_ylabel("distortion coefficient [based on convegrence time]")
+ax2.set_xlabel("distortion coefficient [based on agregated population]")
+
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
+
+ax3.plot(dist_coef_dist, distortion_coefficients, "+")
+
+ax3.set_title("normalized distortion coefficient\nbased on distance versus\nbased on agregated population")
+ax3.set_ylabel("distortion coefficient [based on convegrence time]")
+ax3.set_xlabel("distortion coefficient [based on distance]")
+
+
+fig.tight_layout(pad=2.0)
+fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=200)
 
