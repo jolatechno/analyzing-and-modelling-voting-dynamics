@@ -13,8 +13,9 @@
 		"N_full_analyze"          : 800,
 		"N_thresh"                : 400,
 		"postprocessing" : {
-			"base_filename" : "segregation/paris_",
-			"interesting_candidates" : [2, 7, 10]
+			"base_filename"          : "segregation/paris_",
+			"interesting_candidates" : [2, 7, 10],
+			"diameters"              : [0.15, 0.4, 0.65]
 		}
 	},
 	"output_file_simulation" : "simulation-output-fromdata.h5",
@@ -63,8 +64,9 @@
 			"N_full_analyze" : 800,
 			"N_thresh"       : 400,
 			"postprocessing" : {
-				"base_filename" : "segregation/paris_",
-				"interesting_candidates" : [2, 7, 10]
+				"base_filename"          : "segregation/paris_",
+				"interesting_candidates" : [2, 7, 10],
+				"diameters"              : [0.15, 0.4, 0.65]
 			}
 		}
 	},
@@ -84,8 +86,9 @@
 			"N_full_analyze"          : 800,
 			"N_thresh"                : 400,
 			"postprocessing" : {
-				"base_filename" : "segregation/petite-couronne_",
-				"interesting_candidates" : [2, 7, 10]
+				"base_filename"          : "segregation/petite-couronne_",
+				"interesting_candidates" : [2, 7, 10],
+				"diameters"              : []
 			}
 		}
 	},
@@ -105,8 +108,9 @@
 			"N_full_analyze"          : 800,
 			"N_thresh"                : 400,
 			"postprocessing" : {
-				"base_filename" : "segregation/region-paris_",
-				"interesting_candidates" : [2, 7, 10]
+				"base_filename"          : "segregation/region-paris_",
+				"interesting_candidates" : [2, 7, 10],
+				"diameters"              : []
 			}
 		}
 	},
@@ -136,8 +140,9 @@
 			"N_full_analyze"          : 800,
 			"N_thresh"                : 400,
 			"postprocessing" : {
-				"base_filename" : "segregation/france_",
-				"interesting_candidates" : [2, 7, 10]
+				"base_filename"          : "segregation/france_",
+				"interesting_candidates" : [2, 7, 10],
+				"diameters"              : []
 			}
 		}
 	}

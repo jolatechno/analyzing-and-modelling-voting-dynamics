@@ -124,7 +124,7 @@ fig, ax = plt.subplots(1, 1, figsize=(8,8))
 nodes = np.arange(N_nodes)
 np.random.shuffle(nodes)
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax.plot(iterations_saved, simulation_data[0, :, 1, node],
 		        "k--", alpha=1, linewidth=1.1)
@@ -166,7 +166,7 @@ for itry in range(N_try):
 
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax.plot(iterations_saved, KL_div[0, :, node],
 		        "k--", alpha=1, linewidth=1.1)
@@ -202,7 +202,7 @@ for itry in range(N_try):
 ------------------------------------------------------- """
 
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax.plot(convergence_thresholds, focal_times[0, :, node],
 		        "k--", alpha=1, linewidth=1.1)

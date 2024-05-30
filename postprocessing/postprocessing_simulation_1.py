@@ -235,7 +235,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
 nodes = np.arange(N_nodes)
 np.random.shuffle(nodes)
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax1.plot(simulation_data[0, :, 3, node], iterations_saved,
 		         "k--", alpha=1, linewidth=1.1)
@@ -247,7 +247,7 @@ ax1.set_title("Trajectories of the up-vote\nstuborness for each node (try 0)")
 ax1.set_ylabel("number of steps")
 ax1.set_xlabel("Stuborn proportion")
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax2.plot(simulation_data[0, :, 2, node], iterations_saved,
 		         "k--", alpha=1, linewidth=1.1)

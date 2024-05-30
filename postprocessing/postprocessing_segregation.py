@@ -59,6 +59,8 @@ N_thresh          = config["segregation"]["N_thresh"]
 with h5py.File(base_path + output_file, "r") as file:
 	N_total_nodes = len(file["geo_data"]["lat"])
 
+diameters = (np.array(config["segregation"]["postprocessing"]["diameters"])*N_total_nodes).astype(np.int32)
+
 
 #########################################################
 #########################################################
@@ -145,6 +147,12 @@ with h5py.File(base_path + preprocessed_file, "r") as file:
 
 nodes = np.arange(N_full_analyze)
 np.random.shuffle(nodes)
+
+distances_around_main = np.sort([
+	np.sqrt(
+		(longitude[nodes[N_full_analyze-1]] - lon)**2 +
+		(latitude[ nodes[N_full_analyze-1]] - lat)**2
+	) for (lon, lat) in zip(longitude, latitude)])
 
 
 #########################################################
@@ -288,12 +296,56 @@ fig, axes = plt.subplots(1, 3, figsize=(18,5))
 
 
 for i_ax in range(3):
-	for node,i in enumerate(nodes):
-		if N_full_analyze-i <= 10:
-			axes[i_ax].plot(vote_traj[interesting_candidates[i_ax]][i],
+	voting_prop = vote_proportions[interesting_candidates[i_ax]]
+
+	axes[i_ax].scatter(longitude, latitude, c=voting_prop, s=30, alpha=0.6)
+	axes[i_ax].scatter(longitude, latitude, c=voting_prop, s=10, alpha=0.6)
+	pl = axes[i_ax].scatter(longitude, latitude, c=voting_prop, s=1)
+
+	axes[i_ax].plot([longitude[nodes[N_full_analyze-1]]], [latitude[nodes[N_full_analyze-1]]],
+		"r+", alpha=0.7, markersize=20)
+
+	old_xlim, old_ylim = axes[i_ax].get_xlim(), axes[i_ax].get_ylim()
+	for diameter in diameters:
+		distance = distances_around_main[diameter]
+
+		axes[i_ax].add_patch(plt.Circle(
+			(longitude[nodes[N_full_analyze-1]], latitude[nodes[N_full_analyze-1]]),
+			distance, fill=False, edgecolor='r', linestyle="--", linewidth=2))
+
+	cbar = fig.colorbar(pl, label=f"proportion of expressed vote for { candidates[interesting_candidates[i_ax]] }")
+
+	axes[i_ax].set_title(f"Map of voting results for { candidates[interesting_candidates[i_ax]] }")
+	axes[i_ax].set_xlim(old_xlim)
+	axes[i_ax].set_ylim(old_ylim)
+
+
+fig.tight_layout(pad=2.0)
+fig.savefig(base_path_figure + "vote_map.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
+fig, axes = plt.subplots(1, 3, figsize=(18,5))
+
+
+for i_ax in range(3):
+	for i,node in enumerate(nodes):
+		if i == N_full_analyze-1:
+			axes[i_ax].plot(vote_traj[interesting_candidates[i_ax]][node],
+			                "r--", alpha=1, linewidth=1.1)
+
+			for diameter in diameters:
+				axes[i_ax].plot([diameter], [vote_traj[interesting_candidates[i_ax]][node, diameter]],
+			                    "r+", alpha=1, markersize=20)
+		elif N_full_analyze-i <= 10:
+			axes[i_ax].plot(vote_traj[interesting_candidates[i_ax]][node],
 			                "k--", alpha=1, linewidth=1.1)
 		else:
-			axes[i_ax].plot(vote_traj[interesting_candidates[i_ax]][i],
+			axes[i_ax].plot(vote_traj[interesting_candidates[i_ax]][node],
 				            "-", alpha=0.2, linewidth=0.3)
 
 	axes[i_ax].set_title(f"Voting trajectory for { candidates[interesting_candidates[i_ax]] }")
@@ -310,39 +362,22 @@ fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 #########################################################
 
 
-fig, axes = plt.subplots(1, 3, figsize=(18,5))
-
-
-for i_ax in range(3):
-	voting_prop = vote_proportions[interesting_candidates[i_ax]]
-
-	axes[i_ax].scatter(longitude, latitude, c=voting_prop, s=30, alpha=0.6)
-	axes[i_ax].scatter(longitude, latitude, c=voting_prop, s=10, alpha=0.6)
-	pl = axes[i_ax].scatter(longitude, latitude, c=voting_prop, s=1)
-
-	cbar = fig.colorbar(pl, label=f"proportion of expressed vote for { candidates[interesting_candidates[i_ax]] }")
-
-	axes[i_ax].set_title(f"Map of voting results for { candidates[interesting_candidates[i_ax]] }")
-
-
-fig.tight_layout(pad=2.0)
-fig.savefig(base_path_figure + "vote_map.png", dpi=200)
-
-
-#########################################################
-#########################################################
-#########################################################
-
-
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
-for node,i in enumerate(nodes):
-	if N_full_analyze-i <= 10:
-		ax1.plot(KL_div_traj[i],
+for i,node in enumerate(nodes):
+	if i == N_full_analyze-1:
+		ax1.plot(KL_div_traj[node],
+		         "r--", alpha=1, linewidth=1.1)
+
+		for diameter in diameters:
+			ax1.plot([diameter], [KL_div_traj[node, diameter]],
+				     "r+", alpha=1, markersize=20)
+	elif N_full_analyze-i <= 10:
+		ax1.plot(KL_div_traj[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax1.plot(KL_div_traj[i],
+		ax1.plot(KL_div_traj[node],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax1.set_title("KL-divergence trajectories\nbased on the number of voting bureau")
@@ -354,12 +389,19 @@ ax1.set_ylim([0, 0.5])
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-for node,i in enumerate(nodes):
-	if N_full_analyze-i <= 10:
-		ax2.plot(accumulated_trajectory_pop[i], KL_div_traj[i],
+for i,node in enumerate(nodes):
+	if i == N_full_analyze-1:
+		ax2.plot(accumulated_trajectory_pop[node], KL_div_traj[node],
+		         "r--", alpha=1, linewidth=1.1)
+
+		for diameter in diameters:
+			ax2.plot([accumulated_trajectory_pop[node][diameter]], [KL_div_traj[node, diameter]],
+				     "r+", alpha=1, markersize=20)
+	elif N_full_analyze-i <= 10:
+		ax2.plot(accumulated_trajectory_pop[node], KL_div_traj[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax2.plot(accumulated_trajectory_pop[i], KL_div_traj[i],
+		ax2.plot(accumulated_trajectory_pop[node], KL_div_traj[node],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax2.set_title("KL-divergence trajectories\nbased on the accumulated population")
@@ -371,12 +413,19 @@ ax2.set_ylim([0, 0.5])
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-for node,i in enumerate(nodes):
-	if N_full_analyze-i <= 10:
-		ax3.plot(np.sort(distances[i]), KL_div_traj[i],
+for i,node in enumerate(nodes):
+	if i == N_full_analyze-1:
+		ax3.plot(np.sort(distances[node]), KL_div_traj[node],
+		         "r--", alpha=1, linewidth=1.1)
+
+		for diameter in diameters:
+			ax3.plot([np.sort(distances[node])[diameter]], [KL_div_traj[node, diameter]],
+				     "r+", alpha=1, markersize=20)
+	elif N_full_analyze-i <= 10:
+		ax3.plot(np.sort(distances[node]), KL_div_traj[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax3.plot(np.sort(distances[i]), KL_div_traj[i],
+		ax3.plot(np.sort(distances[node]), KL_div_traj[node],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax3.set_title("KL-divergence trajectories\nbased on distance")
@@ -397,12 +446,30 @@ fig.savefig(base_path_figure + "KL-traj.png", dpi=200)
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
-for node,i in enumerate(nodes):
-	if N_full_analyze-i <= 10:
-		ax1.plot(convergence_thresholds, focal_distances[i],
+remarquable_thresholds = []
+for diameter in diameters:
+	for i in reversed(range(N_thresh)):
+		if focal_distances[nodes[N_full_analyze-1], i] >= diameter:
+			remarquable_thresholds.append(convergence_thresholds[i])
+			break
+
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
+
+for i,node in enumerate(nodes):
+	if i == N_full_analyze-1:
+		ax1.plot(convergence_thresholds, focal_distances[node],
+		         "r--", alpha=1, linewidth=1.1)
+
+		for thresh,diameter in zip(remarquable_thresholds,diameters):
+			ax1.plot([thresh], [diameter],
+				     "r+", alpha=1, markersize=20)
+	elif N_full_analyze-i <= 10:
+		ax1.plot(convergence_thresholds, focal_distances[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax1.plot(convergence_thresholds, focal_distances[i],
+		ax1.plot(convergence_thresholds, focal_distances[node],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax1.set_title("Focal-distance trajectories\nbased on the number of voting bureau")
@@ -414,12 +481,19 @@ ax1.set_xlim([0, 0.5])
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-for node,i in enumerate(nodes):
-	if N_full_analyze-i <= 10:
-		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[i][focal_distances[i].astype(np.int32)],
+for i,node in enumerate(nodes):
+	if i == N_full_analyze-1:
+		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[node][focal_distances[node].astype(np.int32)],
+		         "r--", alpha=1, linewidth=1.1)
+
+		for thresh,diameter in zip(remarquable_thresholds,diameters):
+			ax2.plot([thresh], [accumulated_trajectory_pop[node][diameter]],
+				     "r+", alpha=1, markersize=20)
+	elif N_full_analyze-i <= 10:
+		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[node][focal_distances[node].astype(np.int32)],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[i][focal_distances[i].astype(np.int32)],
+		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[node][focal_distances[node].astype(np.int32)],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax2.set_title("Focal-distance trajectories\nbased on the accumulated population")
@@ -431,12 +505,19 @@ ax2.set_xlim([0, 0.5])
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-for node,i in enumerate(nodes):
-	if N_full_analyze-i <= 10:
-		ax3.plot(convergence_thresholds, np.sort(distances[i])[focal_distances[i].astype(np.int32)],
+for i,node in enumerate(nodes):
+	if i == N_full_analyze-1:
+		ax3.plot(convergence_thresholds, np.sort(distances[node])[focal_distances[node].astype(np.int32)],
+		         "r--", alpha=1, linewidth=1.1)
+
+		for thresh,diameter in zip(remarquable_thresholds,diameters):
+			ax3.plot([thresh], [np.sort(distances[node])[diameter]],
+				     "r+", alpha=1, markersize=20)
+	elif N_full_analyze-i <= 10:
+		ax3.plot(convergence_thresholds, np.sort(distances[node])[focal_distances[node].astype(np.int32)],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax3.plot(convergence_thresholds, np.sort(distances[i])[focal_distances[i].astype(np.int32)],
+		ax3.plot(convergence_thresholds, np.sort(distances[node])[focal_distances[node].astype(np.int32)],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax3.set_title("Focal-distance trajectories\nbased on distance")
@@ -465,12 +546,12 @@ fig.savefig(base_path_figure + "focal_distances.png", dpi=200)
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,5))
 
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax1.plot(accumulated_trajectory_pop[i],
+		ax1.plot(accumulated_trajectory_pop[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax1.plot(accumulated_trajectory_pop[i],
+		ax1.plot(accumulated_trajectory_pop[node],
 			     "-", alpha=0.2, linewidth=0.3)
 
 ax1.plot(worst_Xvalues_pop, "r-.")
@@ -483,12 +564,12 @@ ax1.set_xlabel("number of voting bureau")
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax2.plot(np.sort(distances[i]),
+		ax2.plot(np.sort(distances[node]),
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax2.plot(np.sort(distances[i]),
+		ax2.plot(np.sort(distances[node]),
 			     "-", alpha=0.2, linewidth=0.3)
 
 ax2.plot(worst_Xvalues_dist, "r-.")
@@ -512,12 +593,12 @@ fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 ax1.plot(worst_KLdiv_trajectory, "r-.")
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax1.plot(KL_div_traj[i],
+		ax1.plot(KL_div_traj[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax1.plot(KL_div_traj[i],
+		ax1.plot(KL_div_traj[node],
 			     "-", alpha=0.2, linewidth=0.3)
 
 ax1.set_title("Worst KL-divergence trajectories\nbased on the number of voting bureau")
@@ -530,12 +611,12 @@ ax1.set_xlabel("number of voting bureau")
 
 ax2.plot(worst_Xvalues_pop, worst_KLdiv_trajectory, "r-.")
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax2.plot(accumulated_trajectory_pop[i], KL_div_traj[i],
+		ax2.plot(accumulated_trajectory_pop[node], KL_div_traj[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax2.plot(accumulated_trajectory_pop[i], KL_div_traj[i],
+		ax2.plot(accumulated_trajectory_pop[node], KL_div_traj[node],
 			     "-", alpha=0.2, linewidth=0.3)
 
 ax2.set_title("Worst KL-divergence trajectories\nbased on the accumulated population")
@@ -548,12 +629,12 @@ ax2.set_xlabel("accumulated population")
 
 ax3.plot(worst_Xvalues_dist, worst_KLdiv_trajectory, "r-.")
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax3.plot(np.sort(distances[i]), KL_div_traj[i],
+		ax3.plot(np.sort(distances[node]), KL_div_traj[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax3.plot(np.sort(distances[i]), KL_div_traj[i],
+		ax3.plot(np.sort(distances[node]), KL_div_traj[node],
 			     "-", alpha=0.2, linewidth=0.3)
 
 ax3.set_title("Worst KL-divergence trajectories\nbased on distance")
@@ -575,12 +656,12 @@ fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 ax1.plot(convergence_thresholds, worst_focal_distances, "r-.")
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax1.plot(convergence_thresholds, focal_distances[i],
+		ax1.plot(convergence_thresholds, focal_distances[node],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax1.plot(convergence_thresholds, focal_distances[i],
+		ax1.plot(convergence_thresholds, focal_distances[node],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax1.set_title("Worst focal-distance trajectory\nbased on the number of voting bureau")
@@ -593,12 +674,12 @@ ax1.set_xlabel("convergence threshold")
 
 ax2.plot(convergence_thresholds, worst_Xvalues_pop[worst_focal_distances.astype(np.int32)], "r-.")
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[i][focal_distances[i].astype(np.int32)],
+		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[node][focal_distances[node].astype(np.int32)],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[i][focal_distances[i].astype(np.int32)],
+		ax2.plot(convergence_thresholds, accumulated_trajectory_pop[node][focal_distances[node].astype(np.int32)],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax2.set_title("Worst focal-distance trajectory\nbased on the accumulated population")
@@ -611,12 +692,12 @@ ax2.set_xlabel("convergence threshold")
 
 ax3.plot(convergence_thresholds, worst_Xvalues_dist[worst_focal_distances.astype(np.int32)], "r-.")
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_full_analyze-i <= 10:
-		ax3.plot(convergence_thresholds, np.sort(distances[i])[focal_distances[i].astype(np.int32)],
+		ax3.plot(convergence_thresholds, np.sort(distances[node])[focal_distances[node].astype(np.int32)],
 		         "k--", alpha=1, linewidth=1.1)
 	else:
-		ax3.plot(convergence_thresholds, np.sort(distances[i])[focal_distances[i].astype(np.int32)],
+		ax3.plot(convergence_thresholds, np.sort(distances[node])[focal_distances[node].astype(np.int32)],
 			    "-", alpha=0.2, linewidth=0.3)
 
 ax3.set_title("Worst focal-distance trajectory\nbased on distance")

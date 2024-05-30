@@ -193,7 +193,7 @@ fig.savefig(base_path_figure + "county_map.png", dpi=200)
 
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax.plot(np.sum(simulation_data[0, :, N_candidates:, node], axis=1), iterations_saved,
 		        "k--", alpha=1, linewidth=1.1)
@@ -217,7 +217,7 @@ fig, axes = plt.subplots(1, 3, figsize=(15,5))
 
 
 for i_ax in range(3):
-	for node,i in enumerate(nodes):
+	for i,node in enumerate(nodes):
 		if N_nodes-i <= 10:
 			axes[i_ax].plot(simulation_data[0, :, N_candidates+interesting_candidates[i_ax], node], iterations_saved,
 			         "k--", alpha=1, linewidth=1.1)
@@ -310,7 +310,7 @@ fig.savefig(base_path_figure + "election_results.png", dpi=200)
 
 fig, ax = plt.subplots(1, 1, figsize=(10,10))
 
-for node,i in enumerate(nodes):
+for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax.plot(iterations_saved, normalized_distortion_coefs[node, :],
 		         "k--", alpha=1, linewidth=1.1)

@@ -2,6 +2,7 @@
 **.o
 
 **/__pycache__
+**.ipynb_checkpoints
 
 computation/output/**
 !computation.output/Readme.txt
