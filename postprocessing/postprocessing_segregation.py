@@ -178,7 +178,7 @@ fig.savefig(base_path_figure + "map.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
 ax1.hist(dist_coef_idx, density=True, bins=30)
@@ -208,6 +208,7 @@ ax3.set_ylabel("density")
 ax3.set_xlabel("distortion coefficient")
 
 
+fig.tight_layout(pad=2.0)
 fig.savefig(base_path_figure + "histograms.png", dpi=200)
 
 
@@ -216,7 +217,9 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 #########################################################
 
 
-fig, axes = plt.subplots(1, 3, figsize=(15,5))
+fig, axes = plt.subplots(1, 3, figsize=(18,5))
+
+
 interesting_candidates = [2, 7, 10]
 for i_ax in range(3):
 	for i in range(N_full_analyze):
@@ -225,6 +228,8 @@ for i_ax in range(3):
 		axes[i_ax].set_ylabel("vote proportion")
 		axes[i_ax].set_xlabel("number of voting bureau")
 
+
+fig.tight_layout(pad=2.0)
 fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 
 
@@ -233,18 +238,37 @@ fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(7,7))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
 for i in range(N_full_analyze):
-	ax.plot(KL_div_traj[i], "-")
+	ax1.plot(KL_div_traj[i], "-")
 
-ax.set_title("KL-divergence trajectories")
-ax.set_ylabel("KL-divergence")
-ax.set_xlabel("number of voting bureau")
-ax.set_ylim([0, 0.5])
+ax1.set_title("KL-divergence trajectories\nbased on the number of voting bureau")
+ax1.set_ylabel("KL-divergence")
+ax1.set_xlabel("number of voting bureau")
+ax1.set_ylim([0, 0.5])
 
 
+for i in range(N_full_analyze):
+	ax2.plot(accumulated_trajectory_pop[i], KL_div_traj[i], "-")
+
+ax2.set_title("KL-divergence trajectories\nbased on the accumulated population")
+ax2.set_ylabel("KL-divergence")
+ax2.set_xlabel("accumulated population")
+ax2.set_ylim([0, 0.5])
+
+
+for i in range(N_full_analyze):
+	ax3.plot(np.sort(distances[i]), KL_div_traj[i], "-")
+
+ax3.set_title("KL-divergence trajectories\nbased on distance")
+ax3.set_ylabel("KL-divergence")
+ax3.set_xlabel("distance [m]")
+ax3.set_ylim([0, 0.5])
+
+
+fig.tight_layout(pad=2.0)
 fig.savefig(base_path_figure + "KL-traj.png", dpi=200)
 
 
@@ -253,16 +277,127 @@ fig.savefig(base_path_figure + "KL-traj.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(7,7))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
 for i in range(N_full_analyze):
-	ax.plot(convergence_thresholds, focal_distances[i], "-")
+	ax1.plot(convergence_thresholds, focal_distances[i], "-")
 
-ax.set_title("Focal-distance based on the number of voting bureau")
-ax.set_ylabel("focal distance [number of voting bureau]")
-ax.set_xlabel("convergence threshold")
-ax.set_xlim([0, 0.5])
+ax1.set_title("Focal-distance trajectories\nbased on the number of voting bureau")
+ax1.set_ylabel("focal distance [number of voting bureau]")
+ax1.set_xlabel("convergence threshold")
+ax1.set_xlim([0, 0.5])
 
 
+for i in range(N_full_analyze):
+	ax2.plot(convergence_thresholds, accumulated_trajectory_pop[i][focal_distances[i].astype(np.int32)], "-")
+
+ax2.set_title("Focal-distance trajectories\nbased on the accumulated population")
+ax2.set_ylabel("focal distance [accumulated population]")
+ax2.set_xlabel("convergence threshold")
+ax2.set_xlim([0, 0.5])
+
+
+for i in range(N_full_analyze):
+	ax3.plot(convergence_thresholds, np.sort(distances[i])[focal_distances[i].astype(np.int32)], "-")
+
+ax3.set_title("Focal-distance trajectories\nbased on distance")
+ax3.set_ylabel("focal distance [distance, m]")
+ax3.set_xlabel("convergence threshold")
+ax3.set_xlim([0, 0.5])
+
+
+fig.tight_layout(pad=2.0)
 fig.savefig(base_path_figure + "focal_distances.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+##################################################################################################################
+##################################################################################################################
+##################################################################################################################
+
+#########################################################
+#########################################################
+#########################################################
+
+
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+
+
+ax1.plot(worst_KLdiv_trajectory, "r-.")
+
+for i in range(N_full_analyze):
+	ax1.plot(KL_div_traj[i], "-")
+
+ax1.set_title("Worst KL-divergence trajectories\nbased on the number of voting bureau")
+ax1.set_ylabel("KL-divergence")
+ax1.set_xlabel("number of voting bureau")
+
+
+ax2.plot(worst_Xvalues_pop, worst_KLdiv_trajectory, "r-.")
+
+for i in range(N_full_analyze):
+	ax2.plot(accumulated_trajectory_pop[i], KL_div_traj[i], "-")
+
+ax2.set_title("Worst KL-divergence trajectories\nbased on the accumulated population")
+ax2.set_ylabel("KL-divergence")
+ax2.set_xlabel("accumulated population")
+
+
+ax3.plot(worst_Xvalues_dist, worst_KLdiv_trajectory, "r-.")
+
+for i in range(N_full_analyze):
+	ax3.plot(np.sort(distances[i]), KL_div_traj[i], "-")
+
+ax3.set_title("Worst KL-divergence trajectories\nbased on distance")
+ax3.set_ylabel("KL-divergence")
+ax3.set_xlabel("distance [m]")
+
+
+fig.tight_layout(pad=2.0)
+fig.savefig(base_path_figure + "normalization_factor/worst_KL-traj.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+
+
+ax1.plot(convergence_thresholds, worst_focal_distances, "r-.")
+
+for i in range(N_full_analyze):
+	ax1.plot(convergence_thresholds, focal_distances[i], "-")
+
+ax1.set_title("Worst focal-distance trajectory\nbased on the number of voting bureau")
+ax1.set_ylabel("focal distance [number of voting bureau]")
+ax1.set_xlabel("convergence threshold")
+
+
+ax2.plot(convergence_thresholds, worst_Xvalues_pop[worst_focal_distances.astype(np.int32)], "r-.")
+
+for i in range(N_full_analyze):
+	ax2.plot(convergence_thresholds, accumulated_trajectory_pop[i][focal_distances[i].astype(np.int32)], "-")
+
+ax2.set_title("Worst focal-distance trajectory\nbased on the accumulated population")
+ax2.set_ylabel("focal distance [accumulated population]")
+ax2.set_xlabel("convergence threshold")
+
+
+ax3.plot(convergence_thresholds, worst_Xvalues_dist[worst_focal_distances.astype(np.int32)], "r-.")
+
+for i in range(N_full_analyze):
+	ax3.plot(convergence_thresholds, np.sort(distances[i])[focal_distances[i].astype(np.int32)], "-")
+
+ax3.set_title("Worst focal-distance trajectory\nbased on distance")
+ax3.set_ylabel("focal distance [distance, m]")
+ax3.set_xlabel("convergence threshold")
+
+
+fig.tight_layout(pad=2.0)
+fig.savefig(base_path_figure + "normalization_factor/worst_focal_distances.png", dpi=200)
