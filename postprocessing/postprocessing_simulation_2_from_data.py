@@ -2,7 +2,6 @@
 
 from util.plot import *
 
-import networkx as nx
 import numpy as np
 import random
 import matplotlib.pyplot as plt
@@ -144,17 +143,6 @@ with h5py.File(base_path + output_file, "r") as file:
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-graph = nx.Graph()
-for node in range(N_nodes):
-	graph.add_node(node)
-
-	for neighbor in neighbors[node]:
-		graph.add_edge(node, neighbor)
-
-""" -------------------------------------------------------
------------------------------------------------------------
-------------------------------------------------------- """
-
 nodes = np.arange(N_nodes)
 np.random.shuffle(nodes)
 
@@ -179,9 +167,7 @@ colors = np.empty(N_nodes)
 for node in range(N_nodes):
 	colors[node] = color_0 if node in counties[0] else color_1
 
-plot_graph(graph, lon=longitude, lat=latitude, colors=colors)
-
-ax.set_aspect('equal', adjustable='box')
+plot_graph_from_scratch(neighbors, longitude, latitude, colors, ax)
 
 fig.savefig(base_path_figure + "county_map.png", dpi=200)
 

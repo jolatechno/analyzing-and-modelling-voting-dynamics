@@ -2,7 +2,6 @@
 
 from util.plot import *
 
-import networkx as nx
 import numpy as np
 import random
 import matplotlib.pyplot as plt
@@ -93,17 +92,6 @@ with h5py.File(base_path + output_file, "r") as file:
 			for k in range(N_candidates):
 				field_name = "proportions_" + str(k)
 				simulation_data[i, j, k, :] = file[state_name][field_name]
-
-""" -------------------------------------------------------
------------------------------------------------------------
-------------------------------------------------------- """
-
-graph = nx.Graph()
-for node in range(N_nodes):
-	graph.add_node(node)
-
-	for neighbor in neighbors[node]:
-		graph.add_edge(node, neighbor)
 
 
 #########################################################
@@ -252,11 +240,10 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
-pl = ax.scatter(longitude, latitude, c=np.clip(distortion_coefficients, 2000, 15000), s=4)
+pl = ax.scatter(longitude, latitude, c=np.clip(distortion_coefficients, 2000, 15000), s=10)
 
 cbar = fig.colorbar(pl, label="pseudo-distortion coefficient")
 
-ax.set_aspect('equal', adjustable='box')
 ax.set_title("distortion coeffecient map")
 
 fig.savefig(base_path_figure + "map.png", dpi=200)

@@ -127,7 +127,6 @@ int main(int argc, char *argv[]) {
 		int group = lat[node] < median;
 		counties[group].push_back(node);
 	}
-
 	BPsimulation::io::write_counties_to_file(counties, output_file);
 
 
