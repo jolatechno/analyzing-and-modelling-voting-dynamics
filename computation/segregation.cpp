@@ -39,6 +39,8 @@ int main(int argc, char *argv[]) {
 	const int N_full_analyze = config["segregation"]["N_full_analyze"].asInt();
 	const int N_thresh       = config["segregation"]["N_thresh"      ].asInt();
 
+	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 9.d, N_thresh);
+
 
 	H5::H5File output_file(output_file_name.c_str(), H5F_ACC_TRUNC);
 	H5::H5File input_file( input_file_name .c_str(), H5F_ACC_RDWR);
@@ -77,10 +79,13 @@ int main(int argc, char *argv[]) {
 
 		auto worst_population_trajectory = segregation::multiscalar::util::get_worst_population_trajectory(votes);
 		auto worst_KLdiv_trajectory      = segregation::multiscalar::util::get_worst_KLdiv_trajectory(votes);
+		auto worst_focal_distances       = segregation::multiscalar::get_focal_distance_indexes(std::vector<std::vector<double>>{worst_KLdiv_trajectory}, convergence_thresholds)[0];
 
 		H5::Group normalization_factors = full_analysis.createGroup("normalization_factors");
 		util::hdf5io::H5WriteVector(normalization_factors, worst_population_trajectory, "worst_population_trajectory");
 		util::hdf5io::H5WriteVector(normalization_factors, worst_KLdiv_trajectory,      "worst_KLdiv_trajectory");
+		util::hdf5io::H5WriteVector(normalization_factors, worst_focal_distances,       "worst_focal_distances");
+		util::hdf5io::H5WriteVector(normalization_factors, convergence_thresholds,      "convergence_thresholds");
 
 
 		{
@@ -119,9 +124,6 @@ int main(int argc, char *argv[]) {
 
 
 	{
-		auto convergence_thresholds = util::math::logspace<double>(1e-7d, 9.d, N_thresh);
-
-
 		std::vector<size_t> full_analyze_idxs(lat.size());
 		std::iota(full_analyze_idxs.begin(), full_analyze_idxs.end(), 0);
 		std::shuffle(full_analyze_idxs.begin(), full_analyze_idxs.end(), util::get_random_generator());

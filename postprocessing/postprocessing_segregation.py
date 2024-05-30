@@ -80,6 +80,7 @@ accumulated_trajectory_pop = np.zeros((N_full_analyze, N_total_nodes))
 worst_Xvalues_pop      = np.zeros(N_total_nodes)
 worst_Xvalues_dist     = np.zeros(N_total_nodes)
 worst_KLdiv_trajectory = np.zeros(N_total_nodes)
+worst_focal_distances  = np.zeros(N_thresh)
 
 
 with h5py.File(base_path + output_file, "r") as file:
@@ -100,6 +101,7 @@ with h5py.File(base_path + output_file, "r") as file:
 	worst_Xvalues_pop     [:] = file["full_analysis"]["normalization_factors"]["worst_Xvalues_pop"]
 	worst_Xvalues_dist    [:] = file["full_analysis"]["normalization_factors"]["worst_Xvalues_dist"]
 	worst_KLdiv_trajectory[:] = file["full_analysis"]["normalization_factors"]["worst_KLdiv_trajectory"]
+	worst_focal_distances [:] = file["full_analysis"]["normalization_factors"]["worst_focal_distances"]
 
 
 	convergence_thresholds[:] = file["partial_analysis"]["convergence_thresholds"]
