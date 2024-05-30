@@ -219,6 +219,35 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 #########################################################
 
 
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,5))
+
+
+ax1.plot(dist_coef_pop, dist_coef_idx, "+")
+
+ax1.set_title("normalized distortion coefficient\nbased on number of voting bureau versus\nbased on agregated population")
+ax1.set_ylabel("distortion coefficient [based on number of voting bureau]")
+ax1.set_xlabel("distortion coefficient [based on agregated population]")
+
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
+
+ax2.plot(dist_coef_pop, dist_coef_dist, "+")
+
+ax2.set_title("normalized distortion coefficient\nbased on distance versus\nbased on agregated population")
+ax2.set_ylabel("distortion coefficient [based on distance]")
+ax2.set_xlabel("distortion coefficient [based on agregated population]")
+
+
+fig.tight_layout(pad=2.0)
+fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
 fig, axes = plt.subplots(1, 3, figsize=(18,5))
 
 
@@ -319,6 +348,41 @@ fig.savefig(base_path_figure + "focal_distances.png", dpi=200)
 ##################################################################################################################
 ##################################################################################################################
 ##################################################################################################################
+
+#########################################################
+#########################################################
+#########################################################
+
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,5))
+
+
+for i in range(N_full_analyze):
+	ax1.plot(accumulated_trajectory_pop[i], "-")
+
+ax1.plot(worst_Xvalues_pop, "r-.")
+
+ax1.set_title("trajectories of the accumulated population\nversus the number of voting bureau")
+ax1.set_ylabel("accumulated population")
+ax1.set_xlabel("number of voting bureau")
+
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
+
+for i in range(N_full_analyze):
+	ax2.plot(np.sort(distances[i]), "-")
+
+ax2.plot(worst_Xvalues_dist, "r-.")
+
+ax2.set_title("trajectories of the distance\nversus the number of voting bureau")
+ax2.set_ylabel("distance")
+ax2.set_xlabel("number of voting bureau")
+
+
+fig.tight_layout(pad=2.0)
+fig.savefig(base_path_figure + "normalization_factor/Xvalue_trajectory.png", dpi=200)
+
 
 #########################################################
 #########################################################

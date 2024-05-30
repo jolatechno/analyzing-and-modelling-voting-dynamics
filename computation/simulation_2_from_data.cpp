@@ -135,16 +135,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	double normalization_factor_pop = 1.d;
-	{
-		auto distances = segregation::map::util::get_distances(lat, lon);
-		util::hdf5io::H5WriteIrregular2DVector(output_geo_data, distances, "distances");
-
-		auto traj_idxes                 = segregation::multiscalar::get_closest_neighbors(distances);
-		auto accumulated_trajectory_pop = segregation::multiscalar::util::get_accumulated_trajectory(votes, traj_idxes);
-
-		normalization_factor_pop = segregation::multiscalar::get_normalization_factor(votes, accumulated_trajectory_pop);
-	}
+	double normalization_factor_pop = segregation::multiscalar::get_normalization_factor_pop(votes);
 
 
 	for (size_t node = 0; node < N_nodes; ++node) {

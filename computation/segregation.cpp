@@ -98,11 +98,9 @@ int main(int argc, char *argv[]) {
 
 
 		{
-			auto traj_idxes                 = segregation::multiscalar::get_closest_neighbors(distances);
-			auto accumulated_trajectory_pop = segregation::multiscalar::util::get_accumulated_trajectory(votes, traj_idxes);
-			auto worst_Xvalues              = segregation::multiscalar::util::get_worst_Xvalues(accumulated_trajectory_pop);
+			auto worst_Xvalues = segregation::multiscalar::util::get_worst_population_trajectory(votes);
 
-			normalization_factor_pop = segregation::multiscalar::get_normalization_factor(votes, accumulated_trajectory_pop);
+			normalization_factor_pop = segregation::multiscalar::get_normalization_factor_pop(votes);
 
 			util::hdf5io::H5WriteSingle(normalization_factors, normalization_factor_pop, "normalization_factor_pop");
 			util::hdf5io::H5WriteVector(normalization_factors, worst_Xvalues,            "worst_Xvalues_pop");
