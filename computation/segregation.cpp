@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 			normalization_factor_dist = segregation::multiscalar::get_normalization_factor(votes, distances);
 
 			util::hdf5io::H5WriteSingle(normalization_factors, normalization_factor_dist, "normalization_factor_dist");
-			util::hdf5io::H5WriteVector(normalization_factors, worst_Xvalues,             "worst_Xvalues_pop_dist");
+			util::hdf5io::H5WriteVector(normalization_factors, worst_Xvalues,             "worst_Xvalues_dist");
 		}
 	}
 
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]) {
 
 		auto distances_slice       = segregation::map::util::get_distances(lat, lon, full_analyze_idxs);
 		auto traj_idxes_slice      = segregation::multiscalar::get_closest_neighbors(distances_slice);
+		auto accumulated_pop_slice = segregation::multiscalar::util::get_accumulated_trajectory(votes, traj_idxes_slice);
 		auto vote_trajectories     = segregation::multiscalar::get_trajectories(votes, traj_idxes_slice);
 		auto KLdiv_trajectories    = segregation::multiscalar::get_KLdiv_trajectories(vote_trajectories);
 		auto focal_distances_idxes = segregation::multiscalar::get_focal_distance_indexes(KLdiv_trajectories, convergence_thresholds);
@@ -142,6 +143,7 @@ int main(int argc, char *argv[]) {
 		H5::Group partial_analysis = output_file.createGroup("partial_analysis");
 		util::hdf5io::H5WriteVector(           partial_analysis, convergence_thresholds, "convergence_thresholds");
 		util::hdf5io::H5WriteIrregular2DVector(partial_analysis, distances_slice,        "distances");
+		util::hdf5io::H5WriteIrregular2DVector(partial_analysis, accumulated_pop_slice,  "accumulated_trajectory_pop");
 		util::hdf5io::H5WriteVector(           partial_analysis, full_analyze_idxs,      "full_analyze_idxs");
 		util::hdf5io::H5WriteIrregular2DVector(partial_analysis, traj_idxes_slice,       "knn");
 

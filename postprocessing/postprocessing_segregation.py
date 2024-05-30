@@ -69,16 +69,38 @@ dist_coef_idx  = np.zeros(N_total_nodes)
 dist_coef_pop  = np.zeros(N_total_nodes)
 dist_coef_dist = np.zeros(N_total_nodes)
 
-distances              = np.zeros((N_full_analyze, N_full_analyze))
 convergence_thresholds = np.zeros(N_thresh)
 vote_traj              = np.zeros((N_candidates, N_full_analyze, N_total_nodes))
 KL_div_traj            = np.zeros((N_full_analyze, N_total_nodes))
 focal_distances        = np.zeros((N_full_analyze, N_thresh))
 
+distances                  = np.zeros((N_full_analyze, N_total_nodes))
+accumulated_trajectory_pop = np.zeros((N_full_analyze, N_total_nodes))
+
+worst_Xvalues_pop      = np.zeros(N_total_nodes)
+worst_Xvalues_dist     = np.zeros(N_total_nodes)
+worst_KLdiv_trajectory = np.zeros(N_total_nodes)
+
+
 with h5py.File(base_path + output_file, "r") as file:
 	latitude [:]    = file["geo_data"]["lat"]
 	longitude[:]    = file["geo_data"]["lon"]
 	#populations[:] = file["full_analysis"]["voter_population"]
+
+
+	distances_begin_end = file["partial_analysis"]["distances_begin_end_idx"]
+	for i, (begin,end) in enumerate(zip(distances_begin_end[:-1], distances_begin_end[1:])):
+		distances[i] = file["partial_analysis"]["distances"][begin:end]
+
+	accumulated_trajectory_pop_begin_end = file["partial_analysis"]["accumulated_trajectory_pop_begin_end_idx"]
+	for i, (begin,end) in enumerate(zip(accumulated_trajectory_pop_begin_end[:-1], accumulated_trajectory_pop_begin_end[1:])):
+		accumulated_trajectory_pop[i] = file["partial_analysis"]["accumulated_trajectory_pop"][begin:end]
+
+
+	worst_Xvalues_pop     [:] = file["full_analysis"]["normalization_factors"]["worst_Xvalues_pop"]
+	worst_Xvalues_dist    [:] = file["full_analysis"]["normalization_factors"]["worst_Xvalues_dist"]
+	worst_KLdiv_trajectory[:] = file["full_analysis"]["normalization_factors"]["worst_KLdiv_trajectory"]
+
 
 	convergence_thresholds[:] = file["partial_analysis"]["convergence_thresholds"]
 
