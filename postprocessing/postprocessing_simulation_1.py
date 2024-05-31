@@ -48,7 +48,7 @@ with h5py.File(base_path + input_filename, "r") as file:
 	for begin,end in zip(counties_begin_end[:-1], counties_begin_end[1:]):
 		counties.append(file["counties"]["counties"][begin:end])
 	
-	populations = file["initial_state"]["population"][:]
+	populations[:] = file["initial_state"]["population"]
 
 	neighbors_begin_end = file["network"]["neighbors_begin_end_idx"]
 	for begin,end in zip(neighbors_begin_end[:-1], neighbors_begin_end[1:]):

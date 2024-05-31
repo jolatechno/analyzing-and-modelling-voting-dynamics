@@ -68,7 +68,6 @@ diameters = (np.array(config["segregation"]["postprocessing"]["diameters"])*N_to
 
 
 longitude, latitude = np.zeros(N_total_nodes), np.zeros(N_total_nodes)
-populations         = np.zeros(N_total_nodes)
 
 vote_proportions = np.zeros((N_candidates, N_total_nodes))
 
@@ -93,7 +92,6 @@ worst_focal_distances  = np.zeros(N_thresh)
 with h5py.File(base_path + output_file, "r") as file:
 	latitude [:]    = file["geo_data"]["lat"]
 	longitude[:]    = file["geo_data"]["lon"]
-	#populations[:] = file["full_analysis"]["voter_population"]
 
 
 	distances_begin_end = file["partial_analysis"]["distances_begin_end_idx"]

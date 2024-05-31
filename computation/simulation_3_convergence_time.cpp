@@ -60,10 +60,12 @@ int main(int argc, char *argv[]) {
 	const int    N_it   = config["convergence_time"]["N_it"  ].asInt();
 	const int    n_save = config["convergence_time"]["n_save"].asInt();
 
-	const bool read_network_from_file = config["simulation"]["read_network_from_file"].asBool();
-	const int  n_attachment           = config["simulation"]["n_attachment"          ].asInt();
+	const bool read_network_from_file = config["convergence_time"]["read_network_from_file"].asBool();
+	const int  n_attachment           = config["convergence_time"]["n_attachment"          ].asInt();
 
-	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 9.d, 400);
+	const int N_thresh = config["convergence_time"]["N_thresh"].asInt();
+
+	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 4.d, N_thresh);
 
 
 	H5::H5File output_file(output_file_name, H5F_ACC_TRUNC);
@@ -141,8 +143,6 @@ int main(int argc, char *argv[]) {
 
 		for (int it = 0; it < N_it; ++it) {
 			if (it%n_save == 0 && it > 0) {
-				std::string dir_name = "/states_" + std::to_string(itry) + "_" + std::to_string(it);
-				BPsimulation::io::write_agent_states_to_file(network, agent_serializer, output_file, dir_name.c_str());
 				for (size_t node = 0; node < N_nodes; ++node) {
 					for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
 						trajectories[icandidate][node][it/n_save] = (*network)[node].proportions[icandidate];
@@ -169,6 +169,8 @@ int main(int argc, char *argv[]) {
 			util::hdf5io::H5WriteIrregular2DVector(analysis, KLdiv_trajectories,    "KLdiv_trajectories");
 			util::hdf5io::H5WriteIrregular2DVector(analysis, focal_distances_idxes, "focal_distances");
 			util::hdf5io::H5WriteVector(           analysis, distortion_coefs,      "distortion_coefs");
+
+			util::hdf5io::H5WriteVector(analysis, convergence_thresholds, "convergence_thresholds");
 		}
 	}
 }

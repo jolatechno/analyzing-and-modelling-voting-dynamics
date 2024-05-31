@@ -87,9 +87,9 @@ counties_election_proportions = np.zeros((N_try, N_it//n_election, N_counties, N
 normalized_distortion_coefs = np.zeros((N_nodes, N_it//n_save))
 
 with h5py.File(base_path + output_file, "r") as file:
-	latitude [:]    = file["geo_data"]["lat"]
-	longitude[:]    = file["geo_data"]["lon"]
-	#populations[:] = file["full_analysis"]["voter_population"]
+	latitude [:]   = file["geo_data"]["lat"]
+	longitude[:]   = file["geo_data"]["lon"]
+	populations[:] = file["initial_state"]["population"]
 
 	counties_begin_end = file["counties"]["counties_begin_end_idx"]
 	for begin,end in zip(counties_begin_end[:-1], counties_begin_end[1:]):
