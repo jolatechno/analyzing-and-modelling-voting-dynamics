@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
 
 		{
 			std::string dir_name = "/analysis_" + std::to_string(itry);
-			H5::Group analysis = input_file.createGroup(dir_name);
+			H5::Group analysis = output_file.createGroup(dir_name);
 
 			auto KLdiv_trajectories    = segregation::multiscalar::get_KLdiv_trajectories(trajectories);
 			auto focal_distances_idxes = segregation::multiscalar::get_focal_distance_indexes(KLdiv_trajectories, convergence_thresholds);
