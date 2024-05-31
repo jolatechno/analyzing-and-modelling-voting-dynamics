@@ -149,8 +149,8 @@ int main(int argc, char *argv[]) {
 	for (size_t node = 0; node < N_nodes; ++node) {
 
 		for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
-			(*network)[node].proportions[icandidate]         =   votes[icandidate][node];
-			(*network)[node].stuborn_equilibrium[icandidate] = 2*votes[icandidate][node]*initial_radicalization_multiplier;
+			(*network)[node].proportions[icandidate]         = votes[icandidate][node];
+			(*network)[node].stuborn_equilibrium[icandidate] = votes[icandidate][node]*initial_radicalization_multiplier;
 		}
 
 		(*network)[node].population = (size_t)populations[node];

@@ -19,6 +19,7 @@ const double overtoon_multiplier    = 0.07;
 const double frustration_multiplier = 0.01;
 
 const size_t N_nodes    = 800;
+const int    n_con      = 3;
 const int    N_counties = 3;
 const int    N_try      = 10;
 const int    N_it       = 3001;
@@ -52,7 +53,7 @@ int main() {
 	BPsimulation::io::write_network_to_file(network, file);
 
 
-	std::vector<std::vector<size_t>> counties = BPsimulation::random::random_graphAgnostic_partition_graph(network, 3);
+	std::vector<std::vector<size_t>> counties = BPsimulation::random::random_graphAgnostic_partition_graph(network, n_con);
 	BPsimulation::io::write_counties_to_file(counties, file);
 
 	BPsimulation::random::network_randomize_agent_states_county(network, counties[0], 0.2, 0.2, 150, 50,  std::vector<double>({0.6, 0.4, 0.1, 0.2}));
