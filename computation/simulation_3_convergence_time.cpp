@@ -13,6 +13,8 @@
 #include "modular_election_simulation_framework/src/util/hdf5_util.hpp"
 #include "modular_election_simulation_framework/src/util/util.hpp"
 
+#include "modular_election_simulation_framework/src/core/segregation/multiscalar.hpp"
+#include "modular_election_simulation_framework/src/core/segregation/multiscalar_util.hpp"
 #include "modular_election_simulation_framework/src/core/segregation/map_util.hpp"
 
 
@@ -61,6 +63,9 @@ int main(int argc, char *argv[]) {
 
 	const bool read_network_from_file = config["simulation"]["read_network_from_file"].asBool();
 	const int  n_attachment           = config["simulation"]["n_attachment"          ].asInt();
+
+	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 9.d, 400);
+
 
 	H5::H5File output_file(output_file_name, H5F_ACC_TRUNC);
 	H5::H5File input_file( input_file_name,  H5F_ACC_RDWR);
@@ -112,7 +117,19 @@ int main(int argc, char *argv[]) {
 	}
 	network->update_agentwise(renormalize);
 
+
+
+	std::vector<std::vector<std::vector<float>>> trajectories(N_candidates,
+			std::vector<std::vector<float>>(                  N_nodes,
+				std::vector<float>(                           N_it/n_save+1)));
+
+
 	BPsimulation::io::write_agent_states_to_file(network, agent_serializer, output_file, "/initial_state");
+	for (size_t node = 0; node < N_nodes; ++node) {
+		for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
+			trajectories[icandidate][node][0] = (*network)[node].proportions[icandidate];
+		}
+	}
 
 
 	BPsimulation::implem::Nvoter_majority_election_result<N_candidates>* general_election_results;
@@ -127,10 +144,32 @@ int main(int argc, char *argv[]) {
 			if (it%n_save == 0 && it > 0) {
 				std::string dir_name = "/states_" + std::to_string(itry) + "_" + std::to_string(it);
 				BPsimulation::io::write_agent_states_to_file(network, agent_serializer, output_file, dir_name.c_str());
+				for (size_t node = 0; node < N_nodes; ++node) {
+					for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
+						trajectories[icandidate][node][it/n_save] = (*network)[node].proportions[icandidate];
+					}
+				}
 			}
 
 			network->interact(interaction);
 			network->update_agentwise(renormalize);
+		}
+
+		{
+			std::string dir_name = "/analysis_" + std::to_string(itry);
+			H5::Group analysis = input_file.createGroup(dir_name);
+
+			auto KLdiv_trajectories    = segregation::multiscalar::get_KLdiv_trajectories(trajectories);
+			auto focal_distances_idxes = segregation::multiscalar::get_focal_distance_indexes(KLdiv_trajectories, convergence_thresholds);
+			auto distortion_coefs      = segregation::multiscalar::get_distortion_coefs_from_KLdiv(KLdiv_trajectories);
+
+			for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
+				std::string field_name = "vote_traj_" + candidates_from_left_to_right[icandidate];
+				util::hdf5io::H5WriteIrregular2DVector(analysis, trajectories[icandidate], field_name.c_str());
+			}
+			util::hdf5io::H5WriteIrregular2DVector(analysis, KLdiv_trajectories,    "KLdiv_trajectories");
+			util::hdf5io::H5WriteIrregular2DVector(analysis, focal_distances_idxes, "focal_distances");
+			util::hdf5io::H5WriteVector(           analysis, distortion_coefs,      "distortion_coefs");
 		}
 	}
 }

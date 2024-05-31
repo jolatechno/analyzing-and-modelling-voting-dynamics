@@ -51,6 +51,8 @@ output_file = config["output_file_convergence_time"]
 
 base_path_figure = "figures/" + config["convergence_time"]["postprocessing"]["base_filename"]
 
+interesting_candidates = config["convergence_time"]["postprocessing"]["interesting_candidates"]
+
 N_try      = config["convergence_time"]["N_try"]
 N_it       = config["convergence_time"]["N_it"]
 n_save     = config["convergence_time"]["n_save"]
@@ -93,39 +95,48 @@ with h5py.File(base_path + output_file, "r") as file:
 				field_name = "proportions_" + str(k)
 				simulation_data[i, j, k, :] = file[state_name][field_name]
 
-
-#########################################################
-#########################################################
-#########################################################
-
-##################################################################################################################
-##################################################################################################################
-##################################################################################################################
-
-#########################################################
-#########################################################
-#########################################################
-
-
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
 
 nodes = np.arange(N_nodes)
 np.random.shuffle(nodes)
 
-for i,node in enumerate(nodes):
-	if N_nodes-i <= 10:
-		ax.plot(iterations_saved, simulation_data[0, :, 1, node],
-		        "k--", alpha=1, linewidth=1.1)
-	else:
-		ax.plot(iterations_saved, simulation_data[0, :, 1, node],
-		        "-", alpha=0.2, linewidth=0.3)
 
-ax.set_title("Trajectory of the up-vote proportion")
-ax.set_ylabel("up-vote proportion")
-ax.set_xlabel("number of steps")
-ax.set_ylim([0, 0.1])
+#########################################################
+#########################################################
+#########################################################
 
+##################################################################################################################
+##################################################################################################################
+##################################################################################################################
+
+#########################################################
+#########################################################
+#########################################################
+
+
+fig, axes = plt.subplots(1, 3, figsize=(18,5))
+
+
+for i_ax in range(3):
+	for i,node in enumerate(nodes):
+		if N_nodes-i <= 10:
+			axes[i_ax].plot(iterations_saved, simulation_data[0, :, interesting_candidates[i_ax], node],
+			                "k--", alpha=1, linewidth=1.1)
+		else:
+			axes[i_ax].plot(iterations_saved, simulation_data[0, :, interesting_candidates[i_ax], node],
+				            "-", alpha=0.2, linewidth=0.3)
+
+	axes[i_ax].set_title(f"Voting trajectory for { candidates[interesting_candidates[i_ax]] }")
+	axes[i_ax].set_ylabel("vote proportion")
+	axes[i_ax].set_xlabel("number of iterations")
+
+
+fig.tight_layout(pad=2.0)
 fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
+
+fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
 
 #########################################################
@@ -174,7 +185,7 @@ fig.savefig(base_path_figure + "kl-div_trajectory.png", dpi=200)
 #########################################################
 #########################################################
 
-convergence_thresholds = np.linspace(0, 1, 300)
+convergence_thresholds = np.linspace(0, 4, 400)
 focal_times = np.zeros((N_try, len(convergence_thresholds), N_nodes))
 for itry in range(N_try):
 	for node in range(N_nodes):
@@ -190,6 +201,8 @@ for itry in range(N_try):
 ------------------------------------------------------- """
 
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
+
+
 for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
 		ax.plot(convergence_thresholds, focal_times[0, :, node],
@@ -201,6 +214,7 @@ for i,node in enumerate(nodes):
 ax.set_title("Focal time trajectory")
 ax.set_ylabel("focal time")
 ax.set_xlabel("convergence thresholds")
+
 
 fig.savefig(base_path_figure + "focal_time_trajectory.png", dpi=200)
 
@@ -224,11 +238,13 @@ for i in range(0, len(convergence_thresholds)-1):
 
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
+
 ax.hist(distortion_coefficients)
 
 ax.set_title("Pseudo-distortion coefficient distribution")
 ax.set_ylabel("Number of nodes")
 ax.set_xlabel("Pseudo-distortion coefficient")
+
 
 fig.savefig(base_path_figure + "histograms.png", dpi=200)
 
@@ -238,8 +254,9 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+fig, ax = plt.subplots(1, 1, figsize=(9,8))
 
+pl = ax.scatter(longitude, latitude, c=np.clip(distortion_coefficients, 2000, 15000), s=30, alpha=0.5)
 pl = ax.scatter(longitude, latitude, c=np.clip(distortion_coefficients, 2000, 15000), s=10)
 
 cbar = fig.colorbar(pl, label="pseudo-distortion coefficient")

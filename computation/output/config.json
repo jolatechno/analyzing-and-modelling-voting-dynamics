@@ -41,14 +41,15 @@
 	},
 	"output_file_convergence_time" : "output-simulation-convergence-time.h5",
 	"convergence_time" : {
-		"N_select"   : 40,
-		"N_try"      : 20,
+		"N_select"   : 100,
+		"N_try"      : 10,
 		"N_it"       : 2001,
 		"n_save"     : 20,
 		"read_network_from_file" : false,
 		"n_attachment"           : 4,
 		"postprocessing" : {
-			"base_filename" : "convergence_time/"
+			"base_filename"          : "convergence_time/",
+			"interesting_candidates" : [2, 7, 10]
 		}
 	},
 
