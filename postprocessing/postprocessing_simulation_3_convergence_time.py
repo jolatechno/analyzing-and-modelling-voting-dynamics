@@ -137,6 +137,18 @@ np.random.shuffle(nodes)
 #########################################################
 
 
+fig, ax = plt.subplots(1, 1, figsize=(8,8))
+
+plot_graph_from_scratch(neighbors, longitude, latitude, ax=ax)
+
+fig.savefig(base_path_figure + "network.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
 fig, axes = plt.subplots(1, 3, figsize=(18,5))
 
 
