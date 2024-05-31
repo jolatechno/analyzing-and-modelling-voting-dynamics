@@ -13,8 +13,7 @@
 #include "modular_election_simulation_framework/src/util/hdf5_util.hpp"
 #include "modular_election_simulation_framework/src/util/util.hpp"
 
-#include "modular_election_simulation_framework/src/core/segregation/multiscalar.hpp"
-#include "modular_election_simulation_framework/src/core/segregation/multiscalar_util.hpp"
+#include "modular_election_simulation_framework/src/core/segregation/convergence_time.hpp"
 #include "modular_election_simulation_framework/src/core/segregation/map_util.hpp"
 
 
@@ -159,9 +158,9 @@ int main(int argc, char *argv[]) {
 			std::string dir_name = "/analysis_" + std::to_string(itry);
 			H5::Group analysis = output_file.createGroup(dir_name);
 
-			auto KLdiv_trajectories    = segregation::multiscalar::get_KLdiv_trajectories(trajectories);
-			auto focal_distances_idxes = segregation::multiscalar::get_focal_distance_indexes(KLdiv_trajectories, convergence_thresholds);
-			auto distortion_coefs      = segregation::multiscalar::get_distortion_coefs_from_KLdiv(KLdiv_trajectories);
+			auto KLdiv_trajectories    = segregation::convergence_time::get_KLdiv_trajectories_versus_trajectory_end(trajectories);
+			auto focal_distances_idxes = segregation::convergence_time::get_focal_distance_indexes(KLdiv_trajectories, convergence_thresholds);
+			auto distortion_coefs      = segregation::convergence_time::get_distortion_coefs_from_KLdiv(KLdiv_trajectories);
 
 			for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
 				std::string field_name = "vote_traj_" + candidates_from_left_to_right[icandidate];
