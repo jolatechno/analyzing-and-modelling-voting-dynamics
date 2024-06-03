@@ -201,6 +201,11 @@ for i in range(N_try):
 	X_eq_vs_election_results.extend(election_results)
 	Y_eq_vs_election_results.extend(simulation_data[i, -1, 1, :] + simulation_data[i, -1, 3, :])
 
+for i,x_target in enumerate([-1.5, -0.5, 0.5, 1.5]):
+	y_mean = np.mean([y for (x, y) in zip(X_eq_vs_election_results, Y_eq_vs_election_results) if x == x_target])
+	ax4.plot([x_target,], [y_mean,],
+		"or", label="mean proportion" if i==0 else None)
+
 reg_eq_vs_election_results = LinearRegression().fit(
 	np.expand_dims(X_eq_vs_election_results, 1),
 	np.expand_dims(Y_eq_vs_election_results, 1))
@@ -243,9 +248,14 @@ for i,node in enumerate(nodes):
 		ax1.plot(simulation_data[0, :, 3, node], iterations_saved,
 		         "-", alpha=0.2, linewidth=0.3)
 
+ax1.set_xlim((0, 0.3))
 ax1.set_title("Trajectories of the up-vote\nstuborness for each node (try 0)")
 ax1.set_ylabel("number of steps")
 ax1.set_xlabel("Stuborn proportion")
+
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
 
 for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
@@ -255,6 +265,7 @@ for i,node in enumerate(nodes):
 		ax2.plot(simulation_data[0, :, 2, node], iterations_saved,
 		         "-", alpha=0.2, linewidth=0.3)
 
+ax2.set_xlim((0, 0.3))
 ax2.yaxis.set_label_position("right")
 ax2.yaxis.tick_right()
 ax2.set_title("Trajectories of the down-vote\nstuborness for each node (try 0)")

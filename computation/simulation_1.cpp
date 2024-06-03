@@ -13,9 +13,9 @@
 #include "modular_election_simulation_framework/src/util/util.hpp"
 
 
-const size_t N_select               = 10;
+const size_t N_select               = 15;
 const double dt                     = 0.2;
-const double overtoon_multiplier    = 0.07;
+const double overtoon_multiplier    = 0.1;
 const double frustration_multiplier = 0.01;
 
 const size_t N_nodes    = 800;
@@ -56,9 +56,9 @@ int main() {
 	std::vector<std::vector<size_t>> counties = BPsimulation::random::random_graphAgnostic_partition_graph(network, n_con);
 	BPsimulation::io::write_counties_to_file(counties, file);
 
-	BPsimulation::random::network_randomize_agent_states_county(network, counties[0], 0.2, 0.2, 150, 50,  std::vector<double>({0.6, 0.4, 0.1, 0.2}));
-	BPsimulation::random::network_randomize_agent_states_county(network, counties[1], 0.2, 0.1, 150, 100, std::vector<double>({0.4, 0.6, 0.1, 0.2}));
-	BPsimulation::random::network_randomize_agent_states_county(network, counties[2], 0.1, 0.2, 400, 100, std::vector<double>({0.5, 0.5, 0.1, 0.1}));
+	BPsimulation::random::network_randomize_agent_states_county(network, counties[0], 0.1,  0.25, 150, 50,  std::vector<double>({0.3, 0.7, 0.15, 0.15}));
+	BPsimulation::random::network_randomize_agent_states_county(network, counties[1], 0.25, 0.1,  150, 75,  std::vector<double>({0.7, 0.3, 0.15, 0.15}));
+	BPsimulation::random::network_randomize_agent_states_county(network, counties[2], 0.14, 0.15, 200, 100, std::vector<double>({0.5, 0.5, 0.1,  0.1}));
 	BPsimulation::io::write_agent_states_to_file(network, agent_full_serializer, file, "/initial_state");
 
 
