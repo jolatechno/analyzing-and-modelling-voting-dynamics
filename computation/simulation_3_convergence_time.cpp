@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 
 	const int N_thresh = config["convergence_time"]["N_thresh"].asInt();
 
-	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 4.d, N_thresh);
+	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 1.5d, N_thresh);
 
 
 	H5::H5File output_file(output_file_name, H5F_ACC_TRUNC);

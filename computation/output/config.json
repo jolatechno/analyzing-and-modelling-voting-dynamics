@@ -37,16 +37,16 @@
 		"n_attachment"           : 4,
 		"postprocessing" : {
 			"base_filename" : "simulation_fromdata/",
-			"interesting_candidates" : [4, 5, 7]
+			"interesting_candidates" : [3, 4, 7]
 		}
 	},
 	"output_file_convergence_time" : "output-simulation-convergence-time.h5",
 	"convergence_time" : {
 		"parallel"   : true,
-		"N_select"   : 20,
+		"N_select"   : 5,
 		"N_try"      : 10,
-		"N_it"       : 4001,
-		"n_save"     : 40,
+		"N_it"       : 5001,
+		"n_save"     : 50,
 		"N_thresh"   : 400,
 		"read_network_from_file" : false,
 		"n_attachment"           : 4,

@@ -20,7 +20,7 @@ simulation_1:
 	h5c++ -std=c++20                    -O3 simulation_1.cpp -o simulation_1.out
 
 simulation_1-par:
-	h5c++ -std=c++20           -fopenmp -O3 simulation_1.cpp -o simulation_1.out
+	h5c++ -std=c++20           -fopenmp -O3 simulation_1.cpp -o simulation_1-par.out
 
 simulation_2_from_data:
 	h5c++ -std=c++20 -ljsoncpp          -O3 simulation_2_from_data.cpp -o simulation_2_from_data.out
@@ -32,4 +32,4 @@ simulation_3_convergence_time:
 	h5c++ -std=c++20 -ljsoncpp          -O3 simulation_3_convergence_time.cpp -o simulation_3_convergence_time.out
 
 simulation_3_convergence_time-par:
-	h5c++ -std=c++20 -ljsoncpp -fopenmp -O3 simulation_3_convergence_time.cpp -o simulation_3_convergence_time.out
+	h5c++ -std=c++20 -ljsoncpp -fopenmp -O3 simulation_3_convergence_time.cpp -o simulation_3_convergence_time-par.out

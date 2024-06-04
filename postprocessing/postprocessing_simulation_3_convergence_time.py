@@ -205,10 +205,10 @@ fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
 for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
-		ax.plot(convergence_thresholds, focal_distances[0, node, :],
+		ax.plot(convergence_thresholds, iterations_saved[focal_distances[0, node, :].astype(np.int32)],
 		        "k--", alpha=1, linewidth=1.1)
 	else:
-		ax.plot(convergence_thresholds, focal_distances[0, node, :],
+		ax.plot(convergence_thresholds, iterations_saved[focal_distances[0, node, :].astype(np.int32)],
 		        "-", alpha=0.2, linewidth=0.3)
 
 ax.set_title("Focal time trajectory")
@@ -227,7 +227,7 @@ fig.savefig(base_path_figure + "focal_time_trajectory.png", dpi=200)
 fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
 
-ax.hist(np.clip(np.mean(distortion_coefs, axis=0), 0, 150))
+ax.hist(np.clip(np.mean(distortion_coefs, axis=0), 0, 9))
 
 ax.set_title("Pseudo-distortion coefficient distribution")
 ax.set_ylabel("Number of nodes")
@@ -244,8 +244,8 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 
 fig, ax = plt.subplots(1, 1, figsize=(9,8))
 
-pl = ax.scatter(longitude, latitude, c=np.clip(np.mean(distortion_coefs, axis=0), 0, 150), s=30, alpha=0.5)
-pl = ax.scatter(longitude, latitude, c=np.clip(np.mean(distortion_coefs, axis=0), 0, 150), s=10)
+pl = ax.scatter(longitude, latitude, c=np.clip(np.mean(distortion_coefs, axis=0), 0, 9), s=30, alpha=0.5)
+pl = ax.scatter(longitude, latitude, c=np.clip(np.mean(distortion_coefs, axis=0), 0, 9), s=10)
 
 cbar = fig.colorbar(pl, label="pseudo-distortion coefficient")
 
@@ -286,7 +286,7 @@ with h5py.File(base_path + output_file, "r") as file:
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
-ax1.plot(dist_coef, np.clip(np.mean(distortion_coefs, axis=0), 0, 150), "+")
+ax1.plot(dist_coef, np.clip(np.mean(distortion_coefs, axis=0), 0, 9), "+")
 
 ax1.set_title("normalized distortion coefficient\nbased on number of voting bureau versus\nbased on agregated population")
 ax1.set_ylabel("distortion coefficient [based on convegrence time]")
@@ -296,7 +296,7 @@ ax1.set_xlabel("distortion coefficient [based on number of voting bureau]")
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-ax2.plot(dist_coef_pop, np.clip(np.mean(distortion_coefs, axis=0), 0, 150), "+")
+ax2.plot(dist_coef_pop, np.clip(np.mean(distortion_coefs, axis=0), 0, 9), "+")
 
 ax2.set_title("normalized distortion coefficient\nbased on distance versus\nbased on agregated population")
 ax2.set_ylabel("distortion coefficient [based on convegrence time]")
@@ -306,7 +306,7 @@ ax2.set_xlabel("distortion coefficient [based on agregated population]")
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-ax3.plot(dist_coef_dist, np.clip(np.mean(distortion_coefs, axis=0), 0, 150), "+")
+ax3.plot(dist_coef_dist, np.clip(np.mean(distortion_coefs, axis=0), 0, 9), "+")
 
 ax3.set_title("normalized distortion coefficient\nbased on distance versus\nbased on agregated population")
 ax3.set_ylabel("distortion coefficient [based on convegrence time]")
