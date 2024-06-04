@@ -18,6 +18,7 @@ const double dt                     = 0.2;
 const double overtoon_multiplier    = 0.1;
 const double frustration_multiplier = 0.01;
 
+const bool   parallel   = false;
 const size_t N_nodes    = 800;
 const int    n_con      = 3;
 const int    N_counties = 3;
@@ -73,6 +74,7 @@ int main() {
 			if (it%n_save == 0 && it > 0) {
 				std::string dir_name = "/states_" + std::to_string(itry) + "_" + std::to_string(it);
 				BPsimulation::io::write_agent_states_to_file(network, agent_partial_serializer, file, dir_name.c_str());
+				util::hdf5io::H5flush_and_clean(output_file);
 			}
 
 			if (it%n_election == 0) {
@@ -84,6 +86,7 @@ int main() {
 				std::string dir_name_counties = "/counties_election_result_" + std::to_string(itry) + "_" + std::to_string(it);
 				BPsimulation::io::write_election_result_to_file( general_election_results,  election_serializer, file, dir_name_general.c_str());
 				BPsimulation::io::write_election_results_to_file(counties_election_results, election_serializer, file, dir_name_counties.c_str());
+				util::hdf5io::H5flush_and_clean(output_file);
 
 				std::cout << "\n\ntry " << itry+1 << "/" << N_try << ", it " << it << "/" << N_it-1 << ":\n\n";
 				std::cout << "network->get_election_results(...) = " << general_election_results->result << " (" << int(general_election_results->proportion*100) << "%)\n";
@@ -98,7 +101,7 @@ int main() {
 				std::cout << "\n";
 			}
 
-			network->interact(interaction);
+			network->interact(interaction, parallel);
 			network->update_agentwise(agentwise);
 			network->election_retroinfluence(general_election_results, overton);
 			network->election_retroinfluence(general_election_results, frustration);
@@ -106,5 +109,7 @@ int main() {
 			network->election_retroinfluence(counties, counties_election_results, frustration);
 			network->update_agentwise(renormalize);
 		}
+
+		util::hdf5io::H5flush_and_clean(output_file, true);
 	}
 }

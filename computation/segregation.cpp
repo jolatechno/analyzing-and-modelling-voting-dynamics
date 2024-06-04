@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
 	H5::Group geo_data = input_file.openGroup("geo_data");
 	util::hdf5io::H5ReadVector(geo_data, lat, "lat");
 	util::hdf5io::H5ReadVector(geo_data, lon, "lon");
+	geo_data.close();
 
 	H5::Group output_geo_data = output_file.createGroup("geo_data");
 	util::hdf5io::H5WriteVector(output_geo_data, lat, "lat");
@@ -59,6 +60,7 @@ int main(int argc, char *argv[]) {
 	std::vector<double> populations;
 	H5::Group demo_data = input_file.openGroup("demo_data");
 	util::hdf5io::H5ReadVector(demo_data, populations, "voter_population");
+	demo_data.close();
 
 	std::vector<std::vector<double>> votes(N_candidates);
 	H5::Group vote_data = input_file.openGroup("vote_data");
@@ -66,6 +68,7 @@ int main(int argc, char *argv[]) {
 		std::string field_name = "Voix_" + candidates_from_left_to_right[icandidate];
 		util::hdf5io::H5ReadVector(vote_data, votes[icandidate], field_name.c_str());
 	}
+	vote_data.close();
 
 
 	H5::Group full_analysis = output_file.createGroup("full_analysis");
@@ -75,6 +78,7 @@ int main(int argc, char *argv[]) {
 		auto distances = segregation::map::util::get_distances(lat, lon);
 
 		util::hdf5io::H5WriteIrregular2DVector(output_geo_data, distances, "distances");
+		output_geo_data.close();
 
 
 		auto worst_population_trajectory = segregation::multiscalar::util::get_worst_population_trajectory(votes);
@@ -118,6 +122,8 @@ int main(int argc, char *argv[]) {
 			util::hdf5io::H5WriteSingle(normalization_factors, normalization_factor_dist, "normalization_factor_dist");
 			util::hdf5io::H5WriteVector(normalization_factors, worst_Xvalues,             "worst_Xvalues_dist");
 		}
+
+		util::hdf5io::H5flush_and_clean(output_file);
 	}
 
 
@@ -165,6 +171,10 @@ int main(int argc, char *argv[]) {
 		H5::Group partial_analysis_geo_data = partial_analysis.createGroup("geo_data");
 		util::hdf5io::H5WriteVector(partial_analysis_geo_data, partial_lat, "lat");
 		util::hdf5io::H5WriteVector(partial_analysis_geo_data, partial_lon, "lon");
+
+		partial_analysis.close();
+		partial_analysis_geo_data.close();
+		util::hdf5io::H5flush_and_clean(output_file, true);
 	}
 
 	std::cout << "Computing full analysis...\n";

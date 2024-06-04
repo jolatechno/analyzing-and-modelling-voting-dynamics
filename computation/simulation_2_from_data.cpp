@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
 	const std::string output_file_name = root + std::string(config["output_file_simulation"].asString());
 
 
+	const bool   parallel                           = config["simulation"]["parallel"                          ].asBool();
 	const size_t N_select                           = config["simulation"]["N_select"                          ].asInt();
 	const double dt                                 = config["simulation"]["dt"                                ].asDouble();
 	const double overtoon_multiplier                = config["simulation"]["overtoon_multiplier"               ].asDouble();
@@ -82,8 +83,8 @@ int main(int argc, char *argv[]) {
 	const bool read_network_from_file = config["simulation"]["read_network_from_file"].asBool();
 	const int  n_attachment           = config["simulation"]["n_attachment"          ].asInt();
 
-	H5::H5File output_file(output_file_name.c_str(), H5F_ACC_TRUNC);
-	H5::H5File input_file( input_file_name .c_str(), H5F_ACC_RDWR);
+	H5::H5File output_file = util::hdf5io::open_truncate_if_needed(output_file_name.c_str());
+	H5::H5File input_file(input_file_name .c_str(), H5F_ACC_RDONLY);
 
 
 	auto *election = new BPsimulation::core::agent::population::PopulationElection<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(new BPsimulation::implem::Nvoter_majority_election<N_candidates, BPsimulation::implem::Nvoter_stuborn<N_candidates>>());
@@ -104,11 +105,13 @@ int main(int argc, char *argv[]) {
 	H5::Group geo_data = input_file.openGroup("geo_data");
 	util::hdf5io::H5ReadVector(geo_data, lat, "lat");
 	util::hdf5io::H5ReadVector(geo_data, lon, "lon");
+	geo_data.close();
 	N_nodes = lat.size();
 
 	H5::Group output_geo_data = output_file.createGroup("geo_data");
 	util::hdf5io::H5WriteVector(output_geo_data, lat, "lat");
 	util::hdf5io::H5WriteVector(output_geo_data, lon, "lon");
+	output_geo_data.close();
 
 
 	auto *network = new BPsimulation::SocialNetwork<BPsimulation::implem::AgentPopulationNVoterStuborn<N_candidates>>(N_nodes);
@@ -133,6 +136,7 @@ int main(int argc, char *argv[]) {
 	std::vector<double> populations;
 	H5::Group demo_data = input_file.openGroup("demo_data");
 	util::hdf5io::H5ReadVector(demo_data, populations,  "voter_population");
+	demo_data.close();
 
 
 	std::vector<std::vector<double>> votes(N_candidates);
@@ -141,6 +145,7 @@ int main(int argc, char *argv[]) {
 		std::string field_name = "PROP_Voix_" + candidates_from_left_to_right[icandidate];
 		util::hdf5io::H5ReadVector(vote_data, votes[icandidate], field_name.c_str());
 	}
+	vote_data.close();
 
 
 	double normalization_factor_pop = segregation::multiscalar::get_normalization_factor_pop(votes);
@@ -158,6 +163,7 @@ int main(int argc, char *argv[]) {
 	network->update_agentwise(renormalize);
 
 	BPsimulation::io::write_agent_states_to_file(network, agent_full_serializer, output_file, "/initial_state");
+	util::hdf5io::H5flush_and_clean(output_file);
 
 	{
 		std::string segregation_dir_name = "/segregation_initial_state";
@@ -177,6 +183,8 @@ int main(int argc, char *argv[]) {
 			}, normalization_factor_pop);
 		
 		util::hdf5io::H5WriteVector(segregation, normalized_distortion_coefs, "normalized_distortion_coefs");
+		segregation.close();
+		util::hdf5io::H5flush_and_clean(output_file, true);
 	}
 
 
@@ -208,6 +216,8 @@ int main(int argc, char *argv[]) {
 					}, normalization_factor_pop);
 				
 				util::hdf5io::H5WriteVector(segregation, normalized_distortion_coefs, "normalized_distortion_coefs");
+				segregation.close();
+				util::hdf5io::H5flush_and_clean(output_file);
 			}
 
 			if (it%n_election == 0) {
@@ -219,6 +229,7 @@ int main(int argc, char *argv[]) {
 
 				BPsimulation::io::write_election_result_to_file( general_election_results,  election_serializer, output_file, dir_name_general.c_str());
 				BPsimulation::io::write_election_results_to_file(counties_election_results, election_serializer, output_file, dir_name_counties.c_str());
+				util::hdf5io::H5flush_and_clean(output_file);
 
 				std::cout << "\n\ntry " << itry+1 << "/" << N_try << ", it " << it << "/" << N_it-1 << ":\n\n";
 				std::cout << "network->get_election_results(...) = " << general_election_results->result << " (" << general_election_results->proportions << ")\n";
@@ -230,7 +241,7 @@ int main(int argc, char *argv[]) {
 				std::cout << "\n";
 			}
 
-			network->interact(interaction);
+			network->interact(interaction, parallel);
 			network->update_agentwise(agentwise);
 			network->election_retroinfluence(general_election_results, overton);
 			network->election_retroinfluence(general_election_results, frustration);
@@ -238,5 +249,7 @@ int main(int argc, char *argv[]) {
 			network->election_retroinfluence(counties, counties_election_results, frustration);
 			network->update_agentwise(renormalize);
 		}
+
+		util::hdf5io::H5flush_and_clean(output_file, true);
 	}
 }

@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
 	const std::string input_file_name  = root + std::string(config["preprocessed_file"    ].asString());
 	const std::string output_file_name = root + std::string(config["output_file_convergence_time"].asString());
 
+	const bool   parallel = config["convergence_time"]["parallel"].asBool();
 	const size_t N_select = config["convergence_time"]["N_select"].asInt();
 
 	      size_t N_nodes;
@@ -126,6 +127,7 @@ int main(int argc, char *argv[]) {
 
 
 	BPsimulation::io::write_agent_states_to_file(network, agent_serializer, output_file, "/initial_state");
+	util::hdf5io::H5flush_and_clean(output_file, true);
 	for (size_t node = 0; node < N_nodes; ++node) {
 		for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
 			trajectories[icandidate][node][0] = (*network)[node].proportions[icandidate];
@@ -150,7 +152,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			network->interact(interaction);
+			network->interact(interaction, parallel);
 			network->update_agentwise(renormalize);
 		}
 
@@ -171,6 +173,7 @@ int main(int argc, char *argv[]) {
 			util::hdf5io::H5WriteVector(           analysis, distortion_coefs,      "distortion_coefs");
 
 			util::hdf5io::H5WriteVector(analysis, convergence_thresholds, "convergence_thresholds");
+			util::hdf5io::H5flush_and_clean(output_file, true);
 		}
 	}
 }
