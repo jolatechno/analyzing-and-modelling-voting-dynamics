@@ -136,12 +136,17 @@ ax1.legend()
 X_eq_vs_bias = []
 Y_eq_vs_bias = []
 for i in range(N_try):
-	ax2.plot(stuborn_equilibrium[1] - stuborn_equilibrium[0],
-	         simulation_data[i, -1, 3, :] - simulation_data[i, -1, 2, :], "+c")
+	y = np.divide(
+			simulation_data[i, -1, 3, :],
+			simulation_data[i, -1, 3, :] + simulation_data[i, -1, 1, :]
+		) - np.divide(
+			simulation_data[i, -1, 2, :],
+			simulation_data[i, -1, 2, :] + simulation_data[i, -1, 0, :]
+		)
+
+	ax2.plot(stuborn_equilibrium[1] - stuborn_equilibrium[0], y, "+c")
 	X_eq_vs_bias.extend(stuborn_equilibrium[1] - stuborn_equilibrium[0])
-	Y_eq_vs_bias.extend(
-		np.divide(simulation_data[i, -1, 3, :], simulation_data[i, -1, 1, :] + simulation_data[i, -1, 3, :]) - 
-		np.divide(simulation_data[i, -1, 2, :], simulation_data[i, -1, 0, :] + simulation_data[i, -1, 2, :]))
+	Y_eq_vs_bias.extend(y)
 
 reg_eq_vs_bias = LinearRegression().fit(
 	np.expand_dims(X_eq_vs_bias, 1),
