@@ -4,7 +4,7 @@ from util.plot import *
 
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 import copy
 import h5py
@@ -34,7 +34,7 @@ iterations_elections = np.arange(0, N_it-1, n_election)
 simulation_data = np.zeros((N_try, N_it//n_save, 4, N_nodes))
 populations     = np.zeros(N_nodes)
 
-stuborn_equilibrium = np.zeros((2, N_nodes))
+stubborn_equilibrium = np.zeros((2, N_nodes))
 neighbors = []
 counties  = []
 
@@ -54,8 +54,8 @@ with h5py.File(base_path + input_filename, "r") as file:
 	for begin,end in zip(neighbors_begin_end[:-1], neighbors_begin_end[1:]):
 		neighbors.append(file["network"]["neighbors"][begin:end])
 
-	stuborn_equilibrium[0, :] = file["initial_state"]["stuborn_equilibrium_false"]
-	stuborn_equilibrium[1, :] = file["initial_state"]["stuborn_equilibrium_true"]
+	stubborn_equilibrium[0, :] = file["initial_state"]["stubborn_equilibrium_false"]
+	stubborn_equilibrium[1, :] = file["initial_state"]["stubborn_equilibrium_true"]
 
 	for i in range(N_try):
 		for k in range(4):
@@ -108,10 +108,10 @@ fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(10,10))
 X_eq_vs_vote = []
 Y_eq_vs_vote = []
 for i in range(N_try):
-	ax1.plot(stuborn_equilibrium[1] - stuborn_equilibrium[0],
+	ax1.plot(stubborn_equilibrium[1] - stubborn_equilibrium[0],
 			 simulation_data[i, -1, 1, :] + simulation_data[i, -1, 3, :], "+c",)
 
-	X_eq_vs_vote.extend(stuborn_equilibrium[1] - stuborn_equilibrium[0])
+	X_eq_vs_vote.extend(stubborn_equilibrium[1] - stubborn_equilibrium[0])
 	Y_eq_vs_vote.extend(simulation_data[i, -1, 1, :] + simulation_data[i, -1, 3, :])
 
 reg_eq_vs_vote = LinearRegression().fit(
@@ -144,8 +144,8 @@ for i in range(N_try):
 			simulation_data[i, -1, 2, :] + simulation_data[i, -1, 0, :]
 		)
 
-	ax2.plot(stuborn_equilibrium[1] - stuborn_equilibrium[0], y, "+c")
-	X_eq_vs_bias.extend(stuborn_equilibrium[1] - stuborn_equilibrium[0])
+	ax2.plot(stubborn_equilibrium[1] - stubborn_equilibrium[0], y, "+c")
+	X_eq_vs_bias.extend(stubborn_equilibrium[1] - stubborn_equilibrium[0])
 	Y_eq_vs_bias.extend(y)
 
 reg_eq_vs_bias = LinearRegression().fit(
@@ -161,7 +161,7 @@ ax2.yaxis.set_label_position("right")
 ax2.yaxis.tick_right()
 ax2.set_title("Polititical bias versus the\npolitical bias equilibrium")
 ax2.set_xlabel("up eq. - down eq.")
-ax2.set_ylabel("up-stuborn proportion - down-stuborn prop.")
+ax2.set_ylabel("up-stubborn proportion - down-stubborn prop.")
 ax2.legend()
 
 """ -------------------------------------------------------
@@ -241,7 +241,7 @@ ax4.legend()
 ------------------------------------------------------- """
 
 fig.tight_layout(pad=1.0)
-fig.savefig("figures/simulation/scatter.png", dpi=200)
+fig.savefig("figures/simulation/scatter.png", dpi=120)
 
 
 #########################################################
@@ -267,9 +267,9 @@ for i_ax in range(2):
 			axes[i_ax].plot(iterations_saved, proprtion,
 			         "-", alpha=0.2, linewidth=0.3)
 
-	axes[i_ax].set_title(f"Trajectories of the { "up" if i_ax==1 else "down" }-vote\nstuborness for each node (try 0)")
+	axes[i_ax].set_title(f"Trajectories of the { "up" if i_ax==1 else "down" }-vote\nstubborness for each node (try 0)")
 	axes[i_ax].set_xlabel("number of steps")
-	axes[i_ax].set_ylabel("Stuborn proportion")
+	axes[i_ax].set_ylabel("stubborn proportion")
 	axes[i_ax].set_ylim([0, 0.6])
 
 axes[1].yaxis.set_label_position("right")
@@ -277,7 +277,7 @@ axes[1].yaxis.tick_right()
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig("figures/simulation/trajectories.png", dpi=200)
+fig.savefig("figures/simulation/trajectories.png", dpi=120)
 
 
 #########################################################
@@ -339,4 +339,4 @@ for i in range(N_try):
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig("figures/simulation/election_results.png", dpi=200)
+fig.savefig("figures/simulation/election_results.png", dpi=120)

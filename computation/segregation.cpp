@@ -38,7 +38,6 @@ int main(int argc, char *argv[]) {
 
 	const int    N_full_analyze = config["segregation"]["N_full_analyze"].asInt();
 	const int    N_thresh       = config["segregation"]["N_thresh"      ].asInt();
-	const int    N_thresh       = config["segregation"]["N_thresh"      ].asInt();
 	const double thresh_min     = config["segregation"]["tresh_lims"    ][0].asDouble();
 	const double thresh_max     = config["segregation"]["tresh_lims"    ][1].asDouble();
 

@@ -4,7 +4,8 @@ from util.plot import *
 
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+from matplotlib import patches
 from sklearn.linear_model import LinearRegression
 import copy
 import h5py
@@ -147,11 +148,13 @@ nodes = np.arange(N_full_analyze)
 np.random.shuffle(nodes)
 
 distances_around_main = np.sort([
-	np.sqrt(
-		(longitude[nodes[N_full_analyze-1]] - lon)**2 +
-		(latitude[ nodes[N_full_analyze-1]] - lat)**2
+	get_map_dist(
+		longitude[nodes[N_full_analyze-1]], latitude[ nodes[N_full_analyze-1]],
+		lon,                                lat
 	) for (lon, lat) in zip(longitude, latitude)])
 
+map_ratio = get_map_ratio(longitude, latitude)
+
 
 #########################################################
 #########################################################
@@ -166,7 +169,7 @@ distances_around_main = np.sort([
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(6*3, 5/map_ratio))
 
 
 ax1.scatter(longitude, latitude, c=dist_coef_idx, s=30, alpha=0.6)
@@ -175,7 +178,7 @@ pl = ax1.scatter(longitude, latitude, c=dist_coef_idx, s=1)
 
 cbar = fig.colorbar(pl, label="distortion coefficient")
 
-#ax1.set_aspect('equal', adjustable='box')
+ax1.set_aspect(map_ratio)
 ax1.set_title("map of the distortion coefficient based\non the number of voting bureau")
 
 """ -------------------------------------------------------
@@ -188,7 +191,7 @@ pl = ax2.scatter(longitude, latitude, c=dist_coef_pop, s=1)
 
 cbar = fig.colorbar(pl, label="distortion coefficient")
 
-#ax2.set_aspect('equal', adjustable='box')
+ax2.set_aspect(map_ratio)
 ax2.set_title("map of the distortion coefficient based\non the agreagated population")
 
 """ -------------------------------------------------------
@@ -201,12 +204,12 @@ pl = ax3.scatter(longitude, latitude, c=dist_coef_dist, s=1)
 
 cbar = fig.colorbar(pl, label="distortion coefficient")
 
-#ax3.set_aspect('equal', adjustable='box')
+ax3.set_aspect(map_ratio)
 ax3.set_title("map of the distortion coefficient based\non distances")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "map.png", dpi=200)
+fig.savefig(base_path_figure + "map.png", dpi=120)
 
 
 #########################################################
@@ -214,7 +217,7 @@ fig.savefig(base_path_figure + "map.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 ax1.hist(dist_coef_idx, density=True, bins=30)
@@ -245,7 +248,7 @@ ax3.set_xlabel("distortion coefficient")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "histograms.png", dpi=200)
+fig.savefig(base_path_figure + "histograms.png", dpi=120)
 
 
 #########################################################
@@ -253,7 +256,7 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,5))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6*2, 5))
 
 
 ax1.plot(dist_coef_pop, dist_coef_idx, "+")
@@ -274,7 +277,7 @@ ax2.set_xlabel("distortion coefficient [based on agregated population]")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=200)
+fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=120)
 
 
 #########################################################
@@ -290,7 +293,7 @@ fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=200)
 #########################################################
 
 
-fig, axes = plt.subplots(1, 3, figsize=(18,5))
+fig, axes = plt.subplots(1, 3, figsize=(6*3, 5/map_ratio))
 
 
 for i_ax in range(3):
@@ -307,19 +310,21 @@ for i_ax in range(3):
 	for diameter in diameters:
 		distance = distances_around_main[diameter]
 
-		axes[i_ax].add_patch(plt.Circle(
-			(longitude[nodes[N_full_analyze-1]], latitude[nodes[N_full_analyze-1]]),
-			distance, fill=False, edgecolor='r', linestyle="--", linewidth=2))
+		axes[i_ax].add_patch(patches.Ellipse(
+			xy=(longitude[nodes[N_full_analyze-1]], latitude[nodes[N_full_analyze-1]]),
+			width=2*distance/np.sin(latitude[nodes[N_full_analyze-1]]*np.pi/180), height=2*distance,
+			fill=False, edgecolor='r', linestyle="--", linewidth=2))
 
 	cbar = fig.colorbar(pl, label=f"proportion of expressed vote for { candidates[interesting_candidates[i_ax]] }")
 
+	axes[i_ax].set_aspect(map_ratio)
 	axes[i_ax].set_title(f"Map of voting results for { candidates[interesting_candidates[i_ax]] }")
 	axes[i_ax].set_xlim(old_xlim)
 	axes[i_ax].set_ylim(old_ylim)
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "vote_map.png", dpi=200)
+fig.savefig(base_path_figure + "vote_map.png", dpi=120)
 
 
 #########################################################
@@ -327,7 +332,7 @@ fig.savefig(base_path_figure + "vote_map.png", dpi=200)
 #########################################################
 
 
-fig, axes = plt.subplots(1, 3, figsize=(18,5))
+fig, axes = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 for i_ax in range(3):
@@ -352,7 +357,7 @@ for i_ax in range(3):
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
+fig.savefig(base_path_figure + "vote_trajectory.png", dpi=120)
 
 
 #########################################################
@@ -360,7 +365,7 @@ fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 for i,node in enumerate(nodes):
@@ -433,7 +438,7 @@ ax3.set_ylim([0, 0.5])
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "KL-traj.png", dpi=200)
+fig.savefig(base_path_figure + "KL-traj.png", dpi=120)
 
 
 #########################################################
@@ -441,7 +446,7 @@ fig.savefig(base_path_figure + "KL-traj.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 remarquable_thresholds = []
@@ -525,7 +530,7 @@ ax3.set_xlim([0, 0.5])
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "focal_distances.png", dpi=200)
+fig.savefig(base_path_figure + "focal_distances.png", dpi=120)
 
 
 #########################################################
@@ -541,7 +546,7 @@ fig.savefig(base_path_figure + "focal_distances.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,5))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6*2, 5))
 
 
 for i,node in enumerate(nodes):
@@ -578,7 +583,7 @@ ax2.set_xlabel("number of voting bureau")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "normalization_factor/Xvalue_trajectory.png", dpi=200)
+fig.savefig(base_path_figure + "normalization_factor/Xvalue_trajectory.png", dpi=120)
 
 
 #########################################################
@@ -586,7 +591,7 @@ fig.savefig(base_path_figure + "normalization_factor/Xvalue_trajectory.png", dpi
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 ax1.plot(worst_KLdiv_trajectory, "r-.")
@@ -641,7 +646,7 @@ ax3.set_xlabel("distance [m]")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "normalization_factor/worst_KL-traj.png", dpi=200)
+fig.savefig(base_path_figure + "normalization_factor/worst_KL-traj.png", dpi=120)
 
 
 #########################################################
@@ -649,7 +654,7 @@ fig.savefig(base_path_figure + "normalization_factor/worst_KL-traj.png", dpi=200
 #########################################################
 
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 ax1.plot(convergence_thresholds, worst_focal_distances, "r-.")
@@ -704,4 +709,4 @@ ax3.set_xlabel("convergence threshold")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "normalization_factor/worst_focal_distances.png", dpi=200)
+fig.savefig(base_path_figure + "normalization_factor/worst_focal_distances.png", dpi=120)

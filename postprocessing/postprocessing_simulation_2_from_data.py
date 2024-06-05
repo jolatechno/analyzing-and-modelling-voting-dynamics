@@ -4,7 +4,7 @@ from util.plot import *
 
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 import copy
 import h5py
@@ -74,7 +74,7 @@ longitude, latitude = np.zeros(N_nodes), np.zeros(N_nodes)
 populations         = np.zeros(N_nodes)
 
 simulation_data     = np.zeros((N_try, N_it//n_save, 2*N_candidates, N_nodes))
-stuborn_equilibrium = np.zeros((N_candidates, N_nodes))
+stubborn_equilibrium = np.zeros((N_candidates, N_nodes))
 
 counties  = []
 neighbors = []
@@ -100,8 +100,8 @@ with h5py.File(base_path + output_file, "r") as file:
 		neighbors.append(file["network"]["neighbors"][begin:end])
 
 	for k in range(N_candidates):
-		field_name = "stuborn_equilibrium_" + str(k)
-		stuborn_equilibrium[k, :] = file["initial_state"][field_name]
+		field_name = "stubborn_equilibrium_" + str(k)
+		stubborn_equilibrium[k, :] = file["initial_state"][field_name]
 	
 	normalized_distortion_coefs[:, 0] = file["segregation_initial_state"]["normalized_distortion_coefs"]
 
@@ -146,6 +146,8 @@ with h5py.File(base_path + output_file, "r") as file:
 nodes = np.arange(N_nodes)
 np.random.shuffle(nodes)
 
+map_ratio = get_map_ratio(longitude, latitude)
+
 
 #########################################################
 #########################################################
@@ -160,7 +162,7 @@ np.random.shuffle(nodes)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8/map_ratio))
 
 color_0, color_1 = 0, 1
 colors = np.empty(N_nodes)
@@ -171,7 +173,7 @@ plot_graph_from_scratch(neighbors, longitude, latitude, colors, ax)
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "county_map.png", dpi=200)
+fig.savefig(base_path_figure + "county_map.png", dpi=120)
 
 
 #########################################################
@@ -179,7 +181,7 @@ fig.savefig(base_path_figure + "county_map.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
@@ -189,13 +191,13 @@ for i,node in enumerate(nodes):
 		ax.plot(iterations_saved, np.sum(simulation_data[0, :, N_candidates:, node], axis=1),
 		        "-", alpha=0.2, linewidth=0.3)
 
-ax.set_title("Trajectories of the total vote\nstuborness for each node (try 0)")
+ax.set_title("Trajectories of the total vote\nstubborness for each node (try 0)")
 ax.set_xlabel("number of steps")
-ax.set_ylabel("Stuborn proportion")
+ax.set_ylabel("stubborn proportion")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "total_stuborness_proportion.png", dpi=200)
+fig.savefig(base_path_figure + "total_stubborness_proportion.png", dpi=120)
 
 
 #########################################################
@@ -228,7 +230,7 @@ ax.legend()
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "average_voter_state.png", dpi=200)
+fig.savefig(base_path_figure + "average_voter_state.png", dpi=120)
 
 
 #########################################################
@@ -236,7 +238,7 @@ fig.savefig(base_path_figure + "average_voter_state.png", dpi=200)
 #########################################################
 
 
-fig, axes = plt.subplots(1, 3, figsize=(15,5))
+fig, axes = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 for i_ax in range(3):
@@ -254,14 +256,14 @@ for i_ax in range(3):
 			axes[i_ax].plot(iterations_saved, proprtion,
 			         "-", alpha=0.2, linewidth=0.3)
 
-	axes[i_ax].set_title(f"Trajectories of the proportion of stuborn\n voter for each node for { candidates[interesting_candidates[i_ax]] } (try 0)")
+	axes[i_ax].set_title(f"Trajectories of the proportion of stubborn\n voter for each node for { candidates[interesting_candidates[i_ax]] } (try 0)")
 	axes[i_ax].set_xlabel("number of steps")
-	axes[i_ax].set_ylabel("Stuborn proportion")
+	axes[i_ax].set_ylabel("stubborn proportion")
 	axes[i_ax].set_ylim([0, 0.4])
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "stuborness_proportion.png", dpi=200)
+fig.savefig(base_path_figure + "stubborness_proportion.png", dpi=120)
 
 
 #########################################################
@@ -269,7 +271,7 @@ fig.savefig(base_path_figure + "stuborness_proportion.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6*2, 5))
 
 ax1b = ax1.twinx()
 general_votes = np.sum(simulation_data[:, :, :N_candidates, :] + simulation_data[:, :, N_candidates:, :], axis=-1)
@@ -329,7 +331,7 @@ ax2b.set_ylabel("Winning candidate index")
 ax2b.legend()
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "election_results.png", dpi=200)
+fig.savefig(base_path_figure + "election_results.png", dpi=120)
 
 
 #########################################################
@@ -337,7 +339,7 @@ fig.savefig(base_path_figure + "election_results.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(10,10))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
@@ -354,4 +356,4 @@ ax.set_yscale("log")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "normalized_distortion_coefs.png", dpi=200)
+fig.savefig(base_path_figure + "normalized_distortion_coefs.png", dpi=120)

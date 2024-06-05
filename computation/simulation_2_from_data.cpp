@@ -9,12 +9,12 @@
 #include "modular_election_simulation_framework/src/core/agent_population/agent_population_util.hpp"
 
 #include "modular_election_simulation_framework/src/implementations/voter_model.hpp"
-#include "modular_election_simulation_framework/src/implementations/voter_model_stuborn.hpp"
+#include "modular_election_simulation_framework/src/implementations/voter_model_stubborn.hpp"
 #include "modular_election_simulation_framework/src/implementations/population_voter_model.hpp"
-#include "modular_election_simulation_framework/src/implementations/population_voter_model_stuborn.hpp"
+#include "modular_election_simulation_framework/src/implementations/population_voter_model_stubborn.hpp"
 
-#include "modular_election_simulation_framework/src/implementations/Nvoter_stuborn_model.hpp"
-#include "modular_election_simulation_framework/src/implementations/population_Nvoter_stuborn_model.hpp"
+#include "modular_election_simulation_framework/src/implementations/Nvoter_stubborn_model.hpp"
+#include "modular_election_simulation_framework/src/implementations/population_Nvoter_stubborn_model.hpp"
 
 #include "modular_election_simulation_framework/src/util/json_util.hpp"
 #include "modular_election_simulation_framework/src/util/hdf5_util.hpp"
@@ -87,17 +87,17 @@ int main(int argc, char *argv[]) {
 	H5::H5File input_file(input_file_name .c_str(), H5F_ACC_RDONLY);
 
 
-	auto *election = new BPsimulation::core::agent::population::PopulationElection<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(new BPsimulation::implem::Nvoter_majority_election<N_candidates, BPsimulation::implem::Nvoter_stuborn<N_candidates>>());
+	auto *election = new BPsimulation::core::agent::population::PopulationElection<BPsimulation::implem::Nvoter_stubborn<N_candidates>>(new BPsimulation::implem::Nvoter_majority_election<N_candidates, BPsimulation::implem::Nvoter_stubborn<N_candidates>>());
 
-	auto *interaction = new BPsimulation::implem::population_Nvoter_stuborn_interaction_function<N_candidates>(N_select);
-	auto *agentwise   = new BPsimulation::implem::Nvoter_stuborn_equilibirum_function<           N_candidates>(dt);
-	auto *overton     = new BPsimulation::implem::Nvoter_stuborn_overtoon_effect<                N_candidates>(dt, overtoon_multiplier, overtoon_radicalization_multiplier, overtoon_radius);
-	auto *frustration = new BPsimulation::implem::Nvoter_stuborn_frustration_effect<             N_candidates>(dt, frustration_multiplier);
+	auto *interaction = new BPsimulation::implem::population_Nvoter_stubborn_interaction_function<N_candidates>(N_select);
+	auto *agentwise   = new BPsimulation::implem::Nvoter_stubborn_equilibirum_function<           N_candidates>(dt);
+	auto *overton     = new BPsimulation::implem::Nvoter_stubborn_overtoon_effect<                N_candidates>(dt, overtoon_multiplier, overtoon_radicalization_multiplier, overtoon_radius);
+	auto *frustration = new BPsimulation::implem::Nvoter_stubborn_frustration_effect<             N_candidates>(dt, frustration_multiplier);
 
-	auto *renormalize = new BPsimulation::core::agent::population::PopulationRenormalizeProportions<BPsimulation::implem::Nvoter_stuborn<N_candidates>>();
+	auto *renormalize = new BPsimulation::core::agent::population::PopulationRenormalizeProportions<BPsimulation::implem::Nvoter_stubborn<N_candidates>>();
 
-	auto *agent_full_serializer    = new BPsimulation::implem::AgentPopulationNVoterStubornSerializer<N_candidates>();
-	auto *agent_partial_serializer = new BPsimulation::core::agent::population::AgentPopulationSerializer<BPsimulation::implem::Nvoter_stuborn<N_candidates>>();
+	auto *agent_full_serializer    = new BPsimulation::implem::AgentPopulationNVoterstubbornSerializer<N_candidates>();
+	auto *agent_partial_serializer = new BPsimulation::core::agent::population::AgentPopulationSerializer<BPsimulation::implem::Nvoter_stubborn<N_candidates>>();
 	auto *election_serializer      = new BPsimulation::implem::NVoterMajorityElectionSerializer<N_candidates>();
 
 
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 	output_geo_data.close();
 
 
-	auto *network = new BPsimulation::SocialNetwork<BPsimulation::implem::AgentPopulationNVoterStuborn<N_candidates>>(N_nodes);
+	auto *network = new BPsimulation::SocialNetwork<BPsimulation::implem::AgentPopulationNVoterstubborn<N_candidates>>(N_nodes);
 	if (read_network_from_file) {
 		BPsimulation::io::read_network_from_file(network, input_file);
 	} else {
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
 
 		for (int icandidate = 0; icandidate < N_candidates; ++icandidate) {
 			(*network)[node].proportions[icandidate]         = votes[icandidate][node];
-			(*network)[node].stuborn_equilibrium[icandidate] = votes[icandidate][node]*initial_radicalization_multiplier;
+			(*network)[node].stubborn_equilibrium[icandidate] = votes[icandidate][node]*initial_radicalization_multiplier;
 		}
 
 		(*network)[node].population = (size_t)populations[node];
@@ -169,8 +169,8 @@ int main(int argc, char *argv[]) {
 		std::string segregation_dir_name = "/segregation_initial_state";
 		H5::Group segregation = output_file.createGroup(segregation_dir_name);
 
-		auto vote_proportions = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(network);
-		BPsimulation::implem::util::accumulate_stuborn_votes(vote_proportions);
+		auto vote_proportions = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stubborn<N_candidates>>(network);
+		BPsimulation::implem::util::accumulate_stubborn_votes(vote_proportions);
 
 		auto normalized_distortion_coefs = segregation::multiscalar::get_distortion_coefs_fast(vote_proportions,
 			(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&votes, &lat, &lon](size_t i) {
@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
 
 
 	BPsimulation::implem::Nvoter_majority_election_result<N_candidates>* general_election_results;
-	std::vector<BPsimulation::core::election::ElectionResultTemplate*> counties_election_results, stuborness_results;
+	std::vector<BPsimulation::core::election::ElectionResultTemplate*> counties_election_results, stubborness_results;
 	for (int itry = 0; itry < N_try; ++itry) {
 		if (itry > 0) {
 			BPsimulation::io::read_agent_states_from_file(network, agent_full_serializer, output_file, "/initial_state");
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 				std::string segregation_dir_name = "/segregation_state_" + std::to_string(itry) + "_" + std::to_string(it);
 				H5::Group segregation = output_file.createGroup(segregation_dir_name);
 
-				auto vote_proportions            = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stuborn<N_candidates>>(network);
+				auto vote_proportions            = BPsimulation::core::agent::population::util::get_vote_proportions<BPsimulation::implem::Nvoter_stubborn<N_candidates>>(network);
 				auto normalized_distortion_coefs = segregation::multiscalar::get_distortion_coefs_fast(vote_proportions,
 					(std::function<std::pair<std::vector<size_t>, std::vector<double>>(size_t)>) [&votes, &lat, &lon](size_t i) {
 						auto distances_slice  = segregation::map::util::get_distances(lat, lon, std::vector<size_t>{i});

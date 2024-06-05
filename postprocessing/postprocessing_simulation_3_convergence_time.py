@@ -4,7 +4,7 @@ from util.plot import *
 
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 import copy
 import h5py
@@ -126,6 +126,8 @@ with h5py.File(base_path + output_file, "r") as file:
 nodes = np.arange(N_nodes)
 np.random.shuffle(nodes)
 
+map_ratio = get_map_ratio(longitude, latitude)
+
 
 #########################################################
 #########################################################
@@ -140,13 +142,13 @@ np.random.shuffle(nodes)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8/map_ratio))
 
 plot_graph_from_scratch(neighbors, longitude, latitude, ax=ax)
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "network.png", dpi=200)
+fig.savefig(base_path_figure + "network.png", dpi=120)
 
 
 #########################################################
@@ -154,7 +156,7 @@ fig.savefig(base_path_figure + "network.png", dpi=200)
 #########################################################
 
 
-fig, axes = plt.subplots(1, 3, figsize=(18,5))
+fig, axes = plt.subplots(1, 3, figsize=(6*3, 5))
 
 
 for i_ax in range(3):
@@ -172,7 +174,7 @@ for i_ax in range(3):
 
 
 fig.tight_layout(pad=2.0)
-fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
+fig.savefig(base_path_figure + "vote_trajectory.png", dpi=120)
 
 
 #########################################################
@@ -180,7 +182,7 @@ fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
@@ -201,7 +203,7 @@ ax.set_ylim([
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "kl-div_trajectory.png", dpi=200)
+fig.savefig(base_path_figure + "kl-div_trajectory.png", dpi=120)
 
 
 #########################################################
@@ -209,7 +211,7 @@ fig.savefig(base_path_figure + "kl-div_trajectory.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 
 for i,node in enumerate(nodes):
@@ -226,7 +228,7 @@ ax.set_xlabel("convergence thresholds")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "focal_time_trajectory.png", dpi=200)
+fig.savefig(base_path_figure + "focal_time_trajectory.png", dpi=120)
 
 
 #########################################################
@@ -234,7 +236,7 @@ fig.savefig(base_path_figure + "focal_time_trajectory.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 
 ax.hist(np.mean(distortion_coefs, axis=0),
@@ -249,7 +251,7 @@ ax.set_xlabel("Pseudo-distortion coefficient")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "histograms.png", dpi=200)
+fig.savefig(base_path_figure + "histograms.png", dpi=120)
 
 
 #########################################################
@@ -257,7 +259,7 @@ fig.savefig(base_path_figure + "histograms.png", dpi=200)
 #########################################################
 
 
-fig, ax = plt.subplots(1, 1, figsize=(9,8))
+fig, ax = plt.subplots(1, 1, figsize=(6, 5/map_ratio))
 
 pl = ax.scatter(longitude, latitude,
 	c=np.clip(np.mean(distortion_coefs, axis=0), *dist_coef_map_clip_lims),
@@ -268,11 +270,12 @@ pl = ax.scatter(longitude, latitude,
 
 cbar = fig.colorbar(pl, label="pseudo-distortion coefficient")
 
+ax.set_aspect(map_ratio)
 ax.set_title("distortion coeffecient map")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "map.png", dpi=200)
+fig.savefig(base_path_figure + "map.png", dpi=120)
 
 
 #########################################################
@@ -385,5 +388,5 @@ ax3.set_xlabel("distortion coefficient [based on distance]")
 
 
 fig.tight_layout(pad=1.0)
-fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=200)
+fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=120)
 
