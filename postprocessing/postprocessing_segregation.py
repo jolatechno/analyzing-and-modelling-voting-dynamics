@@ -205,7 +205,7 @@ cbar = fig.colorbar(pl, label="distortion coefficient")
 ax3.set_title("map of the distortion coefficient based\non distances")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "map.png", dpi=200)
 
 
@@ -244,7 +244,7 @@ ax3.set_ylabel("density")
 ax3.set_xlabel("distortion coefficient")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "histograms.png", dpi=200)
 
 
@@ -273,7 +273,7 @@ ax2.set_ylabel("distortion coefficient [based on distance]")
 ax2.set_xlabel("distortion coefficient [based on agregated population]")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=200)
 
 
@@ -318,7 +318,7 @@ for i_ax in range(3):
 	axes[i_ax].set_ylim(old_ylim)
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "vote_map.png", dpi=200)
 
 
@@ -351,7 +351,7 @@ for i_ax in range(3):
 	axes[i_ax].set_xlabel("number of voting bureau")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 
 
@@ -432,7 +432,7 @@ ax3.set_xlabel("distance [m]")
 ax3.set_ylim([0, 0.5])
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "KL-traj.png", dpi=200)
 
 
@@ -524,7 +524,7 @@ ax3.set_xlabel("convergence threshold")
 ax3.set_xlim([0, 0.5])
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "focal_distances.png", dpi=200)
 
 
@@ -577,7 +577,7 @@ ax2.set_ylabel("distance")
 ax2.set_xlabel("number of voting bureau")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "normalization_factor/Xvalue_trajectory.png", dpi=200)
 
 
@@ -640,7 +640,7 @@ ax3.set_ylabel("KL-divergence")
 ax3.set_xlabel("distance [m]")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "normalization_factor/worst_KL-traj.png", dpi=200)
 
 
@@ -703,5 +703,5 @@ ax3.set_ylabel("focal distance [distance, m]")
 ax3.set_xlabel("convergence threshold")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "normalization_factor/worst_focal_distances.png", dpi=200)

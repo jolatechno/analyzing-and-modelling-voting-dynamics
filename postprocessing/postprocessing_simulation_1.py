@@ -82,6 +82,13 @@ with h5py.File(base_path + input_filename, "r") as file:
 				counties_election_results[i, j, k]     = file[counties_election_name][county_name]["result"][0]
 				counties_election_proportions[i, j, k] = file[counties_election_name][county_name]["proportion"][0]
 
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
+
+nodes = np.arange(N_nodes)
+np.random.shuffle(nodes)
+
 
 #########################################################
 #########################################################
@@ -132,7 +139,9 @@ for i in range(N_try):
 	ax2.plot(stuborn_equilibrium[1] - stuborn_equilibrium[0],
 	         simulation_data[i, -1, 3, :] - simulation_data[i, -1, 2, :], "+c")
 	X_eq_vs_bias.extend(stuborn_equilibrium[1] - stuborn_equilibrium[0])
-	Y_eq_vs_bias.extend(simulation_data[i, -1, 3, :] - simulation_data[i, -1, 2, :])
+	Y_eq_vs_bias.extend(
+		np.divide(simulation_data[i, -1, 3, :], simulation_data[i, -1, 1, :] + simulation_data[i, -1, 3, :]) - 
+		np.divide(simulation_data[i, -1, 2, :], simulation_data[i, -1, 0, :] + simulation_data[i, -1, 2, :]))
 
 reg_eq_vs_bias = LinearRegression().fit(
 	np.expand_dims(X_eq_vs_bias, 1),
@@ -147,7 +156,7 @@ ax2.yaxis.set_label_position("right")
 ax2.yaxis.tick_right()
 ax2.set_title("Polititical bias versus the\npolitical bias equilibrium")
 ax2.set_xlabel("up eq. - down eq.")
-ax2.set_ylabel("up-stuborn - down-stuborn")
+ax2.set_ylabel("up-stuborn proportion - down-stuborn prop.")
 ax2.legend()
 
 """ -------------------------------------------------------
@@ -226,7 +235,7 @@ ax4.legend()
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig("figures/simulation/scatter.png", dpi=200)
 
 
@@ -235,43 +244,34 @@ fig.savefig("figures/simulation/scatter.png", dpi=200)
 #########################################################
 
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
+fig, axes = plt.subplots(1, 2, figsize=(10,5))
 
-nodes = np.arange(N_nodes)
-np.random.shuffle(nodes)
 
-for i,node in enumerate(nodes):
-	if N_nodes-i <= 10:
-		ax1.plot(simulation_data[0, :, 3, node], iterations_saved,
-		         "k--", alpha=1, linewidth=1.1)
-	else:
-		ax1.plot(simulation_data[0, :, 3, node], iterations_saved,
-		         "-", alpha=0.2, linewidth=0.3)
+for i_ax in range(2):
+	for i,node in enumerate(nodes):
+		stubborn   = simulation_data[0, :, 2+i_ax, node]
+		unstubborn = simulation_data[0, :,   i_ax, node]
 
-ax1.set_xlim((0, 0.3))
-ax1.set_title("Trajectories of the up-vote\nstuborness for each node (try 0)")
-ax1.set_ylabel("number of steps")
-ax1.set_xlabel("Stuborn proportion")
+		proprtion = np.divide(stubborn, unstubborn + stubborn)
+		proprtion[stubborn == 0] = 0
+		
+		if N_nodes-i <= 10:
+			axes[i_ax].plot(iterations_saved, proprtion,
+			         "k--", alpha=1, linewidth=1.1)
+		else:
+			axes[i_ax].plot(iterations_saved, proprtion,
+			         "-", alpha=0.2, linewidth=0.3)
 
-""" -------------------------------------------------------
------------------------------------------------------------
-------------------------------------------------------- """
+	axes[i_ax].set_title(f"Trajectories of the { "up" if i_ax==1 else "down" }-vote\nstuborness for each node (try 0)")
+	axes[i_ax].set_xlabel("number of steps")
+	axes[i_ax].set_ylabel("Stuborn proportion")
+	axes[i_ax].set_ylim([0, 0.6])
 
-for i,node in enumerate(nodes):
-	if N_nodes-i <= 10:
-		ax2.plot(simulation_data[0, :, 2, node], iterations_saved,
-		         "k--", alpha=1, linewidth=1.1)
-	else:
-		ax2.plot(simulation_data[0, :, 2, node], iterations_saved,
-		         "-", alpha=0.2, linewidth=0.3)
+axes[1].yaxis.set_label_position("right")
+axes[1].yaxis.tick_right()
 
-ax2.set_xlim((0, 0.3))
-ax2.yaxis.set_label_position("right")
-ax2.yaxis.tick_right()
-ax2.set_title("Trajectories of the down-vote\nstuborness for each node (try 0)")
-ax2.set_ylabel("number of steps")
-ax2.set_xlabel("Stuborn proportion")
 
+fig.tight_layout(pad=1.0)
 fig.savefig("figures/simulation/trajectories.png", dpi=200)
 
 
@@ -331,6 +331,7 @@ for i in range(N_try):
 	          label="up-vote win-rate on all counties" if i==0 else None)
 	ax2b.set_ylabel("up-vote wins/win-rate")
 	#ax2b.legend()
+
 
 fig.tight_layout(pad=1.0)
 fig.savefig("figures/simulation/election_results.png", dpi=200)

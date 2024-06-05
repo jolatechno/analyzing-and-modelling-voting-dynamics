@@ -169,6 +169,8 @@ for node in range(N_nodes):
 
 plot_graph_from_scratch(neighbors, longitude, latitude, colors, ax)
 
+
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "county_map.png", dpi=200)
 
 
@@ -181,17 +183,52 @@ fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
 for i,node in enumerate(nodes):
 	if N_nodes-i <= 10:
-		ax.plot(np.sum(simulation_data[0, :, N_candidates:, node], axis=1), iterations_saved,
+		ax.plot(iterations_saved, np.sum(simulation_data[0, :, N_candidates:, node], axis=1),
 		        "k--", alpha=1, linewidth=1.1)
 	else:
-		ax.plot(np.sum(simulation_data[0, :, N_candidates:, node], axis=1), iterations_saved,
+		ax.plot(iterations_saved, np.sum(simulation_data[0, :, N_candidates:, node], axis=1),
 		        "-", alpha=0.2, linewidth=0.3)
 
 ax.set_title("Trajectories of the total vote\nstuborness for each node (try 0)")
-ax.set_ylabel("number of steps")
-ax.set_xlabel("Stuborn proportion")
+ax.set_xlabel("number of steps")
+ax.set_ylabel("Stuborn proportion")
 
+
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "total_stuborness_proportion.png", dpi=200)
+
+
+#########################################################
+#########################################################
+#########################################################
+
+
+total_accumulated_states = np.zeros(2*N_candidates)
+for node in range(N_nodes):
+	total_accumulated_states += np.sum(np.sum(simulation_data[:, :, :, node], axis=0), axis=0)
+
+total_accumulated_states /= np.sum(total_accumulated_states)
+
+""" -------------------------------------------------------
+-----------------------------------------------------------
+------------------------------------------------------- """
+
+fig, ax = plt.subplots(1, 1, figsize=(8,8))
+
+ax.bar(range(N_candidates), total_accumulated_states[:N_candidates] + total_accumulated_states[N_candidates:],
+	color='C0', width=0.8, edgecolor="k",
+	label='total voter proportion')
+ax.bar(range(N_candidates), total_accumulated_states[N_candidates:],
+	width=0.8, edgecolor="k", hatch="XXX",
+	label='struborn voter proportion')
+
+ax.set_xticks(range(N_candidates), labels=candidates)
+ax.tick_params(axis='x', labelrotation=45)
+ax.legend()
+
+
+fig.tight_layout(pad=1.0)
+fig.savefig(base_path_figure + "average_voter_state.png", dpi=200)
 
 
 #########################################################
@@ -204,16 +241,23 @@ fig, axes = plt.subplots(1, 3, figsize=(15,5))
 
 for i_ax in range(3):
 	for i,node in enumerate(nodes):
+		stubborn   = simulation_data[0, :, N_candidates+interesting_candidates[i_ax], node]
+		unstubborn = simulation_data[0, :,              interesting_candidates[i_ax], node]
+
+		proprtion = np.divide(stubborn, unstubborn + stubborn)
+		proprtion[stubborn == 0] = 0
+
 		if N_nodes-i <= 10:
-			axes[i_ax].plot(simulation_data[0, :, N_candidates+interesting_candidates[i_ax], node], iterations_saved,
+			axes[i_ax].plot(iterations_saved, proprtion,
 			         "k--", alpha=1, linewidth=1.1)
 		else:
-			axes[i_ax].plot(simulation_data[0, :, N_candidates+interesting_candidates[i_ax], node], iterations_saved,
+			axes[i_ax].plot(iterations_saved, proprtion,
 			         "-", alpha=0.2, linewidth=0.3)
 
-	axes[i_ax].set_title(f"Trajectories of the { candidates[interesting_candidates[i_ax]] } vote\nstuborness for each node (try 0)")
-	axes[i_ax].set_ylabel("number of steps")
-	axes[i_ax].set_xlabel("Stuborn proportion")
+	axes[i_ax].set_title(f"Trajectories of the proportion of stuborn\n voter for each node for { candidates[interesting_candidates[i_ax]] } (try 0)")
+	axes[i_ax].set_xlabel("number of steps")
+	axes[i_ax].set_ylabel("Stuborn proportion")
+	axes[i_ax].set_ylim([0, 0.4])
 
 
 fig.tight_layout(pad=1.0)
@@ -245,7 +289,6 @@ for i in range(N_try):
 ax1.set_title("Voting results for national election")
 ax1.set_xlabel("iterations")
 ax1.set_ylabel("Vote intention for current elected candidate")
-
 
 """ -------------------------------------------------------
 -----------------------------------------------------------
@@ -309,4 +352,6 @@ ax.set_ylabel("normalized distortion coeffecients")
 ax.set_xlabel("number of steps")
 ax.set_yscale("log")
 
+
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "normalized_distortion_coefs.png", dpi=200)

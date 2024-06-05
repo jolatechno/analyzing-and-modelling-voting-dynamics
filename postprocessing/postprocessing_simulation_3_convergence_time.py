@@ -144,6 +144,8 @@ fig, ax = plt.subplots(1, 1, figsize=(8,8))
 
 plot_graph_from_scratch(neighbors, longitude, latitude, ax=ax)
 
+
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "network.png", dpi=200)
 
 
@@ -172,8 +174,6 @@ for i_ax in range(3):
 fig.tight_layout(pad=2.0)
 fig.savefig(base_path_figure + "vote_trajectory.png", dpi=200)
 
-fig, ax = plt.subplots(1, 1, figsize=(8,8))
-
 
 #########################################################
 #########################################################
@@ -199,6 +199,8 @@ ax.set_ylim([
 		np.percentile(KL_trajectories[0, :,  0], kldiv_clip_percentile[1])/0.8,
 	])
 
+
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "kl-div_trajectory.png", dpi=200)
 
 
@@ -223,6 +225,7 @@ ax.set_ylabel("focal time")
 ax.set_xlabel("convergence thresholds")
 
 
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "focal_time_trajectory.png", dpi=200)
 
 
@@ -245,6 +248,7 @@ ax.set_ylabel("Number of nodes")
 ax.set_xlabel("Pseudo-distortion coefficient")
 
 
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "histograms.png", dpi=200)
 
 
@@ -266,6 +270,8 @@ cbar = fig.colorbar(pl, label="pseudo-distortion coefficient")
 
 ax.set_title("distortion coeffecient map")
 
+
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "map.png", dpi=200)
 
 
@@ -378,6 +384,6 @@ ax3.set_ylabel("distortion coefficient [based on convegrence time]")
 ax3.set_xlabel("distortion coefficient [based on distance]")
 
 
-fig.tight_layout(pad=2.0)
+fig.tight_layout(pad=1.0)
 fig.savefig(base_path_figure + "distortion_coef_comparison.png", dpi=200)
 
