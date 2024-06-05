@@ -10,8 +10,9 @@
 	},
 	"output_file_segregation" : "segregation-output-paris.h5",
 	"segregation" : {
-		"N_full_analyze"          : 800,
-		"N_thresh"                : 400,
+		"N_full_analyze" : 800,
+		"N_thresh"       : 400,
+		"tresh_lims"     : [1e-7, 9],
 		"postprocessing" : {
 			"base_filename"          : "segregation/paris_",
 			"interesting_candidates" : [2, 7, 10],
@@ -43,16 +44,20 @@
 	"output_file_convergence_time" : "output-simulation-convergence-time.h5",
 	"convergence_time" : {
 		"parallel"   : true,
-		"N_select"   : 5,
-		"N_try"      : 10,
-		"N_it"       : 5001,
-		"n_save"     : 50,
+		"N_select"   : 35,
+		"N_try"      : 15,
+		"N_it"       : 2001,
+		"n_save"     : 20,
 		"N_thresh"   : 400,
+		"tresh_lims" : [1e-6, 1],
 		"read_network_from_file" : false,
-		"n_attachment"           : 4,
+		"n_attachment"           : 6,
 		"postprocessing" : {
-			"base_filename"          : "convergence_time/",
-			"interesting_candidates" : [2, 7, 10]
+			"base_filename"           : "convergence_time/",
+			"interesting_candidates"  : [2, 7, 10],
+			"kl-div_clip_percentile"  : [2, 98],
+			"dist_coef_clip_lims"     : [0, 18],
+			"dist_coef_map_clip_lims" : [2, 11.5]
 		}
 	},
 
@@ -71,6 +76,7 @@
 		"segregation" : {
 			"N_full_analyze" : 800,
 			"N_thresh"       : 400,
+			"tresh_lims"     : [1e-7, 9],
 			"postprocessing" : {
 				"base_filename"          : "segregation/paris_",
 				"interesting_candidates" : [2, 7, 10],
@@ -91,8 +97,9 @@
 		},
 		"output_file_segregation" : "segregation-output-petite-couronne.h5",
 		"segregation" : {
-			"N_full_analyze"          : 800,
-			"N_thresh"                : 400,
+			"N_full_analyze" : 800,
+			"N_thresh"       : 400,
+			"tresh_lims"     : [1e-7, 9],
 			"postprocessing" : {
 				"base_filename"          : "segregation/petite-couronne_",
 				"interesting_candidates" : [2, 7, 10],
@@ -113,8 +120,9 @@
 		},
 		"output_file_segregation" : "segregation-output-region-paris.h5",
 		"segregation" : {
-			"N_full_analyze"          : 800,
-			"N_thresh"                : 400,
+			"N_full_analyze" : 800,
+			"N_thresh"       : 400,
+			"tresh_lims"     : [1e-7, 9],
 			"postprocessing" : {
 				"base_filename"          : "segregation/region-paris_",
 				"interesting_candidates" : [2, 7, 10],
@@ -145,8 +153,9 @@
 		},
 		"output_file_segregation" : "segregation-output-france.h5",
 		"segregation" : {
-			"N_full_analyze"          : 800,
-			"N_thresh"                : 400,
+			"N_full_analyze" : 800,
+			"N_thresh"       : 400,
+			"tresh_lims"     : [1e-7, 9],
 			"postprocessing" : {
 				"base_filename"          : "segregation/france_",
 				"interesting_candidates" : [2, 7, 10],

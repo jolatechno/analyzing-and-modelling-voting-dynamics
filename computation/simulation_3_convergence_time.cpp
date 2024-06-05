@@ -64,9 +64,11 @@ int main(int argc, char *argv[]) {
 	const bool read_network_from_file = config["convergence_time"]["read_network_from_file"].asBool();
 	const int  n_attachment           = config["convergence_time"]["n_attachment"          ].asInt();
 
-	const int N_thresh = config["convergence_time"]["N_thresh"].asInt();
+	const int    N_thresh   = config["convergence_time"]["N_thresh"  ].asInt();
+	const double thresh_min = config["convergence_time"]["tresh_lims"][0].asDouble();
+	const double thresh_max = config["convergence_time"]["tresh_lims"][1].asDouble();
 
-	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 1.5d, N_thresh);
+	const auto convergence_thresholds = util::math::logspace<double>(thresh_min, thresh_max, N_thresh);
 
 
 	H5::H5File output_file(output_file_name, H5F_ACC_TRUNC);

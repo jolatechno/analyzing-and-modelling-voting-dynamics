@@ -36,10 +36,13 @@ int main(int argc, char *argv[]) {
 	const std::string input_file_name  = root + std::string(config["preprocessed_file"      ].asString());
 	const std::string output_file_name = root + std::string(config["output_file_segregation"].asString());
 
-	const int N_full_analyze = config["segregation"]["N_full_analyze"].asInt();
-	const int N_thresh       = config["segregation"]["N_thresh"      ].asInt();
+	const int    N_full_analyze = config["segregation"]["N_full_analyze"].asInt();
+	const int    N_thresh       = config["segregation"]["N_thresh"      ].asInt();
+	const int    N_thresh       = config["segregation"]["N_thresh"      ].asInt();
+	const double thresh_min     = config["segregation"]["tresh_lims"    ][0].asDouble();
+	const double thresh_max     = config["segregation"]["tresh_lims"    ][1].asDouble();
 
-	const auto convergence_thresholds = util::math::logspace<double>(1e-7d, 9.d, N_thresh);
+	const auto convergence_thresholds = util::math::logspace<double>(thresh_min, thresh_max, N_thresh);
 
 
 	H5::H5File output_file(output_file_name.c_str(), H5F_ACC_TRUNC);
