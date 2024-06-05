@@ -301,10 +301,11 @@ with h5py.File(base_path + output_file, "r") as file:
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,5))
 
 
-
-ax1.plot(np.repeat(dist_coef, N_try), distortion_coefs.flatten(),
-	"xC1", label="raw value", alpha=1.5/N_try, markersize=2)
-ax1.plot(dist_coef,                   np.mean(distortion_coefs, axis=0),
+for itry in range(N_try):
+	ax1.plot(dist_coef, distortion_coefs[itry, :],
+		"xC1", alpha=1.5/N_try, markersize=2,
+		label="raw value" if itry==0 else None)
+ax1.plot(dist_coef, np.mean(distortion_coefs, axis=0),
 	"+C0", label="average per node over tries")
 
 reg_time_vs_idx = LinearRegression().fit(
@@ -327,9 +328,11 @@ ax1.set_xlabel("distortion coefficient [based on number of voting bureau]")
 ------------------------------------------------------- """
 
 
-ax2.plot(np.repeat(dist_coef_pop, N_try), distortion_coefs.flatten(),
-	"xC1", label="raw value", alpha=1.5/N_try, markersize=2)
-ax2.plot(dist_coef_pop,                   np.mean(distortion_coefs, axis=0),
+for itry in range(N_try):
+	ax2.plot(dist_coef_pop, distortion_coefs[itry, :],
+		"xC1", alpha=1.5/N_try, markersize=2,
+		label="raw value" if itry==0 else None)
+ax2.plot(dist_coef_pop, np.mean(distortion_coefs, axis=0),
 	"+C0", label="average per node over tries")
 
 reg_time_vs_pop = LinearRegression().fit(
@@ -352,9 +355,11 @@ ax2.set_xlabel("distortion coefficient [based on agregated population]")
 -----------------------------------------------------------
 ------------------------------------------------------- """
 
-ax3.plot(np.repeat(dist_coef_dist, N_try), distortion_coefs.flatten(),
-	"xC1", label="raw value", alpha=1.5/N_try, markersize=2)
-ax3.plot(dist_coef_dist,                   np.mean(distortion_coefs, axis=0),
+for itry in range(N_try):
+	ax3.plot(dist_coef_dist, distortion_coefs[itry, :],
+		"xC1", alpha=1.5/N_try, markersize=2,
+		label="raw value" if itry==0 else None)
+ax3.plot(dist_coef_dist, np.mean(distortion_coefs, axis=0),
 	"+C0", label="average per node over tries")
 
 reg_time_vs_dist = LinearRegression().fit(
