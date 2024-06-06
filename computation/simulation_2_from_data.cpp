@@ -83,6 +83,13 @@ int main(int argc, char *argv[]) {
 	const bool read_network_from_file = config["simulation"]["read_network_from_file"].asBool();
 	const int  n_attachment           = config["simulation"]["n_attachment"          ].asInt();
 
+	const bool   random_seed = config["simulation"]["random_seed"].asBool();
+	const size_t seed        = config["simulation"]["seed"       ].asInt();
+	if (!random_seed) {
+		util::set_generator_seed(seed);
+	}
+
+
 	H5::H5File output_file = util::hdf5io::open_truncate_if_needed(output_file_name.c_str());
 	H5::H5File input_file(input_file_name .c_str(), H5F_ACC_RDONLY);
 

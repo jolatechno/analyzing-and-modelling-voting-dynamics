@@ -1,15 +1,15 @@
 #!/usr/bin/python3
 
-from util.plot import *
+from util.util import *
 
 import numpy as np
 import random
 from matplotlib import pyplot as plt
+from matplotlib import patches
 from sklearn.linear_model import LinearRegression
 import copy
 import h5py
-import json
-import sys
+
 
 base_path = "../computation/output/"
 

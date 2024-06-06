@@ -5,5 +5,5 @@
 **.ipynb_checkpoints
 
 computation/output/**
-!computation.output/Readme.txt
+!computation/output/Readme.txt
 !computation/output/config.json

@@ -1,15 +1,15 @@
 #!/usr/bin/python3
 
-from util.plot import *
+from util.util import *
 
 import numpy as np
 import random
 from matplotlib import pyplot as plt
+from matplotlib import patches
 from sklearn.linear_model import LinearRegression
 import copy
 import h5py
-import json
-import sys
+
 
 base_path   = "../computation/output/"
 config_file = "config.json"
@@ -35,15 +35,6 @@ N_candidates = len(candidates)
 #########################################################
 #########################################################
 
-
-def get_config(filename):
-	with open(filename) as raw_json:
-	    json_file = json.load(raw_json)
-
-	    if len(sys.argv) > 1:
-	    	return json_file[sys.argv[1]]
-	    else:
-	    	return json_file
 
 config = get_config(base_path + config_file)
 
@@ -211,6 +202,12 @@ for node in range(N_nodes):
 
 total_accumulated_states /= np.sum(total_accumulated_states)
 
+stubborn   = total_accumulated_states[N_candidates:]
+unstubborn = total_accumulated_states[:N_candidates]
+
+proprtion = stubborn/(stubborn + unstubborn)
+proprtion[stubborn == 0] = 0
+
 """ -------------------------------------------------------
 -----------------------------------------------------------
 ------------------------------------------------------- """
@@ -223,6 +220,9 @@ ax.bar(range(N_candidates), total_accumulated_states[:N_candidates] + total_accu
 ax.bar(range(N_candidates), total_accumulated_states[N_candidates:],
 	width=0.8, edgecolor="k", hatch="XXX",
 	label='struborn voter proportion')
+ax.bar(range(N_candidates), proprtion,
+	color='C1', width=0.4, edgecolor="k",
+	label='struborn voter relative proportion')
 
 ax.set_xticks(range(N_candidates), labels=candidates)
 ax.tick_params(axis='x', labelrotation=45)

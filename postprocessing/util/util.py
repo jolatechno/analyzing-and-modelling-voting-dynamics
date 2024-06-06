@@ -1,6 +1,20 @@
 from matplotlib import pyplot as plt
 import numpy as np
+import json
+import sys
 
+
+def get_config(filename):
+	with open(filename) as raw_json:
+	    json_file = json.load(raw_json)
+
+	    if len(sys.argv) > 1:
+	    	key = sys.argv[1]
+	    	return json_file[key]
+	    else:
+	    	key = list(json_file.keys())[0]
+	    	print(f"no config selected, selecting \"{ key }\"")
+	    	return json_file[key]
 
 def get_map_ratio(lon, lat):
 	min_lat, max_lat = np.min(lat), np.max(lat)

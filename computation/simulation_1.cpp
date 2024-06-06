@@ -27,6 +27,9 @@ const int    N_it       = 3001;
 const int    n_election = 500;
 const int    n_save     = 10;
 
+const bool   random_seed = false;
+const size_t seed        = 1;
+
 const char* file_name = "output/output-simulation.h5";
 
 
@@ -47,6 +50,11 @@ int main() {
 	auto *agent_full_serializer    = new BPsimulation::implem::AgentPopulationVoterstubbornSerializer();
 	auto *agent_partial_serializer = new BPsimulation::core::agent::population::AgentPopulationSerializer<BPsimulation::implem::voter_stubborn>();
 	auto *election_serializer      = new BPsimulation::implem::VoterMajorityElectionSerializer();
+
+
+	if (!random_seed) {
+		util::set_generator_seed(seed);
+	}
 
 
 	auto *network = new BPsimulation::SocialNetwork<BPsimulation::implem::AgentPopulationVoterstubborn>(N_nodes);

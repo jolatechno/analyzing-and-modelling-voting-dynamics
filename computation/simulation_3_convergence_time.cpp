@@ -70,6 +70,12 @@ int main(int argc, char *argv[]) {
 
 	const auto convergence_thresholds = util::math::logspace<double>(thresh_min, thresh_max, N_thresh);
 
+	const bool   random_seed = config["convergence_time"]["random_seed"].asBool();
+	const size_t seed        = config["convergence_time"]["seed"       ].asInt();
+	if (!random_seed) {
+		util::set_generator_seed(seed);
+	}
+	
 
 	H5::H5File output_file(output_file_name, H5F_ACC_TRUNC);
 	H5::H5File input_file( input_file_name,  H5F_ACC_RDWR);

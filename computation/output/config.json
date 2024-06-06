@@ -1,68 +1,5 @@
 {
-	"preprocessed_file"  : "preprocessed-paris.h5",
-	"preprocessing" : {
-		"compute_knn"        : true,
-		"N_neighbors"        : 6,
-		"num_commune_sample" : -1,
-		"lat_lim"            : [46, 50],
-		"lon_lim"            : [2, 4],
-		"list_departement"   : ["75"]
-	},
-	"output_file_segregation" : "segregation-output-paris.h5",
-	"segregation" : {
-		"N_full_analyze" : 800,
-		"N_thresh"       : 400,
-		"tresh_lims"     : [1e-7, 9],
-		"postprocessing" : {
-			"base_filename"          : "segregation/paris_",
-			"interesting_candidates" : [2, 7, 10],
-			"diameters"              : [0.15, 0.4, 0.65]
-		}
-	},
-	"output_file_simulation" : "simulation-output-fromdata.h5",
-	"simulation" : {
-		"parallel"                           : true,
-		"N_select"                           : 50,
-		"dt"                                 : 0.2,
-		"overtoon_multiplier"                : 0.5,
-		"overtoon_radicalization_multiplier" : 0.3,
-		"overtoon_radius"                    : 0.25,
-		"frustration_multiplier"             : 0.05,
-		"initial_radicalization_multiplier"  : 0.2,
-		"N_counties" : 2,
-		"N_try"      : 10,
-		"N_it"       : 2101,
-		"n_election" : 350,
-		"n_save"     : 15,
-		"read_network_from_file" : false,
-		"n_attachment"           : 4,
-		"postprocessing" : {
-			"base_filename" : "simulation_fromdata/",
-			"interesting_candidates" : [3, 4, 7]
-		}
-	},
-	"output_file_convergence_time" : "output-simulation-convergence-time.h5",
-	"convergence_time" : {
-		"parallel"   : true,
-		"N_select"   : 35,
-		"N_try"      : 15,
-		"N_it"       : 2001,
-		"n_save"     : 20,
-		"N_thresh"   : 400,
-		"tresh_lims" : [1e-6, 1],
-		"read_network_from_file" : false,
-		"n_attachment"           : 6,
-		"postprocessing" : {
-			"base_filename"           : "convergence_time/",
-			"interesting_candidates"  : [2, 7, 10],
-			"kl-div_clip_percentile"  : [2, 98],
-			"dist_coef_clip_lims"     : [0, 18],
-			"dist_coef_map_clip_lims" : [2, 11.5]
-		}
-	},
-
-
-	"paris" :  {
+	"0paris" :  {
 		"preprocessed_file"  : "preprocessed-paris.h5",
 		"preprocessing" : {
 			"compute_knn"        : true,
@@ -72,7 +9,7 @@
 			"lon_lim"            : [2, 3],
 			"list_departement"   : ["75"]
 		},
-		"output_file_segregation"    : "segregation-output-paris.h5",
+		"output_file_segregation"    : "output-segregation-paris.h5",
 		"segregation" : {
 			"N_full_analyze" : 800,
 			"N_thresh"       : 400,
@@ -82,11 +19,56 @@
 				"interesting_candidates" : [2, 7, 10],
 				"diameters"              : [0.15, 0.4, 0.65]
 			}
+		},
+		"output_file_simulation" : "output-simulation-fromdata.h5",
+		"simulation" : {
+			"random_seed" : false,
+			"seed"        : 0,
+			"parallel"                           : true,
+			"N_select"                           : 50,
+			"dt"                                 : 0.2,
+			"overtoon_multiplier"                : 0.5,
+			"overtoon_radicalization_multiplier" : 0.3,
+			"overtoon_radius"                    : 0.25,
+			"frustration_multiplier"             : 0.05,
+			"initial_radicalization_multiplier"  : 0.2,
+			"N_counties" : 2,
+			"N_try"      : 10,
+			"N_it"       : 2101,
+			"n_election" : 350,
+			"n_save"     : 15,
+			"read_network_from_file" : false,
+			"n_attachment"           : 4,
+			"postprocessing" : {
+				"base_filename" : "simulation_fromdata/",
+				"interesting_candidates" : [3, 4, 7]
+			}
+		},
+		"output_file_convergence_time" : "output-simulation-convergence-time.h5",
+		"convergence_time" : {
+			"random_seed" : false,
+			"seed"        : 1,
+			"parallel"   : true,
+			"N_select"   : 35,
+			"N_try"      : 15,
+			"N_it"       : 2001,
+			"n_save"     : 20,
+			"N_thresh"   : 400,
+			"tresh_lims" : [1e-6, 1],
+			"read_network_from_file" : false,
+			"n_attachment"           : 6,
+			"postprocessing" : {
+				"base_filename"           : "convergence_time/",
+				"interesting_candidates"  : [2, 7, 10],
+				"kl-div_clip_percentile"  : [2, 98],
+				"dist_coef_clip_lims"     : [0, 18],
+				"dist_coef_map_clip_lims" : [2, 11.5]
+			}
 		}
 	},
 
 
-	"petite-couronne" : {
+	"1petite-couronne" : {
 		"preprocessed_file"  : "preprocessed-petite-couronne.h5",
 		"preprocessing" : {
 			"compute_knn"        : false,
@@ -95,7 +77,7 @@
 			"lon_lim"            : [1.5, 3],
 			"list_departement"   : ["75", "92", "93", "94"]
 		},
-		"output_file_segregation" : "segregation-output-petite-couronne.h5",
+		"output_file_segregation" : "output-segregation-petite-couronne.h5",
 		"segregation" : {
 			"N_full_analyze" : 800,
 			"N_thresh"       : 400,
@@ -109,7 +91,7 @@
 	},
 
 
-	"region-paris" : {
+	"2region-paris" : {
 		"preprocessed_file"  : "preprocessed-region-paris.h5",
 		"preprocessing" : {
 			"compute_knn"        : false,
@@ -118,7 +100,7 @@
 			"lon_lim"            : [1.5, 4],
 			"list_departement"   : ["75", "77", "78", "91", "92", "93", "94", "95"]
 		},
-		"output_file_segregation" : "segregation-output-region-paris.h5",
+		"output_file_segregation" : "output-segregation-region-paris.h5",
 		"segregation" : {
 			"N_full_analyze" : 800,
 			"N_thresh"       : 400,
@@ -132,7 +114,7 @@
 	},
 
 
-	"france" : {
+	"3france" : {
 		"preprocessed_file"  : "preprocessed-france.h5",
 		"preprocessing" : {
 			"compute_knn"        : false,
@@ -151,7 +133,7 @@
 				"81", "82", "83", "84", "85", "86", "87", "88", "89", "90",
 				"91", "92", "93", "94", "95"]
 		},
-		"output_file_segregation" : "segregation-output-france.h5",
+		"output_file_segregation" : "output-segregation-france.h5",
 		"segregation" : {
 			"N_full_analyze" : 800,
 			"N_thresh"       : 400,

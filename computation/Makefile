@@ -1,4 +1,4 @@
-all: test simulation_1 simulation_2_from_data simulation_3_convergence_time segregation
+all: test     segregation     simulation_1     simulation_2_from_data     simulation_3_convergence_time
 
 par: test-par segregation-par simulation_1-par simulation_2_from_data-par simulation_3_convergence_time-par
 

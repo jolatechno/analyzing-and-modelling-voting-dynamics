@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from util.plot import *
+from util.util import *
 
 import numpy as np
 import random
@@ -9,8 +9,7 @@ from matplotlib import patches
 from sklearn.linear_model import LinearRegression
 import copy
 import h5py
-import json
-import sys
+
 
 base_path   = "../computation/output/"
 config_file = "config.json"
@@ -36,15 +35,6 @@ N_candidates = len(candidates)
 #########################################################
 #########################################################
 
-
-def get_config(filename):
-	with open(filename) as raw_json:
-	    json_file = json.load(raw_json)
-
-	    if len(sys.argv) > 1:
-	    	return json_file[sys.argv[1]]
-	    else:
-	    	return json_file
 
 config = get_config(base_path + config_file)
 
