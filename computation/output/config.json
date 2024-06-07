@@ -17,13 +17,13 @@
 			"postprocessing" : {
 				"base_filename"          : "segregation/paris_",
 				"interesting_candidates" : [2, 7, 10],
-				"diameters"              : [0.15, 0.4, 0.65]
+				"diameters"              : [0.15, 0.4, 0.65],
+				"random_seed" : false,
+				"seed"        : 1
 			}
 		},
 		"output_file_simulation" : "output-simulation-fromdata.h5",
 		"simulation" : {
-			"random_seed" : false,
-			"seed"        : 0,
 			"parallel"                           : true,
 			"N_select"                           : 50,
 			"dt"                                 : 0.2,
@@ -39,15 +39,17 @@
 			"n_save"     : 15,
 			"read_network_from_file" : false,
 			"n_attachment"           : 4,
+			"random_seed" : false,
+			"seed"        : 0,
 			"postprocessing" : {
 				"base_filename" : "simulation_fromdata/",
-				"interesting_candidates" : [3, 4, 7]
+				"interesting_candidates" : [3, 4, 7],
+				"random_seed" : false,
+				"seed"        : 1
 			}
 		},
 		"output_file_convergence_time" : "output-simulation-convergence-time.h5",
 		"convergence_time" : {
-			"random_seed" : false,
-			"seed"        : 1,
 			"parallel"   : true,
 			"N_select"   : 35,
 			"N_try"      : 15,
@@ -57,12 +59,16 @@
 			"tresh_lims" : [1e-6, 1],
 			"read_network_from_file" : false,
 			"n_attachment"           : 6,
+			"random_seed" : false,
+			"seed"        : 1,
 			"postprocessing" : {
 				"base_filename"           : "convergence_time/",
 				"interesting_candidates"  : [2, 7, 10],
 				"kl-div_clip_percentile"  : [2, 98],
 				"dist_coef_clip_lims"     : [0, 18],
-				"dist_coef_map_clip_lims" : [2, 11.5]
+				"dist_coef_map_clip_lims" : [2, 11.5],
+				"random_seed" : false,
+				"seed"        : 1
 			}
 		}
 	},
@@ -85,7 +91,9 @@
 			"postprocessing" : {
 				"base_filename"          : "segregation/petite-couronne_",
 				"interesting_candidates" : [2, 7, 10],
-				"diameters"              : []
+				"diameters"              : [],
+				"random_seed" : false,
+				"seed"        : 1
 			}
 		}
 	},
@@ -108,7 +116,9 @@
 			"postprocessing" : {
 				"base_filename"          : "segregation/region-paris_",
 				"interesting_candidates" : [2, 7, 10],
-				"diameters"              : []
+				"diameters"              : [],
+				"random_seed" : false,
+				"seed"        : 1
 			}
 		}
 	},
@@ -141,7 +151,9 @@
 			"postprocessing" : {
 				"base_filename"          : "segregation/france_",
 				"interesting_candidates" : [2, 7, 10],
-				"diameters"              : []
+				"diameters"              : [],
+				"random_seed" : false,
+				"seed"        : 1
 			}
 		}
 	}

@@ -42,6 +42,11 @@ output_file = config["output_file_convergence_time"]
 
 base_path_figure = "figures/" + config["convergence_time"]["postprocessing"]["base_filename"]
 
+random_seed = config["convergence_time"]["postprocessing"]["random_seed"]
+seed        = config["convergence_time"]["postprocessing"]["seed"]
+if not random_seed:
+	np.random.seed(seed)
+
 interesting_candidates  = config["convergence_time"]["postprocessing"]["interesting_candidates"]
 kldiv_clip_percentile   = config["convergence_time"]["postprocessing"]["kl-div_clip_percentile"]
 dist_coef_clip_lims     = config["convergence_time"]["postprocessing"]["dist_coef_clip_lims"]

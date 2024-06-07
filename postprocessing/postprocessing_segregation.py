@@ -45,6 +45,12 @@ base_path_figure = "figures/" + config["segregation"]["postprocessing"]["base_fi
 
 interesting_candidates = config["segregation"]["postprocessing"]["interesting_candidates"]
 
+random_seed = config["segregation"]["postprocessing"]["random_seed"]
+seed        = config["segregation"]["postprocessing"]["seed"]
+if not random_seed:
+	np.random.seed(seed)
+
+
 N_full_analyze    = config["segregation"]["N_full_analyze"]
 N_thresh          = config["segregation"]["N_thresh"]
 with h5py.File(base_path + output_file, "r") as file:

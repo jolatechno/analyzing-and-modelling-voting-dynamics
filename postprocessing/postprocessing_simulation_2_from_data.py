@@ -44,6 +44,11 @@ base_path_figure = "figures/" + config["simulation"]["postprocessing"]["base_fil
 
 interesting_candidates = config["simulation"]["postprocessing"]["interesting_candidates"]
 
+random_seed = config["simulation"]["postprocessing"]["random_seed"]
+seed        = config["simulation"]["postprocessing"]["seed"]
+if not random_seed:
+	np.random.seed(seed)
+
 N_counties = config["simulation"]["N_counties"]
 N_try      = config["simulation"]["N_try"]
 N_it       = config["simulation"]["N_it"]

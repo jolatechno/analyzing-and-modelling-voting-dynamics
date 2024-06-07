@@ -22,6 +22,11 @@ N_it       = 3001
 n_election = 500
 n_save     = 10
 
+random_seed = False
+seed        = 1
+if not random_seed:
+	np.random.seed(seed)
+
 iterations_saved     = np.arange(0, N_it-1, n_save)
 iterations_elections = np.arange(0, N_it-1, n_election)
 
