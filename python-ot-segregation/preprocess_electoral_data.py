@@ -52,7 +52,14 @@ candidate_offset         = all_fieldnames.index(fieldnames_per_candidate[0])
 candidate_length         = len(fieldnames_per_candidate)
 
 candidate_begin_idx = list(range(candidate_offset, len(all_fieldnames), candidate_length))
-candidate_list = [election_database[all_fieldnames[i + fieldnames_idx["Nom"]]][0] for i in candidate_begin_idx]
+candidate_list      = [election_database[all_fieldnames[i + fieldnames_idx["Nom"]]][0] for i in candidate_begin_idx]
+
+numerical_mask    = election_database["Code du b.vote"].str.isnumeric()
+election_database = election_database[numerical_mask]
+
+paris_mask                                              = election_database["Code du département"] == "75"
+election_database.loc[paris_mask, "Code de la commune"] = ("1" + election_database[paris_mask]["Code du b.vote"].str[0:2]).astype(int)
+election_database.loc[paris_mask, "Code du b.vote"    ] =        election_database[paris_mask]["Code du b.vote"].str[2: ]
 
 election_database["code_commune"  ] = election_database["Code du département"] +       election_database["Code de la commune"].astype(str).str.zfill(3)
 election_database["id_brut_bv_reu"] = election_database["code_commune"       ] + "_" + election_database["Code du b.vote"    ].str.lstrip('0')
