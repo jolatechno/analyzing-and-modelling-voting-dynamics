@@ -2,6 +2,7 @@
 **.o
 
 **/__pycache__
+**/cache
 **.ipynb_checkpoints
 
 computation/output/**
