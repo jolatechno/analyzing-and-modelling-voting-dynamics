@@ -115,4 +115,4 @@ write to file
 ######### """
 
 print(f"Write to \"{ output_file_names[election_id] }\"")
-final_database.to_csv(output_file_names[election_id])  
+final_database.to_csv(output_file_names[election_id], index=False)  
