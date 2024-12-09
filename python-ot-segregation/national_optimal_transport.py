@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import ot
+from matplotlib import pyplot as plt
 
 election_id            = "france_pres_tour1_2022"
 geographical_filter_id = "Paris"
@@ -34,8 +35,8 @@ print(f"Reading data from \"{ input_file_names[election_id] }\"")
 election_database = pd.read_csv(input_file_names[election_id], low_memory=False)
 
 geographical_mask          = election_database["code_commune"].str[0:2].isin(geographical_filter_departement_list[geographical_filter_id])
-filtered_election_database = election_database[geographical_mask].reset_index(drop=True)
-filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"])
+filtered_election_database = election_database[geographical_mask]
+filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"]).reset_index(drop=True)
 
 """ ##########
 ##############
@@ -72,3 +73,44 @@ for candidate in candidate_list:
 	print(f"Optimal transport distance for { candidate.ljust(candidate_padding_length , " ") } electors : { str(round(candidate_ot_dist)).rjust(4, " ") }m with { str(round(total_vote_candidate / total_voting_population * 100)).rjust(2, " ") }% of electors")
 
 print(f"\nOptimal transport average distance : { round(ot_dist) }m")
+
+center_idx = np.argmin(np.mean(distance_matrix, axis=1))
+idx_order  = np.argsort(distance_matrix[center_idx])
+
+print()
+distance_list          = distance_matrix[center_idx, idx_order]
+optimal_transport_list = np.zeros_like(distance_list)
+optimal_transport_list[-1] = ot_dist
+for i in range(1, len(idx_order) - 1):
+	print(f"{ i }/{ len(idx_order) - 2 }")
+	total_voting_population = np.sum(  filtered_election_database["Votants"][idx_order[:i+1]])
+	reference_distrib       = np.array(filtered_election_database["Votants"][idx_order[:i+1]]) / total_voting_population
+
+	this_ot_dist = 0
+	for candidate in candidate_list:
+		total_vote_candidate = np.sum(  filtered_election_database[candidate + " Voix"][idx_order[:i+1]])
+		candidate_distrib    = np.array(filtered_election_database[candidate + " Voix"][idx_order[:i+1]]) / total_vote_candidate
+
+		candidate_ot_dist = ot.emd2(reference_distrib, candidate_distrib, distance_matrix[idx_order[:i+1], :][:, idx_order[:i+1]])
+		this_ot_dist     += candidate_ot_dist * total_vote_candidate / total_voting_population
+
+	optimal_transport_list[i] = this_ot_dist
+
+fig, ax = plt.subplots()
+
+ax.set_title("Optimal transport distance versus integration distance\n(around a voting bureau at the center of Paris)")
+ax.set_xlabel("Integration distance [Km]")
+ax.set_ylabel("Absolute optimal transport distance [Km]", color='r')
+
+lns1 = ax.plot(distance_list / 1000, optimal_transport_list / 1000, "-r", label="OT absolute dist.")
+
+ax2 = ax.twinx()
+ax2.set_ylabel("Relative optimal transport ratio distance", color='b')
+
+lns2 = ax2.plot(distance_list[1:] / 1000, optimal_transport_list[1:] / distance_list[1:], "--b", label="OT relative dist.")
+
+lns = lns1+lns2
+labs = [l.get_label() for l in lns]
+ax.legend(lns, labs, loc=0)
+
+fig.savefig("results/optimal_transport_trajectory.png")

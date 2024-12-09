@@ -66,8 +66,8 @@ apply geographical filter
 ##################### """
 
 geographical_mask          = election_database["code_commune"].str[0:2].isin(geographical_filter_departement_list[geographical_filter_id])
-filtered_election_database = election_database[geographical_mask].reset_index(drop=True)
-filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"])
+filtered_election_database = election_database[geographical_mask]
+filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"]).reset_index(drop=True)
 
 """ ############
 ################
