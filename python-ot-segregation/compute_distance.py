@@ -7,7 +7,7 @@ import networkx as nx
 import osmnx as ox
 
 election_id            = "france_pres_tour1_2022"
-geographical_filter_id = "Paris"
+geographical_filter_id = "Petite_couronne"
 
 distance = "vol d'oiseau"
 
@@ -77,8 +77,6 @@ compute distance
 
 num_nodes       = len(filtered_election_database["longitude"])
 distance_matrix = np.zeros((num_nodes, num_nodes))
-
-print(filtered_election_database)
 
 if distance == "vol d'oiseau":
 	""" ##########################

@@ -1,0 +1,17 @@
+Reading data from "data/france_pres_tour1_2022_preprocessed.csv"
+Read distances from "data/distances_petite_couronne.csv"
+
+Optimal transport distance for ARTHAUD       electors : 1464m with  0% of electors
+Optimal transport distance for ROUSSEL       electors : 1178m with  2% of electors
+Optimal transport distance for MACRON        electors : 1248m with 31% of electors
+Optimal transport distance for LASSALLE      electors :  786m with  1% of electors
+Optimal transport distance for LE PEN        electors : 1897m with  9% of electors
+Optimal transport distance for ZEMMOUR       electors : 1140m with  7% of electors
+Optimal transport distance for MÉLENCHON     electors : 1524m with 32% of electors
+Optimal transport distance for HIDALGO       electors : 1302m with  2% of electors
+Optimal transport distance for JADOT         electors : 1200m with  6% of electors
+Optimal transport distance for PÉCRESSE      electors : 1917m with  6% of electors
+Optimal transport distance for POUTOU        electors : 1020m with  1% of electors
+Optimal transport distance for DUPONT-AIGNAN electors : 1253m with  1% of electors
+                                                                                  
+Optimal transport average distance : 1394m

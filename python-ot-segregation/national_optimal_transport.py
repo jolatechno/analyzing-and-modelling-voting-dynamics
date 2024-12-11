@@ -6,7 +6,8 @@ import ot
 from matplotlib import pyplot as plt
 
 election_id            = "france_pres_tour1_2022"
-geographical_filter_id = "Paris"
+geographical_filter_id = "Petite_couronne"
+trajectory_step        = 5
 
 input_file_names = {
 	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
@@ -78,20 +79,20 @@ center_idx = np.argmin(np.mean(distance_matrix, axis=1))
 idx_order  = np.argsort(distance_matrix[center_idx])
 
 print()
-distance_list          = distance_matrix[center_idx, idx_order]
-optimal_transport_list = np.zeros_like(distance_list)
+distance_list              = np.concat((distance_matrix[center_idx, idx_order][1:-1:trajectory_step], [distance_matrix[center_idx, idx_order[-1]]]))
+optimal_transport_list     = np.zeros_like(distance_list)
 optimal_transport_list[-1] = ot_dist
-for i in range(1, len(idx_order) - 1):
+for i,idx in enumerate(range(1, distance_matrix.shape[0]-1, trajectory_step)):
 	print(f"{ i }/{ len(idx_order) - 2 }")
-	total_voting_population = np.sum(  filtered_election_database["Votants"][idx_order[:i+1]])
-	reference_distrib       = np.array(filtered_election_database["Votants"][idx_order[:i+1]]) / total_voting_population
+	total_voting_population = np.sum(  filtered_election_database["Votants"][idx_order[:idx+1]])
+	reference_distrib       = np.array(filtered_election_database["Votants"][idx_order[:idx+1]]) / total_voting_population
 
 	this_ot_dist = 0
 	for candidate in candidate_list:
-		total_vote_candidate = np.sum(  filtered_election_database[candidate + " Voix"][idx_order[:i+1]])
-		candidate_distrib    = np.array(filtered_election_database[candidate + " Voix"][idx_order[:i+1]]) / total_vote_candidate
+		total_vote_candidate = np.sum(  filtered_election_database[candidate + " Voix"][idx_order[:idx+1]])
+		candidate_distrib    = np.array(filtered_election_database[candidate + " Voix"][idx_order[:idx+1]]) / total_vote_candidate
 
-		candidate_ot_dist = ot.emd2(reference_distrib, candidate_distrib, distance_matrix[idx_order[:i+1], :][:, idx_order[:i+1]])
+		candidate_ot_dist = ot.emd2(reference_distrib, candidate_distrib, distance_matrix[idx_order[:idx+1], :][:, idx_order[:idx+1]])
 		this_ot_dist     += candidate_ot_dist * total_vote_candidate / total_voting_population
 
 	optimal_transport_list[i] = this_ot_dist
