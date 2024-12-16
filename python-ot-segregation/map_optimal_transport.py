@@ -56,21 +56,3 @@ compute optimal transport
 
 ## TO BE READ FROM THE FILE
 candidate_list = ['ARTHAUD', 'ROUSSEL', 'MACRON', 'LASSALLE', 'LE PEN', 'ZEMMOUR', 'MÉLENCHON', 'HIDALGO', 'JADOT', 'PÉCRESSE', 'POUTOU', 'DUPONT-AIGNAN']
-
-ot_dist = 0
-
-total_voting_population = np.sum(  filtered_election_database["Votants"])
-reference_distrib       = np.array(filtered_election_database["Votants"]) / total_voting_population
-
-print()
-candidate_padding_length = max([len(x) for x in candidate_list])
-for candidate in candidate_list:
-	total_vote_candidate = np.sum(  filtered_election_database[candidate + " Voix"])
-	candidate_distrib    = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidate
-
-	candidate_ot_dist = ot.emd2(reference_distrib, candidate_distrib, distance_matrix)
-	ot_dist          += candidate_ot_dist * total_vote_candidate / total_voting_population
-
-	print(f"Optimal transport distance for { candidate.ljust(candidate_padding_length , " ") } electors : { str(round(candidate_ot_dist)).rjust(4, " ") }m with { str(round(total_vote_candidate / total_voting_population * 100)).rjust(2, " ") }% of electors")
-
-print(f"\nOptimal transport average distance : { round(ot_dist) }m")
