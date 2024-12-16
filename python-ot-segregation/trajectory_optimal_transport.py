@@ -6,8 +6,9 @@ import ot
 from matplotlib import pyplot as plt
 
 election_id            = "france_pres_tour1_2022"
-geographical_filter_id = "Region_parisienne"
+geographical_filter_id = "Petite_couronne"
 trajectory_step        = 10
+max_traj_idx           = 4000
 
 input_file_names = {
 	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
@@ -84,7 +85,7 @@ try:
 	data = pd.read_csv(save_file_name[election_id][geographical_filter_id], low_memory=False)
 
 except	:
-	
+
 	""" #####################
 	compute optimal transport
 	##################### """
@@ -92,12 +93,13 @@ except	:
 	center_idx = np.argmin(np.mean(distance_matrix, axis=1))
 	idx_order  = np.argsort(distance_matrix[center_idx])
 
-	distance_list                     = distance_matrix[center_idx, idx_order][1::trajectory_step]
-	optimal_transport_list            = np.zeros_like(distance_list)
+	max_traj_idx                      = min(max_traj_idx, distance_matrix.shape[0])
+	distance_list                     = distance_matrix[center_idx, idx_order][1:max_traj_idx:trajectory_step]
+	optimal_transport_list            = np.zeros(                      len(distance_list))
 	optimal_transport_list_candidates = np.zeros((len(candidate_list), len(distance_list)))
 
-	for i,idx in enumerate(range(1, distance_matrix.shape[0], trajectory_step)):
-		print(f"{ idx }/{ len(idx_order) - 2 }")
+	for i,idx in enumerate(range(1, max_traj_idx, trajectory_step)):
+		print(f"{ idx }/{ max_traj_idx }")
 		total_voting_population = np.sum(  filtered_election_database["Votants"][idx_order[:idx+1]])
 		reference_distrib       = np.array(filtered_election_database["Votants"][idx_order[:idx+1]]) / total_voting_population
 
