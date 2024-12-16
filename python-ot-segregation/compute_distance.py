@@ -7,7 +7,7 @@ import networkx as nx
 import osmnx as ox
 
 election_id            = "france_pres_tour1_2022"
-geographical_filter_id = "Petite_couronne"
+geographical_filter_id = "Region_parisienne"
 
 distance = "vol d'oiseau"
 
