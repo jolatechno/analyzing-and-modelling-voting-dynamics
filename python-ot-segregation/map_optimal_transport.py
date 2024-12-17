@@ -159,7 +159,7 @@ axes[0].scatter(data["longitude"], data["latitude"], c=data["optimal_transport_c
 axes[0].scatter(data["longitude"], data["latitude"], c=data["optimal_transport_contribution"], s=10, alpha=0.6)
 pl = axes[0].scatter(data["longitude"], data["latitude"], c=data["optimal_transport_contribution"], s=1)
 
-cbar = fig.colorbar(pl, label="local contribution")
+cbar = fig.colorbar(pl, label="local contribution [m]")
 
 axes[0].set_aspect(map_ratio)
 axes[0].set_title("map of the local contribution")
@@ -169,7 +169,7 @@ for ax,candidate_idx in zip(axes[1:],interesting_candidate_idx):
 	ax.scatter(data["longitude"], data["latitude"], c=data["optimal_transport_contribution_" + candidate_list[candidate_idx]], s=10, alpha=0.6)
 	pl = ax.scatter(data["longitude"], data["latitude"], c=data["optimal_transport_contribution_" + candidate_list[candidate_idx]], s=1)
 
-	cbar = fig.colorbar(pl, label="local contribution")
+	cbar = fig.colorbar(pl, label="local contribution [m]")
 
 	ax.set_aspect(map_ratio)
 	ax.set_title(f"map of the local contribution for { candidate_list[candidate_idx] }")
