@@ -4,8 +4,9 @@ import numpy as np
 import ot
 from matplotlib import pyplot as plt
 
-def compute_and_plot_segregation(distrib_3d, alpha=0.1):
-	reference_distrib =  np.sum(distrib_3d, axis=2).flatten()
+def compute_and_plot_segregation(distrib_3d_, alpha=0.1):
+	distrib_3d = distrib_3d_.copy()
+	reference_distrib  = np.sum(distrib_3d, axis=2).flatten()
 	reference_distrib /= np.sum(reference_distrib)
 
 	ot_distrib = distrib_3d.reshape(-1, distrib_3d.shape[2])
@@ -48,8 +49,10 @@ def compute_and_plot_segregation(distrib_3d, alpha=0.1):
 		disrib_image[:, :, :distrib_3d.shape[2]] = distrib_3d[:, :, :]
 	for i in range(min(3, distrib_3d.shape[2])):
 		disrib_image[:, :, i] /= np.max(disrib_image[:, :, i])
+		disrib_image[:, :, i] = np.round(disrib_image[:, :, i] * 255)
+	disrib_image = disrib_image.astype(int)
 
-	ax0.imshow(disrib_image)
+	ax0.imshow(disrib_image, origin="lower")
 
 	x = np.arange(distrib_3d.shape[0])
 	y = np.arange(distrib_3d.shape[1])
@@ -68,7 +71,7 @@ def compute_and_plot_segregation(distrib_3d, alpha=0.1):
 	fig.tight_layout(pad=1.0)
 	return fig
 
-
+"""
 distrib = np.zeros((40, 40, 2))
 distrib[:, :20,  0] = 1 
 distrib[:,   :,  1] = 1 - distrib[:,   :,   0]
@@ -115,4 +118,18 @@ fig = compute_and_plot_segregation(distrib,  0.1)
 fig.savefig("checkerboard-4_alphaPOS.png")
 
 fig = compute_and_plot_segregation(distrib, -0.1)
-fig.savefig("checkerboard-4_alphaNEG.png")
+fig.savefig("checkerboard-4_alphaNEG.png")"""
+
+
+distrib = np.zeros((40, 40, 2))
+distrib[:20, :20, 0] = 1
+distrib[20:, 20:, 0] = 1
+distrib[:, :,     1] = 1 - distrib[:, :, 0]
+distrib[20:, :20, 0] = 0.75
+#distrib[:20:2, 20::2, 0] = 1
+
+fig = compute_and_plot_segregation(distrib,  0.01)
+fig.savefig("checkerboard-2-less-segregated_alphaPOS.png")
+
+fig = compute_and_plot_segregation(distrib, -0.01)
+fig.savefig("checkerboard-2-less-segregated_alphaNEG.png")
