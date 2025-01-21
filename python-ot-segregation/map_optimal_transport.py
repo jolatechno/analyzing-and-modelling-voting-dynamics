@@ -44,6 +44,8 @@ geographical_filter_departement_list = {
 	"Metropole"         : [str(idx).zfill(2) for idx in range(1, 95+1)]
 }
 
+epsilon = -0.02
+
 """ ##############################################
 ##################################################
 read field from the preprocessed election database
@@ -64,7 +66,8 @@ read distances
 ########## """
 
 print(f"Read distances from \"{ distance_file_names[geographical_filter_id] }\"")
-distance_matrix = np.genfromtxt(distance_file_names[geographical_filter_id], delimiter=',')
+distance_matrix       = np.genfromtxt(distance_file_names[geographical_filter_id], delimiter=',')
+distance_matrix_alpha = np.pow(distance_matrix, 1 + epsilon)
 
 """ ##########################
 ##############################
@@ -103,7 +106,7 @@ except	:
 		total_vote_candidate = np.sum(  filtered_election_database[candidate + " Voix"])
 		candidate_distrib    = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidate
 
-		candidate_ot_mat = ot.emd(reference_distrib, candidate_distrib, distance_matrix)*distance_matrix
+		candidate_ot_mat = ot.emd(reference_distrib, candidate_distrib, distance_matrix_alpha)*distance_matrix
 
 		ot_dist_contribution_candidates[i]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
 		ot_dist_contribution               += ot_dist_contribution_candidates[i] * total_vote_candidate / total_voting_population
