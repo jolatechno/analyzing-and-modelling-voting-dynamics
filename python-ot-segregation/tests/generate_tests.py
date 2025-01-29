@@ -81,7 +81,11 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01, plot_direction=False)
 	if plot_direction:
 		ax2 = axes[2]
 
-		ax2.quiver(X, Y, ot_direction[:, 1].reshape(distrib_3d.shape[:2]), ot_direction[:, 0].reshape(distrib_3d.shape[:2]))
+		ax2.quiver(
+			X, Y,
+			(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2]),
+			(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])
+		)
 
 	fig.tight_layout(pad=1.0)
 	return fig

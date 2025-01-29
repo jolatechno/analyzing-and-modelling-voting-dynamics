@@ -7,7 +7,7 @@ import networkx as nx
 import osmnx as ox
 
 election_id            = "france_pres_tour1_2022"
-geographical_filter_id = "Region_parisienne"
+geographical_filter_id = "Paris"
 
 distance = "vol d'oiseau"
 
@@ -36,6 +36,19 @@ geographical_filter_departement_list = {
 	"Petite_couronne"   : ["75", "92", "93", "94"],
 	"Region_parisienne" : ["75", "92", "93", "94", "77", "78", "91", "95"],
 	"Metropole"         : [str(idx).zfill(2) for idx in range(1, 95+1)]
+}
+
+compute_direction = {
+	"Paris"             : True,
+	"Petite_couronne"   : False,
+	"Region_parisienne" : False,
+	"Metropole"         : False
+}
+direction_file_names = {
+	"Paris"             : {
+		"x" : "data/direction_paris_x.csv",
+		"y" : "data/direction_paris_y.csv"
+	}
 }
 
 def compute_distance(lon1, lat1, lon2, lat2):
@@ -130,9 +143,30 @@ else:
 			distance_matrix[i, j] = dist
 			distance_matrix[j, i] = distance_matrix[i, j]
 
+if compute_direction[geographical_filter_id]:
+	print("Computing distance matrix")
+	unitary_direction_matrix = np.zeros((distance_matrix.shape[0], distance_matrix.shape[0], 2))
+	
+	for i in range(1, num_nodes):		
+		if distance == "vol d'oiseau":
+			distances_line = distance_matrix[i, :i]
+		else:
+			distances_line = np.maximum(compute_distance(lon[:i], lat[:i], lon[i], lat[i]), 10)
+		unitary_direction_matrix[i, :i, 0] = (lon[i] - lon[:i]) / distances_line
+		unitary_direction_matrix[:i, i, 0] = -unitary_direction_matrix[i, :i, 0]
+		unitary_direction_matrix[i, :i, 1] = (lat[i] - lat[:i]) / distances_line
+		unitary_direction_matrix[:i, i, 1] = -unitary_direction_matrix[i, :i, 1]
+
 """ #########
 write to file
 ######### """
 
 print(f"Write to \"{ distance_file_names[geographical_filter_id] }\"")
 np.savetxt(distance_file_names[geographical_filter_id], distance_matrix, delimiter=',', header=",".join(filtered_election_database["id_brut_bv_reu"]))
+
+if compute_direction[geographical_filter_id]:
+	print(f"Write to \"{ direction_file_names[geographical_filter_id]["x"] }\"")
+	np.savetxt(direction_file_names[geographical_filter_id]["x"], unitary_direction_matrix[:, :, 0], delimiter=',', header=",".join(filtered_election_database["id_brut_bv_reu"]))
+
+	print(f"Write to \"{ direction_file_names[geographical_filter_id]["y"] }\"")
+	np.savetxt(direction_file_names[geographical_filter_id]["y"], unitary_direction_matrix[:, :, 1], delimiter=',', header=",".join(filtered_election_database["id_brut_bv_reu"]))

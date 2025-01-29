@@ -44,6 +44,19 @@ geographical_filter_departement_list = {
 	"Metropole"         : [str(idx).zfill(2) for idx in range(1, 95+1)]
 }
 
+plot_direction = {
+	"Paris"             : True,
+	"Petite_couronne"   : False,
+	"Region_parisienne" : False,
+	"Metropole"         : False
+}
+direction_file_names = {
+	"Paris"             : {
+		"x" : "data/direction_paris_x.csv",
+		"y" : "data/direction_paris_y.csv"
+	}
+}
+
 epsilon = -0.02
 
 """ ##############################################
@@ -68,6 +81,11 @@ read distances
 print(f"Read distances from \"{ distance_file_names[geographical_filter_id] }\"")
 distance_matrix       = np.genfromtxt(distance_file_names[geographical_filter_id], delimiter=',')
 distance_matrix_alpha = np.pow(distance_matrix, 1 + epsilon)
+
+if plot_direction[geographical_filter_id]:
+	unitary_direction_matrix = np.zeros((distance_matrix.shape[0], distance_matrix.shape[0], 2))
+	unitary_direction_matrix[:, :, 0] = np.genfromtxt(direction_file_names[geographical_filter_id]["x"], delimiter=',')
+	unitary_direction_matrix[:, :, 1] = np.genfromtxt(direction_file_names[geographical_filter_id]["y"], delimiter=',')
 
 """ ##########################
 ##############################
@@ -96,6 +114,9 @@ except	:
 
 	ot_dist_contribution            = np.zeros(                      len(filtered_election_database["Votants"]))
 	ot_dist_contribution_candidates = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
+	if plot_direction[geographical_filter_id]:
+		ot_direction_per_candidate = np.zeros((len(filtered_election_database["Votants"]), 2, len(candidate_list)))
+		ot_direction               = np.zeros((len(filtered_election_database["Votants"]), 2))
 
 	total_voting_population = np.sum(  filtered_election_database["Votants"])
 	reference_distrib       = np.array(filtered_election_database["Votants"]) / total_voting_population
@@ -110,6 +131,10 @@ except	:
 
 		ot_dist_contribution_candidates[i]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
 		ot_dist_contribution               += ot_dist_contribution_candidates[i] * total_vote_candidate / total_voting_population
+		if plot_direction[geographical_filter_id]:
+			ot_direction_per_candidate[:, 0,            i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
+			ot_direction_per_candidate[:, 1,            i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
+			ot_direction                                   += ot_direction_per_candidate[:, :, i] * total_vote_candidate / total_voting_population
 
 
 	""" ###################
@@ -118,11 +143,15 @@ except	:
 
 	data = {
 		"optimal_transport_contribution" : ot_dist_contribution,
+		"ot_direction_x"                 : ot_direction[:, 0],
+		"ot_direction_y"                 : ot_direction[:, 1],
 		"latitude"                       : filtered_election_database["latitude"],
 		"longitude"                      : filtered_election_database["longitude"]
 	}
-	for name,ot_contrib in zip(candidate_list,ot_dist_contribution_candidates):
-		data["optimal_transport_contribution_" + name] = ot_contrib
+	for candidate_idx,name in enumerate(candidate_list):
+		data["optimal_transport_contribution_" + name] = ot_dist_contribution_candidates[candidate_idx, :]
+		data["ot_direction_" + name + "_x"]            = ot_direction_per_candidate[:, 0, candidate_idx]
+		data["ot_direction_" + name + "_y"]            = ot_direction_per_candidate[:, 1, candidate_idx]
 
 	print(f"Write to \"{ save_file_name[election_id][geographical_filter_id] }\"")
 	pd.DataFrame(data).to_csv(save_file_name[election_id][geographical_filter_id], index=False)
@@ -167,6 +196,13 @@ cbar = fig.colorbar(pl, label="local contribution [m]")
 axes[0].set_aspect(map_ratio)
 axes[0].set_title("map of the local contribution")
 
+if plot_direction[geographical_filter_id]:
+	axes[0].quiver(
+		data["longitude"], data["latitude"],
+		data["ot_direction_x"] / data["optimal_transport_contribution"],
+		data["ot_direction_y"] / data["optimal_transport_contribution"]
+	)
+
 for ax,candidate_idx in zip(axes[1:],interesting_candidate_idx):
 	ax.scatter(data["longitude"], data["latitude"], c=data["optimal_transport_contribution_" + candidate_list[candidate_idx]], s=30, alpha=0.6)
 	ax.scatter(data["longitude"], data["latitude"], c=data["optimal_transport_contribution_" + candidate_list[candidate_idx]], s=10, alpha=0.6)
@@ -176,6 +212,13 @@ for ax,candidate_idx in zip(axes[1:],interesting_candidate_idx):
 
 	ax.set_aspect(map_ratio)
 	ax.set_title(f"map of the local contribution for { candidate_list[candidate_idx] }")
+
+	if plot_direction[geographical_filter_id]:
+		ax.quiver(
+			data["longitude"], data["latitude"],
+			data["ot_direction_" + candidate_list[candidate_idx] + "_x"] / data["optimal_transport_contribution_" + candidate_list[candidate_idx]],
+			data["ot_direction_" + candidate_list[candidate_idx] + "_y"] / data["optimal_transport_contribution_" + candidate_list[candidate_idx]]
+		)
 
 fig.tight_layout(pad=1.0)
 fig.savefig(fig_file_name[election_id][geographical_filter_id])
