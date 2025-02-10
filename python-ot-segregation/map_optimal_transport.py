@@ -197,6 +197,12 @@ axes[0].set_aspect(map_ratio)
 axes[0].set_title("map of the local contribution")
 
 if plot_direction[geographical_filter_id]:
+	relative_direction             = np.power(data["ot_direction_x"], 2) + np.power(data["ot_direction_y"], 2) / data["optimal_transport_contribution"]
+	relative_direction_limit_value = np.percentile(relative_direction, 6)
+	percentile_filter              = relative_direction < relative_direction_limit_value
+
+	axes[0].plot(data["longitude"][percentile_filter], data["latitude"][percentile_filter], 'xr', markersize=6)
+
 	axes[0].quiver(
 		data["longitude"], data["latitude"],
 		data["ot_direction_x"] / data["optimal_transport_contribution"],
@@ -214,6 +220,12 @@ for ax,candidate_idx in zip(axes[1:],interesting_candidate_idx):
 	ax.set_title(f"map of the local contribution for { candidate_list[candidate_idx] }")
 
 	if plot_direction[geographical_filter_id]:
+		relative_direction             = np.power(data["ot_direction_" + candidate_list[candidate_idx] + "_x"], 2) + np.power(data["ot_direction_" + candidate_list[candidate_idx] + "_y"], 2) / data["optimal_transport_contribution"]
+		relative_direction_limit_value = np.percentile(relative_direction, 6)
+		percentile_filter              = relative_direction < relative_direction_limit_value
+
+		ax.plot(data["longitude"][percentile_filter], data["latitude"][percentile_filter], 'xr', markersize=6)
+
 		ax.quiver(
 			data["longitude"], data["latitude"],
 			data["ot_direction_" + candidate_list[candidate_idx] + "_x"] / data["optimal_transport_contribution_" + candidate_list[candidate_idx]],
