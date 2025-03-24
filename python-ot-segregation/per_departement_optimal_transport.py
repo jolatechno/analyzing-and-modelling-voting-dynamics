@@ -28,6 +28,7 @@ input_file_names = {
 
 geographical_filter_departement_list = [str(idx).zfill(2) for idx in range(1, 95+1)]
 exluded_departement_list             = []
+departement_of_interest_list         = ["34", "74"]
 
 """ ##############################################
 ##################################################
@@ -85,14 +86,21 @@ for geographical_filter in geographical_filter_departement_list:
 	reference_distrib       = np.array(filtered_election_database["Votants"]) / total_voting_population
 
 	candidate_padding_length = max([len(x) for x in candidate_list])
-	for candidate in candidate_list:
+	for idx_candidate,candidate in enumerate(candidate_list):
 		total_vote_candidate = np.sum(  filtered_election_database[candidate + " Voix"])
 		candidate_distrib    = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidate
 
 		candidate_ot_dist = ot.emd2(reference_distrib, candidate_distrib, distance_matrix)
 		ot_dist          += candidate_ot_dist * total_vote_candidate / total_voting_population
+		
+		if geographical_filter in departement_of_interest_list :
+			print(f"Optimal transport distance in departement { geographical_filter } for { candidate.ljust(candidate_padding_length , " ") } (idx { idx_candidate }) electors : { str(round(candidate_ot_dist)).rjust(4, " ") }m with { str(round(total_vote_candidate / total_voting_population * 100)).rjust(2, " ") }% of electors")
 
 	results[geographical_filter] = ot_dist
+
+	if geographical_filter in departement_of_interest_list :
+		print(f"\nOptimal transport average distance for departement { geographical_filter } : { round(ot_dist) }m")
+		print()
 
 results = dict(sorted(results.items(), key=lambda item: item[1]))
 

@@ -1,5 +1,35 @@
 Reading data from "data/france_pres_tour1_2022_preprocessed.csv"
 
+Optimal transport distance in departement 34 for ARTHAUD       (idx 0) electors : 3603m with  0% of electors
+Optimal transport distance in departement 34 for ROUSSEL       (idx 1) electors : 4218m with  2% of electors
+Optimal transport distance in departement 34 for MACRON        (idx 2) electors : 3103m with 22% of electors
+Optimal transport distance in departement 34 for LASSALLE      (idx 3) electors : 6658m with  3% of electors
+Optimal transport distance in departement 34 for LE PEN        (idx 4) electors : 5921m with 25% of electors
+Optimal transport distance in departement 34 for ZEMMOUR       (idx 5) electors : 1888m with  9% of electors
+Optimal transport distance in departement 34 for MÉLENCHON     (idx 6) electors : 4249m with 24% of electors
+Optimal transport distance in departement 34 for HIDALGO       (idx 7) electors : 2859m with  2% of electors
+Optimal transport distance in departement 34 for JADOT         (idx 8) electors : 7170m with  4% of electors
+Optimal transport distance in departement 34 for PÉCRESSE      (idx 9) electors : 2182m with  4% of electors
+Optimal transport distance in departement 34 for POUTOU        (idx 10) electors : 1676m with  1% of electors
+Optimal transport distance in departement 34 for DUPONT-AIGNAN (idx 11) electors : 1816m with  2% of electors
+
+Optimal transport average distance for departement 34 : 4175m
+
+Optimal transport distance in departement 74 for ARTHAUD       (idx 0) electors : 2713m with  0% of electors
+Optimal transport distance in departement 74 for ROUSSEL       (idx 1) electors : 1265m with  1% of electors
+Optimal transport distance in departement 74 for MACRON        (idx 2) electors : 1066m with 30% of electors
+Optimal transport distance in departement 74 for LASSALLE      (idx 3) electors : 2130m with  3% of electors
+Optimal transport distance in departement 74 for LE PEN        (idx 4) electors : 1824m with 20% of electors
+Optimal transport distance in departement 74 for ZEMMOUR       (idx 5) electors :  900m with  8% of electors
+Optimal transport distance in departement 74 for MÉLENCHON     (idx 6) electors : 1346m with 18% of electors
+Optimal transport distance in departement 74 for HIDALGO       (idx 7) electors : 1833m with  2% of electors
+Optimal transport distance in departement 74 for JADOT         (idx 8) electors : 2303m with  7% of electors
+Optimal transport distance in departement 74 for PÉCRESSE      (idx 9) electors : 1821m with  5% of electors
+Optimal transport distance in departement 74 for POUTOU        (idx 10) electors : 2079m with  1% of electors
+Optimal transport distance in departement 74 for DUPONT-AIGNAN (idx 11) electors : 2154m with  3% of electors
+
+Optimal transport average distance for departement 74 : 1454m
+
 Optimal transport average distance for departement 92 : 561m
 Optimal transport average distance for departement 94 : 724m
 Optimal transport average distance for departement 90 : 745m
