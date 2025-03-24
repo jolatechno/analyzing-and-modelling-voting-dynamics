@@ -194,14 +194,14 @@ pl = axes[0].scatter(data["longitude"], data["latitude"], c=data["optimal_transp
 cbar = fig.colorbar(pl, label="local contribution [m]")
 
 axes[0].set_aspect(map_ratio)
-axes[0].set_title("map of the local contribution")
+axes[0].set_title("Local segregation index and direction\nof segregation in Paris\nduring the 2022 presidencial elections")
 
 if plot_direction[geographical_filter_id]:
 	relative_direction             = np.power(data["ot_direction_x"], 2) + np.power(data["ot_direction_y"], 2) / data["optimal_transport_contribution"]
-	relative_direction_limit_value = np.percentile(relative_direction, 6)
+	"""relative_direction_limit_value = np.percentile(relative_direction, 6)
 	percentile_filter              = relative_direction < relative_direction_limit_value
 
-	axes[0].plot(data["longitude"][percentile_filter], data["latitude"][percentile_filter], 'xr', markersize=6)
+	axes[0].plot(data["longitude"][percentile_filter], data["latitude"][percentile_filter], 'xr', markersize=6)"""
 
 	axes[0].quiver(
 		data["longitude"], data["latitude"],
@@ -221,10 +221,10 @@ for ax,candidate_idx in zip(axes[1:],interesting_candidate_idx):
 
 	if plot_direction[geographical_filter_id]:
 		relative_direction             = np.power(data["ot_direction_" + candidate_list[candidate_idx] + "_x"], 2) + np.power(data["ot_direction_" + candidate_list[candidate_idx] + "_y"], 2) / data["optimal_transport_contribution"]
-		relative_direction_limit_value = np.percentile(relative_direction, 6)
+		"""relative_direction_limit_value = np.percentile(relative_direction, 6)
 		percentile_filter              = relative_direction < relative_direction_limit_value
 
-		ax.plot(data["longitude"][percentile_filter], data["latitude"][percentile_filter], 'xr', markersize=6)
+		ax.plot(data["longitude"][percentile_filter], data["latitude"][percentile_filter], 'xr', markersize=6)"""
 
 		ax.quiver(
 			data["longitude"], data["latitude"],
