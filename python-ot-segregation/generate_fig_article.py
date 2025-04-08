@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import ot
 from matplotlib import pyplot as plt
+from scipy import interpolate
 
 election_id  = "france_pres_tour1_2022"
 departements = ["34", "74"]
@@ -135,10 +136,10 @@ for filter_idx,geographical_filter in enumerate(departements):
 	ax.scatter(lon, lat, c=vote_proportion_candidate, s=10, alpha=0.6)
 	pl = ax.scatter(lon, lat, c=vote_proportion_candidate, s=1)
 
-	cbar = fig.colorbar(pl, label="local contribution [m]")
+	cbar = fig.colorbar(pl, label="proportion of votes")
 
 	ax.set_aspect(map_ratio)
-	ax.set_title("Local segregation index and direction\nof segregation in Paris\nduring the 2022 presidencial elections")
+	ax.set_title(f"Vote proportion for { candidate_list[interesting_candidate_idx[filter_idx]] }\nduring the 2022 presidencial elections")
 
 	fig.tight_layout(pad=1.0)
 	fig.savefig(fig_file_name[0][filter_idx])
@@ -151,14 +152,20 @@ for filter_idx,geographical_filter in enumerate(departements):
 
 	fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
 
-	ax.scatter(lon, lat, c=ot_dist_contribution, s=30, alpha=0.6)
-	ax.scatter(lon, lat, c=ot_dist_contribution, s=10, alpha=0.6)
-	pl = ax.scatter(lon, lat, c=ot_dist_contribution, s=1)
+	x, y = np.linspace(min(lon), max(lon) ,1000), np.linspace(min(lat), max(lat), 1000)
+	X, Y = np.meshgrid(x,y)
+
+	Ti = interpolate.griddata((lon, lat), ot_dist_contribution, (X, Y), method="cubic")
+	pl = ax.contourf(X, Y, Ti)
+
+	#ax.scatter(lon, lat, c=ot_dist_contribution, s=30, alpha=0.6)
+	#ax.scatter(lon, lat, c=ot_dist_contribution, s=10, alpha=0.6)
+	#pl = ax.scatter(lon, lat, c=ot_dist_contribution, s=1)
 
 	cbar = fig.colorbar(pl, label="local contribution [m]")
 
 	ax.set_aspect(map_ratio)
-	ax.set_title("Local segregation index and direction\nof segregation in Paris\nduring the 2022 presidencial elections")
+	ax.set_title("Local segregation index in Paris\nduring the 2022 presidencial elections")
 
 	fig.tight_layout(pad=1.0)
 	fig.savefig(fig_file_name[1][filter_idx])
@@ -180,6 +187,6 @@ for filter_idx,geographical_filter in enumerate(departements):
 	)
 
 	ax.set_aspect(map_ratio)
-	ax.set_title("Local segregation index and direction\nof segregation in Paris\nduring the 2022 presidencial elections")
+	ax.set_title("Direction of segregation in Paris\nduring the 2022 presidencial elections")
 
 	fig.savefig(fig_file_name[2][filter_idx])
