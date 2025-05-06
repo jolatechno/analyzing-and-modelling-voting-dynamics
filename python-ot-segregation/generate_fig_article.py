@@ -9,7 +9,20 @@ from matplotlib import pyplot as plt
 from scipy import interpolate
 
 election_id  = "france_pres_tour1_2022"
-departements = ["34", "74"]
+commune = [
+	["Marseille"],
+	["Paris"]
+]
+limits = [
+	{
+		"longitude" : None,
+		"latitude"  : None
+	}, {
+		"longitude" : None,
+		"latitude"  : None
+	}
+]
+clip_segregation = [200, 3200]
 
 interesting_candidate_idx = [4, 4]
 candidate_color           = ["tab:brown", "tab:brown"]
@@ -17,6 +30,7 @@ candidate_color           = ["tab:brown", "tab:brown"]
 input_file_names = {
 	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
 }
+bvote_position_file_name  = "data/table-adresses-preprocessed.csv"
 
 fig_file_name = [
 	["results/fig_1a.png", "results/fig_1b.png"],
@@ -40,6 +54,17 @@ def compute_distance(lon1, lat1, lon2, lat2):
 
 	return R * c
 
+def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_reu", clip=None):
+	dat, lon, lat = [], [], []
+	data_to_use = data if clip is None else np.clip(data, *clip)
+	for id_,value in zip(id_field,data_to_use):
+		mask = position_database[id_field_name] == id_
+		lon.extend(np.array(position_database[mask]["longitude"]))
+		lat.extend(np.array(position_database[mask]["latitude"]))
+		dat.extend([value] * np.sum(mask))
+
+	return ax.scatter(lon, lat, c=dat, s=0.7, alpha=1)
+
 """ ##############################################
 ##################################################
 read field from the preprocessed election database
@@ -49,14 +74,24 @@ read field from the preprocessed election database
 print(f"Reading data from \"{ input_file_names[election_id] }\"")
 election_database = pd.read_csv(input_file_names[election_id], low_memory=False)
 
+print(f"Reading data from \"{ bvote_position_file_name }\"")
+bvote_position_database = pd.read_csv(bvote_position_file_name, low_memory=False)
+
 """ #####################
 apply geographical filter
 ##################### """
 
-for filter_idx,geographical_filter in enumerate(departements):
-	geographical_mask          = election_database["code_commune"].str[0:2] == geographical_filter
+for filter_idx,(geographiocal_limits,geographical_filter) in enumerate(zip(limits,commune)):
+	geographical_mask = np.isin(election_database["Libellé de la commune"], geographical_filter)
+	if geographiocal_limits["longitude"] is not None:
+		geographical_mask = np.logical_and(geographical_mask, election_database["longitude"] > geographiocal_limits["longitude"][0])
+		geographical_mask = np.logical_and(geographical_mask, election_database["longitude"] < geographiocal_limits["longitude"][1])
+	if geographiocal_limits["latitude" ] is not None:
+		geographical_mask = np.logical_and(geographical_mask, election_database["latitude" ] > geographiocal_limits["latitude" ][0])
+		geographical_mask = np.logical_and(geographical_mask, election_database["latitude" ] < geographiocal_limits["latitude" ][1])
 	filtered_election_database = election_database[geographical_mask]
 	filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"]).reset_index(drop=True)
+	filtered_bvote_position_database = bvote_position_database[np.isin(bvote_position_database["id_brut_bv_reu"], filtered_election_database["id_brut_bv_reu"])]
 
 	""" ############
 	################
@@ -132,9 +167,7 @@ for filter_idx,geographical_filter in enumerate(departements):
 	vote_distrib_candidate    = np.array(filtered_election_database[candidate_list[interesting_candidate_idx[filter_idx]] + " Voix"])
 	vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"])
 
-	ax.scatter(lon, lat, c=vote_proportion_candidate, s=30, alpha=0.6)
-	ax.scatter(lon, lat, c=vote_proportion_candidate, s=10, alpha=0.6)
-	pl = ax.scatter(lon, lat, c=vote_proportion_candidate, s=1)
+	pl = plot_geo_data(filtered_bvote_position_database, vote_proportion_candidate, filtered_election_database["id_brut_bv_reu"])
 
 	cbar = fig.colorbar(pl, label="proportion of votes")
 
@@ -152,15 +185,7 @@ for filter_idx,geographical_filter in enumerate(departements):
 
 	fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
 
-	x, y = np.linspace(min(lon), max(lon) ,1000), np.linspace(min(lat), max(lat), 1000)
-	X, Y = np.meshgrid(x,y)
-
-	Ti = interpolate.griddata((lon, lat), ot_dist_contribution, (X, Y), method="cubic")
-	pl = ax.contourf(X, Y, Ti)
-
-	#ax.scatter(lon, lat, c=ot_dist_contribution, s=30, alpha=0.6)
-	#ax.scatter(lon, lat, c=ot_dist_contribution, s=10, alpha=0.6)
-	#pl = ax.scatter(lon, lat, c=ot_dist_contribution, s=1)
+	pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution, filtered_election_database["id_brut_bv_reu"], clip=clip_segregation)
 
 	cbar = fig.colorbar(pl, label="local contribution [m]")
 

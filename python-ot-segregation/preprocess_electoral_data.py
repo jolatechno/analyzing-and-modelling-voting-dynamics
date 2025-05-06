@@ -16,6 +16,7 @@ election_data_urls       = {
 output_file_names = {
 	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
 }
+bvote_position_output_file_name  = "data/table-adresses-preprocessed.csv"
 
 read_bvote_position_elector      = False
 bvote_position_elector_file_name = "data/table-adresses-reu.parquet"
@@ -57,9 +58,23 @@ candidate_list      = [election_database[all_fieldnames[i + fieldnames_idx["Nom"
 numerical_mask    = election_database["Code du b.vote"].str.isnumeric()
 election_database = election_database[numerical_mask]
 
-paris_mask                                              = election_database["Code du département"] == "75"
-election_database.loc[paris_mask, "Code de la commune"] = ("1" + election_database[paris_mask]["Code du b.vote"].str[0:2]).astype(int)
-election_database.loc[paris_mask, "Code du b.vote"    ] =        election_database[paris_mask]["Code du b.vote"].str[2: ]
+# Modifs pour les trois villes à arrondissements :
+## Paris :
+paris_mask                                              = election_database["Libellé de la commune"] == "Paris"
+arrondissements_paris                                   = election_database[paris_mask]["Code du b.vote"].str[0:2]
+election_database.loc[paris_mask, "Code de la commune"] = ("1" + arrondissements_paris).astype(int)
+election_database.loc[paris_mask, "Code du b.vote"    ] = election_database[paris_mask]["Code du b.vote"].str[2: ]
+## Marseille :
+marseille_mask                                              = election_database["Libellé de la commune"] == "Marseille"
+arrondissements_marseille                                   = election_database[marseille_mask]["Code du b.vote"].str[0:2].str.lstrip('0')
+election_database.loc[marseille_mask, "Code de la commune"] = ("2" + arrondissements_marseille.str.zfill(2)).astype(int)
+election_database.loc[marseille_mask, "Code du b.vote"    ] = arrondissements_marseille + election_database[marseille_mask]["Code du b.vote"].str[2: ]
+## Lyon :
+lyon_mask                                              = election_database["Libellé de la commune"] == "Lyon"
+arrondissements_lyon                                   = election_database[lyon_mask]["Code du b.vote"].str[1]
+election_database.loc[lyon_mask, "Code de la commune"] = ("38" + arrondissements_lyon).astype(int)
+election_database.loc[lyon_mask, "Code du b.vote"    ] = arrondissements_lyon + election_database[lyon_mask]["Code du b.vote"].str[2: ]
+
 
 election_database["code_commune"  ] = election_database["Code du département"] +       election_database["Code de la commune"].astype(str).str.zfill(3)
 election_database["id_brut_bv_reu"] = election_database["code_commune"       ] + "_" + election_database["Code du b.vote"    ].str.lstrip('0')
@@ -96,11 +111,13 @@ bvote_position_database = pd.read_parquet(bvote_position_elector_file_name, engi
 process the fields
 ############## """
 
+bvote_position_database = bvote_position_database.dropna(subset=["longitude", "latitude"])
 bvote_position_database.drop(
 	columns=list(set(bvote_position_database.columns) - set(field_bvote_position_database + ["id_brut_bv_reu"])),
 	inplace=True)
 
-bvote_averaged_database = bvote_position_database.groupby("id_brut_bv_reu", as_index=False).mean()
+bvote_grouped_database  = bvote_position_database.groupby("id_brut_bv_reu", as_index=False)
+bvote_averaged_database = bvote_grouped_database.mean()
 
 """ ############################################
 ################################################
@@ -115,4 +132,7 @@ write to file
 ######### """
 
 print(f"Write to \"{ output_file_names[election_id] }\"")
-final_database.to_csv(output_file_names[election_id], index=False)  
+final_database.to_csv(output_file_names[election_id], index=False)
+
+print(f"Write to \"{ bvote_position_output_file_name }\"")
+bvote_position_database.to_csv(bvote_position_output_file_name, index=False)
