@@ -91,7 +91,9 @@ for filter_idx,(geographiocal_limits,geographical_filter) in enumerate(zip(limit
 		geographical_mask = np.logical_and(geographical_mask, election_database["latitude" ] < geographiocal_limits["latitude" ][1])
 	filtered_election_database = election_database[geographical_mask]
 	filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"]).reset_index(drop=True)
-	filtered_bvote_position_database = bvote_position_database[np.isin(bvote_position_database["id_brut_bv_reu"], filtered_election_database["id_brut_bv_reu"])]
+	filtered_bvote_position_database = bvote_position_database[np.isin(
+		bvote_position_database["id_brut_bv_reu"].str[:4], 
+		np.unique(filtered_election_database["id_brut_bv_reu"].str[:4]))]
 
 	""" ############
 	################
