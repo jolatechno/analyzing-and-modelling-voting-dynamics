@@ -10,21 +10,19 @@ from scipy import interpolate
 
 election_id  = "france_pres_tour1_2022"
 commune = [
+	["Lyon"],
+	["Toulouse"],
 	["Marseille"],
 	["Paris"]
 ]
-limits = [
-	{
-		"longitude" : None,
-		"latitude"  : None
-	}, {
-		"longitude" : None,
-		"latitude"  : None
-	}
-]
 clip_segregation = [200, 3200]
+interesting_candidates = {
+#	"LE PEN"    : { "abv" : "lpn" },
+#	"MACRON"    : { "abv" : "mcr" },
+#	"MÉLENCHON" : { "abv" : "mle" }
+}
+interesting_candidate_idx = [4, 4, 4, 4]
 
-interesting_candidate_idx = [4, 4]
 candidate_color           = ["tab:brown", "tab:brown"]
 
 input_file_names = {
@@ -33,9 +31,8 @@ input_file_names = {
 bvote_position_file_name  = "data/table-adresses-preprocessed.csv"
 
 fig_file_name = [
-	["results/fig_1a.png", "results/fig_1b.png"],
-	["results/fig_2a.png", "results/fig_2b.png"],
-	["results/fig_3a.png", "results/fig_3b.png"]
+	[f"results/fig_{ geo[0] }_{ letter }.png" for geo in commune]
+	for letter in ["a", "b", "c"]
 ]
 
 epsilon = -0.02
@@ -81,14 +78,8 @@ bvote_position_database = pd.read_csv(bvote_position_file_name, low_memory=False
 apply geographical filter
 ##################### """
 
-for filter_idx,(geographiocal_limits,geographical_filter) in enumerate(zip(limits,commune)):
+for filter_idx,geographical_filter in enumerate(commune):
 	geographical_mask = np.isin(election_database["Libellé de la commune"], geographical_filter)
-	if geographiocal_limits["longitude"] is not None:
-		geographical_mask = np.logical_and(geographical_mask, election_database["longitude"] > geographiocal_limits["longitude"][0])
-		geographical_mask = np.logical_and(geographical_mask, election_database["longitude"] < geographiocal_limits["longitude"][1])
-	if geographiocal_limits["latitude" ] is not None:
-		geographical_mask = np.logical_and(geographical_mask, election_database["latitude" ] > geographiocal_limits["latitude" ][0])
-		geographical_mask = np.logical_and(geographical_mask, election_database["latitude" ] < geographiocal_limits["latitude" ][1])
 	filtered_election_database = election_database[geographical_mask]
 	filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"]).reset_index(drop=True)
 	filtered_bvote_position_database = bvote_position_database[np.isin(
@@ -127,11 +118,19 @@ for filter_idx,(geographiocal_limits,geographical_filter) in enumerate(zip(limit
 	########################## """
 
 	## TO BE READ FROM THE FILE
-	candidate_list            = ['ARTHAUD', 'ROUSSEL', 'MACRON', 'LASSALLE', 'LE PEN', 'ZEMMOUR', 'MÉLENCHON', 'HIDALGO', 'JADOT', 'PÉCRESSE', 'POUTOU', 'DUPONT-AIGNAN']
+	candidate_list = [
+		'ARTHAUD', 'ROUSSEL', 'MACRON',
+		'LASSALLE', 'LE PEN', 'ZEMMOUR',
+		'MÉLENCHON', 'HIDALGO', 'JADOT',
+		'PÉCRESSE', 'POUTOU', 'DUPONT-AIGNAN'
+	]
 
 	""" #####################
 	compute optimal transport
 	##################### """
+
+	total_ot_dist      = 0
+	ot_dist_candidates = np.zeros(len(candidate_list))
 
 	ot_dist_contribution            = np.zeros(                      len(filtered_election_database["Votants"]))
 	ot_dist_contribution_candidates = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
@@ -151,10 +150,14 @@ for filter_idx,(geographiocal_limits,geographical_filter) in enumerate(zip(limit
 
 		ot_dist_contribution_candidates[i]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
 		ot_dist_contribution               += ot_dist_contribution_candidates[i] * total_vote_candidate / total_voting_population
+		ot_dist_candidates[             i]  = np.sum(ot_dist_contribution_candidates[i] * reference_distrib)
+		total_ot_dist                      += ot_dist_candidates[i] * total_vote_candidate / total_voting_population
 		
 		ot_direction_per_candidate[:, 0,            i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
 		ot_direction_per_candidate[:, 1,            i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
 		ot_direction                                   += ot_direction_per_candidate[:, :, i] * total_vote_candidate / total_voting_population
+
+	total_ot_dist = np.sum(ot_dist_contribution * reference_distrib)
 
 	map_ratio = get_map_ratio(lon, lat)
 
@@ -190,6 +193,15 @@ for filter_idx,(geographiocal_limits,geographical_filter) in enumerate(zip(limit
 	pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution, filtered_election_database["id_brut_bv_reu"], clip=clip_segregation)
 
 	cbar = fig.colorbar(pl, label="local contribution [m]")
+
+	for candidate in interesting_candidates.keys() :
+		candidate_idx = candidate_list.index(candidate)
+		line = cbar.ax.plot(0.5, ot_dist_candidates[candidate_idx],
+			markerfacecolor='w', markeredgecolor='w', marker='+', markersize=10)[0]
+		cbar.ax.text(-1.1, line.get_ydata()-20, interesting_candidates[candidate]["abv"])
+	line = cbar.ax.plot(0.5, total_ot_dist,
+		markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
+	cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
 
 	ax.set_aspect(map_ratio)
 	ax.set_title("Local segregation index in Paris\nduring the 2022 presidencial elections")
