@@ -15,15 +15,15 @@ commune = [
 	["Marseille"],
 	["Paris"]
 ]
-clip_segregation = [200, 3200]
-interesting_candidates = {
-#	"LE PEN"    : { "abv" : "lpn" },
-#	"MACRON"    : { "abv" : "mcr" },
-#	"MÉLENCHON" : { "abv" : "mle" }
-}
-interesting_candidate_idx = [4, 4, 4, 4]
+clip_segregation = None # [200, 3200]
+interesting_candidates = [
+	["LE PEN", "MACRON", "MÉLENCHON"],
+	["LE PEN", "MACRON", "MÉLENCHON"],
+	["LE PEN", "MACRON", "MÉLENCHON"],
+	["LE PEN", "MACRON", "MÉLENCHON", "ZEMMOUR"]
+]
 
-candidate_color           = ["tab:brown", "tab:brown"]
+candidate_color = ["tab:brown", "tab:brown"]
 
 input_file_names = {
 	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
@@ -31,8 +31,13 @@ input_file_names = {
 bvote_position_file_name  = "data/table-adresses-preprocessed.csv"
 
 fig_file_name = [
-	[f"results/fig_{ geo[0] }_{ letter }.png" for geo in commune]
-	for letter in ["a", "b", "c"]
+	[
+		[f"results/article/{ geo[0] }/fig_{ geo[0] }_votes_{ candidate.replace(" ", "_") }.png"         for candidate in interesting_candidates[i]],
+		 f"results/article/{ geo[0] }/fig_{ geo[0] }_segregation.png",
+		[f"results/article/{ geo[0] }/fig_{ geo[0] }_segregation_{ candidate.replace(" ", "_") }.png"   for candidate in interesting_candidates[i]],
+		[f"results/article/{ geo[0] }/fig_{ geo[0] }_dissimilarity_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]],
+		 f"results/article/{ geo[0] }/fig_{ geo[0] }_direction.png"
+	] for i,geo in enumerate(commune)
 ]
 
 epsilon = -0.02
@@ -129,11 +134,13 @@ for filter_idx,geographical_filter in enumerate(commune):
 	compute optimal transport
 	##################### """
 
-	total_ot_dist      = 0
-	ot_dist_candidates = np.zeros(len(candidate_list))
+	total_ot_dist         = 0
+	ot_dist_candidates    = np.zeros(len(candidate_list))
+	total_vote_candidates = np.zeros(len(candidate_list))
 
 	ot_dist_contribution            = np.zeros(                      len(filtered_election_database["Votants"]))
 	ot_dist_contribution_candidates = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
+	ot_dist_dissimilarity           = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
 
 	ot_direction_per_candidate = np.zeros((len(filtered_election_database["Votants"]), 2, len(candidate_list)))
 	ot_direction               = np.zeros((len(filtered_election_database["Votants"]), 2))
@@ -143,21 +150,23 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 	candidate_padding_length = max([len(x) for x in candidate_list])
 	for i,candidate in enumerate(candidate_list):
-		total_vote_candidate = np.sum(  filtered_election_database[candidate + " Voix"])
-		candidate_distrib    = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidate
+		total_vote_candidates[i] = np.sum(filtered_election_database[candidate + " Voix"])
+		candidate_distrib        = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidates[i]
 
 		candidate_ot_mat = ot.emd(reference_distrib, candidate_distrib, distance_matrix_alpha)*distance_matrix
 
-		ot_dist_contribution_candidates[i]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
-		ot_dist_contribution               += ot_dist_contribution_candidates[i] * total_vote_candidate / total_voting_population
-		ot_dist_candidates[             i]  = np.sum(ot_dist_contribution_candidates[i] * reference_distrib)
-		total_ot_dist                      += ot_dist_candidates[i] * total_vote_candidate / total_voting_population
+		ot_dist_contribution_candidates[i, :]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
+		ot_dist_dissimilarity[          i, :]  = (candidate_ot_mat.sum(axis=0) - candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
+		ot_dist_contribution                  += ot_dist_contribution_candidates[i] * total_vote_candidates[i] / total_voting_population
+		ot_dist_candidates[             i   ]  = np.sum(ot_dist_contribution_candidates[i] * reference_distrib)
+		total_ot_dist                         += ot_dist_candidates[i] * total_vote_candidates[i] / total_voting_population
 		
 		ot_direction_per_candidate[:, 0,            i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
 		ot_direction_per_candidate[:, 1,            i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
-		ot_direction                                   += ot_direction_per_candidate[:, :, i] * total_vote_candidate / total_voting_population
+		ot_direction                                   += ot_direction_per_candidate[:, :, i] * total_vote_candidates[i] / total_voting_population
 
-	total_ot_dist = np.sum(ot_dist_contribution * reference_distrib)
+	total_ot_dist                    = np.sum(ot_dist_contribution * reference_distrib)
+	total_vote_proportion_candidate = total_vote_candidates / total_voting_population
 
 	map_ratio = get_map_ratio(lon, lat)
 
@@ -167,20 +176,27 @@ for filter_idx,geographical_filter in enumerate(commune):
 	##########
 	###### """
 
-	fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+		candidate_idx = candidate_list.index(interesting_candidate)
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
 
-	vote_distrib_candidate    = np.array(filtered_election_database[candidate_list[interesting_candidate_idx[filter_idx]] + " Voix"])
-	vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"])
+		vote_distrib_candidate    = np.array(filtered_election_database[interesting_candidate + " Voix"])
+		vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"])
 
-	pl = plot_geo_data(filtered_bvote_position_database, vote_proportion_candidate, filtered_election_database["id_brut_bv_reu"])
+		pl = plot_geo_data(filtered_bvote_position_database, vote_proportion_candidate, filtered_election_database["id_brut_bv_reu"])
 
-	cbar = fig.colorbar(pl, label="proportion of votes")
+		cbar = fig.colorbar(pl, label="proportion of votes")
 
-	ax.set_aspect(map_ratio)
-	ax.set_title(f"Vote proportion for { candidate_list[interesting_candidate_idx[filter_idx]] }\nduring the 2022 presidencial elections")
+		line = cbar.ax.plot(0.5, total_vote_proportion_candidate[candidate_idx],
+			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
+		cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
 
-	fig.tight_layout(pad=1.0)
-	fig.savefig(fig_file_name[0][filter_idx])
+		ax.set_aspect(map_ratio)
+		ax.set_title(f"Vote proportion for { interesting_candidate }\nduring the 2022 presidencial elections")
+
+		fig.tight_layout(pad=1.0)
+		fig.savefig(fig_file_name[filter_idx][0][interesting_candidate_idx])
+		plt.close(fig)
 
 	""" ##################
 	######################
@@ -194,11 +210,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 	cbar = fig.colorbar(pl, label="local contribution [m]")
 
-	for candidate in interesting_candidates.keys() :
+	"""for candidate in interesting_candidates.keys() :
 		candidate_idx = candidate_list.index(candidate)
 		line = cbar.ax.plot(0.5, ot_dist_candidates[candidate_idx],
 			markerfacecolor='w', markeredgecolor='w', marker='+', markersize=10)[0]
-		cbar.ax.text(-1.1, line.get_ydata()-20, interesting_candidates[candidate]["abv"])
+		cbar.ax.text(-1.1, line.get_ydata()-20, interesting_candidates[candidate]["abv"])"""
 	line = cbar.ax.plot(0.5, total_ot_dist,
 		markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
 	cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
@@ -207,7 +223,50 @@ for filter_idx,geographical_filter in enumerate(commune):
 	ax.set_title("Local segregation index in Paris\nduring the 2022 presidencial elections")
 
 	fig.tight_layout(pad=1.0)
-	fig.savefig(fig_file_name[1][filter_idx])
+	fig.savefig(fig_file_name[filter_idx][1])
+	plt.close(fig)
+
+	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+		candidate_idx = candidate_list.index(interesting_candidate)
+
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+
+		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution_candidates[candidate_idx, :], filtered_election_database["id_brut_bv_reu"], clip=clip_segregation)
+
+		cbar = fig.colorbar(pl, label="local contribution [m]")
+
+		line = cbar.ax.plot(0.5, ot_dist_candidates[candidate_idx],
+			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
+		cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
+
+		ax.set_aspect(map_ratio)
+		ax.set_title(f"Local segregation index in Paris for { interesting_candidate }\nduring the 2022 presidencial elections")
+
+		fig.tight_layout(pad=1.0)
+		fig.savefig(fig_file_name[filter_idx][2][interesting_candidate_idx])
+		plt.close(fig)
+
+	""" ##################
+	######################
+	plot dissimilarity
+	######################
+	################## """
+
+	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+		candidate_idx = candidate_list.index(interesting_candidate)
+
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+
+		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_dissimilarity[candidate_idx, :], filtered_election_database["id_brut_bv_reu"])
+
+		cbar = fig.colorbar(pl, label="dissimilarity [m]")
+
+		ax.set_aspect(map_ratio)
+		ax.set_title(f"Dissimilarity in Paris for { interesting_candidate }\nduring the 2022 presidencial elections")
+
+		fig.tight_layout(pad=1.0)
+		fig.savefig(fig_file_name[filter_idx][3][interesting_candidate_idx])
+		plt.close(fig)
 
 	""" ##########
 	##############
@@ -228,4 +287,5 @@ for filter_idx,geographical_filter in enumerate(commune):
 	ax.set_aspect(map_ratio)
 	ax.set_title("Direction of segregation in Paris\nduring the 2022 presidencial elections")
 
-	fig.savefig(fig_file_name[2][filter_idx])
+	fig.savefig(fig_file_name[filter_idx][4])
+	plt.close(fig)
