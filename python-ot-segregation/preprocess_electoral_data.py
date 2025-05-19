@@ -2,6 +2,7 @@
 
 import urllib.request
 import os.path
+import numpy as np
 import pandas as pd
 
 election_id = "france_pres_tour1_2022"
@@ -64,6 +65,16 @@ paris_mask                                              = election_database["Lib
 arrondissements_paris                                   = election_database[paris_mask]["Code du b.vote"].str[0:2]
 election_database.loc[paris_mask, "Code de la commune"] = ("1" + arrondissements_paris).astype(int)
 election_database.loc[paris_mask, "Code du b.vote"    ] = election_database[paris_mask]["Code du b.vote"].str[2: ]
+# Additional modification for paris :
+max_code_bv_vote_int = 0
+arrondissements_to_update = ["01", "02", "03", "04"]
+for arrondissement_str in arrondissements_to_update:
+	arrondissement_mask  = np.array(paris_mask.copy())
+	arrondissement_mask[arrondissement_mask] = arrondissements_paris == arrondissement_str
+	code_bv_vote_int     = election_database.loc[arrondissement_mask, "Code du b.vote"].astype(int)
+	code_bv_vote_int    += max_code_bv_vote_int
+	max_code_bv_vote_int = max(code_bv_vote_int)
+	election_database.loc[arrondissement_mask, "Code du b.vote"] = code_bv_vote_int.astype(str)
 ## Marseille :
 marseille_mask                                              = election_database["Libellé de la commune"] == "Marseille"
 arrondissements_marseille                                   = election_database[marseille_mask]["Code du b.vote"].str[0:2].str.lstrip('0')
@@ -118,6 +129,22 @@ bvote_position_database.drop(
 
 bvote_grouped_database  = bvote_position_database.groupby("id_brut_bv_reu", as_index=False)
 bvote_averaged_database = bvote_grouped_database.mean()
+
+
+## Verif :
+# France :
+n_dropped_france = len(set(np.unique(election_database["id_brut_bv_reu"])) - set(np.unique(bvote_position_database["id_brut_bv_reu"])))
+print(f"{ n_dropped_france } id droped out of { len(np.unique(election_database["id_brut_bv_reu"])) } for the whole of france")
+# Paris :
+n_dropped_paris = len(set(np.unique(election_database[paris_mask]["id_brut_bv_reu"])) - set(np.unique(bvote_position_database[bvote_position_database["id_brut_bv_reu"].str[:2] == "75"]["id_brut_bv_reu"])))
+print(f"{ n_dropped_paris } id droped out of { len(np.unique(election_database[paris_mask]["id_brut_bv_reu"])) } for Paris")
+# Lyon :
+n_dropped_lyon = len(set(np.unique(election_database[lyon_mask]["id_brut_bv_reu"])) - set(np.unique(bvote_position_database[bvote_position_database["id_brut_bv_reu"].str[:2] == "69"]["id_brut_bv_reu"])))
+print(f"{ n_dropped_lyon } id droped out of { len(np.unique(election_database[lyon_mask]["id_brut_bv_reu"])) } for Lyon")
+# Marseille :
+n_dropped_marseille = len(set(np.unique(election_database[marseille_mask]["id_brut_bv_reu"])) - set(np.unique(bvote_position_database[bvote_position_database["id_brut_bv_reu"].str[:2] == "13"]["id_brut_bv_reu"])))
+print(f"{ n_dropped_marseille } id droped out of { len(np.unique(election_database[marseille_mask]["id_brut_bv_reu"])) } for Marseille")
+
 
 """ ############################################
 ################################################
