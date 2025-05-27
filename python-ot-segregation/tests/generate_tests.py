@@ -3,8 +3,9 @@
 import numpy as np
 import ot
 from matplotlib import pyplot as plt
+from os import path
 
-def compute_and_plot_segregation(distrib_3d_, alpha=-0.01, plot_direction=False):
+def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
 	distrib_3d = distrib_3d_.copy()
 	reference_distrib  = np.sum(distrib_3d, axis=2).flatten()
 	reference_distrib /= np.sum(reference_distrib)
@@ -19,6 +20,8 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01, plot_direction=False)
 	total_ot_dist                            = 0
 	ot_direction_per_candidate               = np.zeros((ot_distrib.shape[0], 2, ot_distrib.shape[1]))
 	ot_direction                             = np.zeros((ot_distrib.shape[0], 2))
+
+	ot_dissimilarity                         = np.zeros(ot_distrib.shape)
 
 	unitary_direction_matrix = np.zeros((ot_distrib.shape[0], ot_distrib.shape[0], 2))
 	distance_matrix          = np.zeros((ot_distrib.shape[0], ot_distrib.shape[0]))
@@ -45,11 +48,14 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01, plot_direction=False)
 		ot_dist_contribution_candidate[             i]  = np.sum(ot_dist_contribution_local_per_candidate[:, i] * reference_distrib)
 		ot_dist_contribution_local                     += ot_dist_contribution_local_per_candidate[:, i] * total_vote_candidate / total_voting_population
 		total_ot_dist                                  += ot_dist_contribution_candidate[i]              * total_vote_candidate / total_voting_population
+
+		ot_dissimilarity[:,                         i] += (candidate_ot_mat.sum(axis=0) - candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
+
 		ot_direction_per_candidate[:, 0,            i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
 		ot_direction_per_candidate[:, 1,            i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
 		ot_direction                                   += ot_direction_per_candidate[:, :, i]            * total_vote_candidate / total_voting_population
 
-	fig, axes = plt.subplots(1, 2 + plot_direction, figsize=(5*(2 + plot_direction), 5))
+	fig, axes = plt.subplots(2, 3, figsize=(5*3, 5*2))
 	ax0, ax1 = axes[0], axes[1]
 
 	disrib_image = np.zeros((distrib_3d.shape[0], distrib_3d.shape[1], 3))
@@ -62,13 +68,13 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01, plot_direction=False)
 		disrib_image[:, :, i] = np.round(disrib_image[:, :, i] * 255)
 	disrib_image = disrib_image.astype(int)
 
-	ax0.imshow(disrib_image, origin="lower")
+	axes[0, 0].imshow(disrib_image, origin="lower")
 
 	x = np.arange(distrib_3d.shape[0])
 	y = np.arange(distrib_3d.shape[1])
 	X, Y = np.meshgrid(x, y)
 
-	cax = ax1.contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
+	cax = axes[0, 1].contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
 	
 	cb = fig.colorbar(cax)
 	for i in range(min(3, distrib_3d.shape[2])):
@@ -78,14 +84,20 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01, plot_direction=False)
 	cb.ax.plot(0.5, total_ot_dist,
 		markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)
 
-	if plot_direction:
-		ax2 = axes[2]
+	axes[0, 2].quiver(
+		X, Y,
+		(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2]),
+		(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])
+	)
 
-		ax2.quiver(
-			X, Y,
-			(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2]),
-			(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])
-		)
+	cax = axes[1, 0].contourf(X, Y, ot_dissimilarity[:, 0].reshape(distrib_3d.shape[:2]))
+	cb = fig.colorbar(cax)
+
+	cax = axes[1, 1].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
+	cb = fig.colorbar(cax)
+
+	cax = axes[1, 2].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
+	cb = fig.colorbar(cax)
 
 	fig.tight_layout(pad=1.0)
 	return fig
@@ -95,11 +107,13 @@ distrib = np.zeros((40, 40, 2))
 distrib[:, :20,  0] = 1 
 distrib[:,   :,  1] = 1 - distrib[:,   :,   0]
 
-fig = compute_and_plot_segregation(distrib, 0.1)
-fig.savefig("two-side_alphaPOS.png")
+if not path.exists("two-side_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.1)
+	fig.savefig("two-side_alphaPOS.png")
 
-fig = compute_and_plot_segregation(distrib, -0.1)
-fig.savefig("two-side_alphaNEG.png")
+if not path.exists("two-side_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.1)
+	fig.savefig("two-side_alphaNEG.png")
 
 
 distrib = np.zeros((40, 40, 2))
@@ -107,11 +121,13 @@ distrib[:10,   :,  0] = 1
 distrib[20:30, :,  0] = 1
 distrib[:,     :,  1] = 1 - distrib[:,   :,   0]
 
-fig = compute_and_plot_segregation(distrib, 0.1)
-fig.savefig("stripes-4_alphaPOS.png")
+if not path.exists("stripes-4_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.1)
+	fig.savefig("stripes-4_alphaPOS.png")
 
-fig = compute_and_plot_segregation(distrib, -0.1)
-fig.savefig("stripes-4_alphaNEG.png")
+if not path.exists("stripes-4_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.1)
+	fig.savefig("stripes-4_alphaNEG.png")
 
 
 distrib = np.zeros((40, 40, 2))
@@ -119,11 +135,13 @@ distrib[:20, :20, 0] = 1
 distrib[20:, 20:, 0] = 1 
 distrib[:, :,     1] = 1 - distrib[:, :, 0]
 
-fig = compute_and_plot_segregation(distrib, 0.1, True)
-fig.savefig("checkerboard-2_alphaPOS.png")
+if not path.exists("checkerboard-2_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.1)
+	fig.savefig("checkerboard-2_alphaPOS.png")
 
-fig = compute_and_plot_segregation(distrib, -0.1, True)
-fig.savefig("checkerboard-2_alphaNEG.png")
+if not path.exists("checkerboard-2_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.1)
+	fig.savefig("checkerboard-2_alphaNEG.png")
 
 
 distrib = np.zeros((40, 40, 2))
@@ -133,11 +151,13 @@ distrib[20:,   :20,   0] = distrib[:20, :20, 0]
 distrib[:,     20:,   0] = distrib[:,   :20, 0] 
 distrib[:, :,     1] = 1 - distrib[:,   :,   0]
 
-fig = compute_and_plot_segregation(distrib, 0.1, True)
-fig.savefig("checkerboard-4_alphaPOS.png")
+if not path.exists("checkerboard-4_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.1)
+	fig.savefig("checkerboard-4_alphaPOS.png")
 
-fig = compute_and_plot_segregation(distrib, -0.1, True)
-fig.savefig("checkerboard-4_alphaNEG.png")
+if not path.exists("checkerboard-4_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.1)
+	fig.savefig("checkerboard-4_alphaNEG.png")
 
 
 distrib = np.zeros((40, 40, 2))
@@ -146,8 +166,54 @@ distrib[20:, 20:, 0] = 1
 distrib[:, :,     1] = 1 - distrib[:, :, 0]
 distrib[20:, :20, 0] = 0.75
 
-fig = compute_and_plot_segregation(distrib, 0.01, True)
-fig.savefig("checkerboard-2-less-segregated_alphaPOS.png")
+if not path.exists("checkerboard-2-less-segregated_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.01)
+	fig.savefig("checkerboard-2-less-segregated_alphaPOS.png")
 
-fig = compute_and_plot_segregation(distrib, -0.01, True)
-fig.savefig("checkerboard-2-less-segregated_alphaNEG.png")
+if not path.exists("checkerboard-2-less-segregated_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.01)
+	fig.savefig("checkerboard-2-less-segregated_alphaNEG.png")
+
+
+distrib = np.zeros((40, 40, 2))
+distrib[20:30,   :10, 0] = 1 
+distrib[30:,   10:20, 0] = 1 
+distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
+
+if not path.exists("corner-checkboard-2_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.01)
+	fig.savefig("corner-checkboard-2_alphaPOS.png")
+
+if not path.exists("corner-checkboard-2_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.01)
+	fig.savefig("corner-checkboard-2_alphaNEG.png")
+
+distrib = np.zeros((40, 40, 2))
+distrib[20:25,   :5,  0] = 1 
+distrib[25:30,  5:10, 0] = 1 
+distrib[30:40,   :10, 0] = distrib[20:30, :10, 0] 
+distrib[20:,   10:20, 0] = distrib[20:,   :10, 0] 
+distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
+
+if not path.exists("corner-checkboard-4_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.01)
+	fig.savefig("corner-checkboard-4_alphaPOS.png")
+
+if not path.exists("corner-checkboard-4_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.01)
+	fig.savefig("corner-checkboard-4_alphaNEG.png")
+
+distrib = np.zeros((40, 40, 2))
+for i in range(0, 20, 4):
+	distrib[20:22, i:i+2, 0] = 1
+for i in range(22, 40, 2):
+	distrib[i:i+2, 0:20,  0] = 1 - distrib[i-2:i, :20 ,0]
+distrib[:, :, 1] = 1 - distrib[:, :, 0]
+
+if True or not path.exists("corner-checkboard-10_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.01)
+	fig.savefig("corner-checkboard-10_alphaPOS.png")
+
+if True or not path.exists("corner-checkboard-10_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.01)
+	fig.savefig("corner-checkboard-10_alphaNEG.png")
