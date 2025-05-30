@@ -32,7 +32,7 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
 			i1, j1 = index1
 			idx1 = i1*distrib_3d.shape[1] + j1
 
-			distance_matrix[idx0, idx1] = np.sqrt((i0 - i1)**2 + (j0 - j1)**2)
+			distance_matrix[idx0, idx1] = np.sqrt((i0 - i1)**2 + (j0 - j1)**2) / np.sqrt(np.prod(ot_distrib.shape[:2]))
 			if distance_matrix[idx0, idx1] != 0:
 				unitary_direction_matrix[idx0, idx1, 0] = (i0 - i1)/distance_matrix[idx0, idx1]
 				unitary_direction_matrix[idx0, idx1, 1] = (j0 - j1)/distance_matrix[idx0, idx1]
@@ -115,7 +115,6 @@ if not path.exists("two-side_alphaNEG.png"):
 	fig = compute_and_plot_segregation(distrib, -0.1)
 	fig.savefig("two-side_alphaNEG.png")
 
-
 distrib = np.zeros((40, 40, 2))
 distrib[:10,   :,  0] = 1
 distrib[20:30, :,  0] = 1
@@ -129,6 +128,19 @@ if not path.exists("stripes-4_alphaNEG.png"):
 	fig = compute_and_plot_segregation(distrib, -0.1)
 	fig.savefig("stripes-4_alphaNEG.png")
 
+for size in [2, 4, 8, 16, 32, 64]:
+	distrib = np.zeros((size, size, 2))
+	distrib[:size//2, :size//2,  0] = 1 
+	distrib[ size//2:, size//2:, 0] = 1 
+	distrib[:,     :,  1] = 1 - distrib[:,   :,   0]
+
+	if not path.exists(f"checkerboard-2-{ size }_alphaPOS.png"):
+		fig = compute_and_plot_segregation(distrib, 0.1)
+		fig.savefig(f"checkerboard-2-{ size }_alphaPOS.png")
+
+	if not path.exists(f"checkerboard-2-{ size }_alphaNEG.png"):
+		fig = compute_and_plot_segregation(distrib, -0.1)
+		fig.savefig(f"checkerboard-2-{ size }_alphaNEG.png")
 
 distrib = np.zeros((40, 40, 2))
 distrib[:20, :20, 0] = 1 
@@ -159,6 +171,23 @@ if not path.exists("checkerboard-4_alphaNEG.png"):
 	fig = compute_and_plot_segregation(distrib, -0.1)
 	fig.savefig("checkerboard-4_alphaNEG.png")
 
+distrib = np.zeros((40, 40, 2))
+distrib[ 0:5,    0:5,  0] = 1 
+distrib[ 5:10,   5:10, 0] = 1 
+distrib[10:20,   0:10, 0] = distrib[ 0:10, 0:10, 0]
+distrib[ 0:20,  10:20, 0] = distrib[ 0:20, 0:10, 0]
+distrib[20:,     0:20, 0] = distrib[:20, :20, 0] 
+distrib[:,      20:,   0] = distrib[:,   :20, 0] 
+distrib[:,        :,   1] = 1 - distrib[:,   :,   0]
+
+if not path.exists("checkerboard-8_alphaPOS.png"):
+	fig = compute_and_plot_segregation(distrib, 0.01)
+	fig.savefig("checkerboard-8_alphaPOS.png")
+
+if not path.exists("checkerboard-8_alphaNEG.png"):
+	fig = compute_and_plot_segregation(distrib, -0.01)
+	fig.savefig("checkerboard-8_alphaNEG.png")
+
 
 distrib = np.zeros((40, 40, 2))
 distrib[:20, :20, 0] = 1
@@ -180,13 +209,13 @@ distrib[20:30,   :10, 0] = 1
 distrib[30:,   10:20, 0] = 1 
 distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("corner-checkboard-2_alphaPOS.png"):
+if not path.exists("corner-checkerboard-2_alphaPOS.png"):
 	fig = compute_and_plot_segregation(distrib, 0.01)
-	fig.savefig("corner-checkboard-2_alphaPOS.png")
+	fig.savefig("corner-checkerboard-2_alphaPOS.png")
 
-if not path.exists("corner-checkboard-2_alphaNEG.png"):
+if not path.exists("corner-checkerboard-2_alphaNEG.png"):
 	fig = compute_and_plot_segregation(distrib, -0.01)
-	fig.savefig("corner-checkboard-2_alphaNEG.png")
+	fig.savefig("corner-checkerboard-2_alphaNEG.png")
 
 distrib = np.zeros((40, 40, 2))
 distrib[20:25,   :5,  0] = 1 
@@ -195,13 +224,13 @@ distrib[30:40,   :10, 0] = distrib[20:30, :10, 0]
 distrib[20:,   10:20, 0] = distrib[20:,   :10, 0] 
 distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("corner-checkboard-4_alphaPOS.png"):
+if not path.exists("corner-checkerboard-4_alphaPOS.png"):
 	fig = compute_and_plot_segregation(distrib, 0.01)
-	fig.savefig("corner-checkboard-4_alphaPOS.png")
+	fig.savefig("corner-checkerboard-4_alphaPOS.png")
 
-if not path.exists("corner-checkboard-4_alphaNEG.png"):
+if not path.exists("corner-checkerboard-4_alphaNEG.png"):
 	fig = compute_and_plot_segregation(distrib, -0.01)
-	fig.savefig("corner-checkboard-4_alphaNEG.png")
+	fig.savefig("corner-checkerboard-4_alphaNEG.png")
 
 distrib = np.zeros((40, 40, 2))
 for i in range(0, 20, 4):
@@ -210,10 +239,10 @@ for i in range(22, 40, 2):
 	distrib[i:i+2, 0:20,  0] = 1 - distrib[i-2:i, :20 ,0]
 distrib[:, :, 1] = 1 - distrib[:, :, 0]
 
-if True or not path.exists("corner-checkboard-10_alphaPOS.png"):
+if not path.exists("corner-checkerboard-10_alphaPOS.png"):
 	fig = compute_and_plot_segregation(distrib, 0.01)
-	fig.savefig("corner-checkboard-10_alphaPOS.png")
+	fig.savefig("corner-checkerboard-10_alphaPOS.png")
 
-if True or not path.exists("corner-checkboard-10_alphaNEG.png"):
+if not path.exists("corner-checkerboard-10_alphaNEG.png"):
 	fig = compute_and_plot_segregation(distrib, -0.01)
-	fig.savefig("corner-checkboard-10_alphaNEG.png")
+	fig.savefig("corner-checkerboard-10_alphaNEG.png")
