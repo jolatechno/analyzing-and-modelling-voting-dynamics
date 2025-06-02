@@ -28,6 +28,7 @@ index_comparison = [
 	#False,
 	True
 ]
+comparison_percetiles = [10, 90]
 
 candidate_color = ["tab:brown", "tab:brown"]
 
@@ -46,7 +47,10 @@ fig_file_name = [
 	] for i,geo in enumerate(commune)
 ]
 for i,comparison in enumerate(index_comparison):
-	fig_file_name[i].append([f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_KL.png", f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_KL_map.png"])
+	fig_file_name[i].append([
+		f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_KL.png",          f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_KL_map.png",
+		f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_multiscalar.png", f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_multiscalar_map.png",
+	])
 
 epsilon = -0.02
 
@@ -75,7 +79,7 @@ def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_r
 
 	return ax.scatter(lon, lat, c=dat, s=0.7, alpha=1)
 
-def plot_categories(position_database, categories, colors, id_field, id_field_name="id_brut_bv_reu"):
+def plot_categories(position_database, categories, colors, id_field, id_field_name="id_brut_bv_reu", labels=None):
 	cat, lon, lat = [], [], []
 	for id_,value in zip(id_field,categories):
 		mask = position_database[id_field_name] == id_
@@ -84,9 +88,18 @@ def plot_categories(position_database, categories, colors, id_field, id_field_na
 		cat.extend([value] * np.sum(mask))
 	cat, lon, lat = np.array(cat), np.array(lon), np.array(lat)
 
-	for category,color in zip(np.sort(np.unique(categories)),colors):
+	label_is_none = labels is None
+	if label_is_none:
+		label = [None] * len(colors)
+
+	for category,color,label in zip(np.sort(np.unique(categories)),colors,labels):
 		filter_ = cat == category
-		ax.scatter(lon[filter_], lat[filter_], c=color, s=0.7, alpha=1)
+		ax.scatter(lon[filter_], lat[filter_], c=color, s=0.7, alpha=1, label=label)
+
+	if not label_is_none:
+		fig = ax.get_figure()
+		fig.tight_layout(pad=1.0)
+		fig.legend()
 
 """ ##############################################
 ##################################################
@@ -323,16 +336,16 @@ for filter_idx,geographical_filter in enumerate(commune):
 			candidate_distrib  = np.array(filtered_election_database[candidate + " Voix"]) / (reference_distrib * total_voting_population)
 			Kl_divergence     += total_vote_proportion_candidate[i] * np.log( total_vote_proportion_candidate[i] / np.maximum(candidate_distrib, 1e-5))
 
-		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 		Kl_divergence_over_ot_segregation = Kl_divergence / ot_dist_contribution
-		Kl_upper_lim, Kl_lower_lim        = np.percentile(Kl_divergence_over_ot_segregation, 90), np.percentile(Kl_divergence_over_ot_segregation, 10)
+		Kl_upper_lim, Kl_lower_lim        = np.percentile(Kl_divergence_over_ot_segregation, comparison_percetiles[1]), np.percentile(Kl_divergence_over_ot_segregation, comparison_percetiles[0])
 		Kl_is_upper, Kl_is_lower          = Kl_divergence_over_ot_segregation > Kl_upper_lim, Kl_divergence_over_ot_segregation < Kl_lower_lim
 		Kl_is_middle                      = np.logical_and(np.logical_not(Kl_is_upper), np.logical_not(Kl_is_lower))
 
-		ax.plot(ot_dist_contribution[Kl_is_middle], Kl_divergence[Kl_is_middle], "+k")
-		ax.plot(ot_dist_contribution[Kl_is_upper],  Kl_divergence[Kl_is_upper],  "+r")
-		ax.plot(ot_dist_contribution[Kl_is_lower],  Kl_divergence[Kl_is_lower],  "+b")
+		ax.plot(ot_dist_contribution[Kl_is_middle], Kl_divergence[Kl_is_middle], "+k", label=None)
+		ax.plot(ot_dist_contribution[Kl_is_upper],  Kl_divergence[Kl_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[Kl_is_lower],  Kl_divergence[Kl_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
 		ax.set_ylim(np.percentile(Kl_divergence,        [1, 99]) * np.array([0.9, 1.1]))
@@ -345,6 +358,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_ylabel("KL-divergence")
 
 		fig.tight_layout(pad=1.0)
+		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
 		fig.savefig(fig_file_name[filter_idx][5][0])
 		plt.close(fig)
 
@@ -352,15 +366,29 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ploting the map of the comparison with the KL divergence index
 		########################################################## """
 
-		fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
 
-		pl = plot_categories(filtered_bvote_position_database, Kl_is_upper + Kl_is_lower * 2, ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"])
+		pl = plot_categories(filtered_bvote_position_database, Kl_is_upper + Kl_is_lower * 2, ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 		ax.set_aspect(map_ratio)
-		ax.set_title("map of the comparison of our segregation index to the KL-divergence")
+		ax.set_title("map of the comparison of our segregation\nindex to the KL-divergence")
 
-		fig.tight_layout(pad=1.0)
 		fig.savefig(fig_file_name[filter_idx][5][1])
 		plt.close(fig)
+
+		""" #################################
+		#####################################
+		comparison with the multiscalar index
+		#####################################
+		################################# """
+
+		multiscalar = Kl_divergence.copy() # TODO
+
+
+
+		""" ########################################################
+		ploting the map of the comparison with the multiscalar index
+		######################################################## """
 		
 
