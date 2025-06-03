@@ -200,7 +200,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ot_direction                                   += ot_direction_per_candidate[:, :, i] * total_vote_candidates[i] / total_voting_population
 
 	total_ot_dist                    = np.sum(ot_dist_contribution * reference_distrib)
-	total_vote_proportion_candidate = total_vote_candidates / total_voting_population
+	total_vote_proportion_candidate  = total_vote_candidates / total_voting_population
+	total_vote_proportion_candidate /= np.sum(total_vote_proportion_candidate)
 
 	map_ratio = get_map_ratio(lon, lat)
 
@@ -334,14 +335,18 @@ for filter_idx,geographical_filter in enumerate(commune):
 		Kl_divergence = np.zeros(len(filtered_election_database["Votants"]))
 		for i,candidate in enumerate(candidate_list):
 			candidate_distrib  = np.array(filtered_election_database[candidate + " Voix"]) / (reference_distrib * total_voting_population)
-			Kl_divergence     += total_vote_proportion_candidate[i] * np.log( total_vote_proportion_candidate[i] / np.maximum(candidate_distrib, 1e-5))
-
-		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+			Kl_divergence     += total_vote_proportion_candidate[i] * np.log(total_vote_proportion_candidate[i] / np.maximum(candidate_distrib, 1e-5))
 
 		Kl_divergence_over_ot_segregation = Kl_divergence / ot_dist_contribution
 		Kl_upper_lim, Kl_lower_lim        = np.percentile(Kl_divergence_over_ot_segregation, comparison_percetiles[1]), np.percentile(Kl_divergence_over_ot_segregation, comparison_percetiles[0])
 		Kl_is_upper, Kl_is_lower          = Kl_divergence_over_ot_segregation > Kl_upper_lim, Kl_divergence_over_ot_segregation < Kl_lower_lim
 		Kl_is_middle                      = np.logical_and(np.logical_not(Kl_is_upper), np.logical_not(Kl_is_lower))
+
+		""" ########################################
+		plot comparison with the KL divergence index
+		######################################## """
+
+		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 		ax.plot(ot_dist_contribution[Kl_is_middle], Kl_divergence[Kl_is_middle], "+k", label=None)
 		ax.plot(ot_dist_contribution[Kl_is_upper],  Kl_divergence[Kl_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
@@ -389,60 +394,44 @@ for filter_idx,geographical_filter in enumerate(commune):
 		focal_distances   = np.zeros((                     len(filtered_election_database["Votants"]), len(filtered_election_database["Votants"])))
 		for i,candidate in enumerate(candidate_list):
 			vote_trajectories[i, :, :] = np.cumsum(np.array(filtered_election_database[candidate + " Voix"])[idx_matrix], axis=1)
-		population_trajectory = vote_trajectories.sum(axis=0)
+		population_trajectory = np.maximum(vote_trajectories.sum(axis=0), 1e-7)
 		for i in range(len(candidate_list)):
 			vote_trajectories[i, :, :] /= population_trajectory
-			Kl_trajectories            += total_vote_proportion_candidate[i] * np.log(total_vote_proportion_candidate[i] / np.maximum(vote_trajectories[i, :, :], 1e-9))
-		Kl_trajectories = np.maximum(Kl_trajectories, 0)
+			vote_trajectories[i, :, :]  = np.maximum(vote_trajectories[i, :, :], 1e-7)
+		normalisation_factor = np.sum(vote_trajectories, axis=0)
+		for i in range(len(candidate_list)):
+			vote_trajectories[i, :, :] /= normalisation_factor
+			Kl_trajectories            += total_vote_proportion_candidate[i] * np.log(total_vote_proportion_candidate[i] / vote_trajectories[i, :, :])
 		for j in reversed(range(len(filtered_election_database["Votants"]))):
-			print(j)
 			focal_distances[:, j] = np.max(Kl_trajectories[:, j:j+2], axis=1)
 		integration_coef         = population_trajectory.copy()
 		integration_coef[:, 1:] -= population_trajectory[:, :-1]
 		distort_coef             = np.sum(np.multiply(focal_distances, integration_coef), axis=1)
-
-		print("idx_matrix : ", idx_matrix)
-		print()
-		print("distance_matrix[0, :][idx_matrix[0, :]] : ", distance_matrix[0, :][idx_matrix[0, :]])
-		print()
-		print("vote_trajectories : ", vote_trajectories)
-		print()
-		print("vote_trajectories.sum(axis=0) : ", vote_trajectories.sum(axis=0))
-		print()
-		print("total_vote_proportion_candidate : ", total_vote_proportion_candidate)
-		print()
-		print("vote_trajectories[:, :10, -1] : ", vote_trajectories[:, :10, -1])
-		print()
-		print("population_trajectory : ", population_trajectory)
-		print()
-		print("Kl_trajectories : ", Kl_trajectories)
-		print()
-		print("focal_distances : ", focal_distances)
-		print()
-		print("integration_coef : ", integration_coef)
-		print()
-		print("distort_coef : ", distort_coef)
-
-		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
 
 		distort_coef_over_ot_segregation = distort_coef / ot_dist_contribution
 		dist_upper_lim, dist_lower_lim   = np.percentile(distort_coef_over_ot_segregation, comparison_percetiles[1]), np.percentile(distort_coef_over_ot_segregation, comparison_percetiles[0])
 		dist_is_upper, dist_is_lower     = distort_coef_over_ot_segregation > dist_upper_lim, distort_coef_over_ot_segregation < dist_lower_lim
 		dist_is_middle                   = np.logical_and(np.logical_not(dist_is_upper), np.logical_not(dist_is_lower))
 
+		""" ######################################
+		plot comparison with the multiscalar index
+		###################################### """
+
+		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
 		ax.plot(ot_dist_contribution[dist_is_middle], distort_coef[dist_is_middle], "+k", label=None)
 		ax.plot(ot_dist_contribution[dist_is_upper],  distort_coef[dist_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
 		ax.plot(ot_dist_contribution[dist_is_lower],  distort_coef[dist_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
-		#ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
-		#ax.set_ylim(np.percentile(distort_coef,         [1, 99]) * np.array([0.9, 1.1]))
+		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
+		ax.set_ylim(np.percentile(distort_coef,         [1, 99]) * np.array([0.9, 1.1]))
 
-		#ax.set_xscale("log")
-		#ax.set_yscale("log")
+		ax.set_xscale("log")
+		ax.set_yscale("log")
 
 		ax.set_title("Comparison of our segregation index to\nthe multiscalar segregation index")
 		ax.set_xlabel("Our optimal-transport based index")
-		ax.set_ylabel("multiscalar segregation index")
+		ax.set_ylabel("Multiscalar segregation index (non-normalized)")
 
 		fig.tight_layout(pad=1.0)
 		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
