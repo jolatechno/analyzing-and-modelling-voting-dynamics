@@ -10,22 +10,22 @@ from scipy import interpolate
 
 election_id  = "france_pres_tour1_2022"
 commune = [
-	#["Lyon"],
-	#["Toulouse"],
-	#["Marseille"],
+	["Lyon"],
+	["Toulouse"],
+	["Marseille"],
 	["Paris"]
 ]
 clip_segregation = None # [200, 3200]
 interesting_candidates = [
-	#["LE PEN", "MACRON", "MÉLENCHON"],
-	#["LE PEN", "MACRON", "MÉLENCHON"],
-	#["LE PEN", "MACRON", "MÉLENCHON"],
+	["LE PEN", "MACRON", "MÉLENCHON"],
+	["LE PEN", "MACRON", "MÉLENCHON"],
+	["LE PEN", "MACRON", "MÉLENCHON"],
 	["LE PEN", "MACRON", "MÉLENCHON", "ZEMMOUR"]
 ]
 index_comparison = [
-	#False,
-	#False,
-	#False,
+	False,
+	False,
+	False,
 	True
 ]
 comparison_percetiles = [10, 90]
