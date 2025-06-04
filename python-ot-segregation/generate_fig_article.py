@@ -10,22 +10,22 @@ from scipy import interpolate
 
 election_id  = "france_pres_tour1_2022"
 commune = [
-	["Lyon"],
-	["Toulouse"],
-	["Marseille"],
+	#["Lyon"],
+	#["Toulouse"],
+	#["Marseille"],
 	["Paris"]
 ]
 clip_segregation = None # [200, 3200]
 interesting_candidates = [
-	["LE PEN", "MACRON", "MÉLENCHON"],
-	["LE PEN", "MACRON", "MÉLENCHON"],
-	["LE PEN", "MACRON", "MÉLENCHON"],
+	#["LE PEN", "MACRON", "MÉLENCHON"],
+	#["LE PEN", "MACRON", "MÉLENCHON"],
+	#["LE PEN", "MACRON", "MÉLENCHON"],
 	["LE PEN", "MACRON", "MÉLENCHON", "ZEMMOUR"]
 ]
 index_comparison = [
-	False,
-	False,
-	False,
+	#False,
+	#False,
+	#False,
 	True
 ]
 comparison_percetiles = [10, 90]
@@ -47,10 +47,15 @@ fig_file_name = [
 	] for i,geo in enumerate(commune)
 ]
 for i,comparison in enumerate(index_comparison):
-	fig_file_name[i].append([
-		f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_KL.png",          f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_KL_map.png",
-		f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_multiscalar.png", f"results/article/{ commune[i][0] }/fig_{ commune[i][0] }_comparison_multiscalar_map.png"
-	])
+	if index_comparison:
+		fig_file_name[i].append([
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_KL.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_KL_map.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_multiscalar.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_multiscalar_map.png",
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_dissimilarity_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_dissimilarity_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]]
+		])
 
 epsilon = -0.02
 
@@ -452,5 +457,60 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig.savefig(fig_file_name[filter_idx][5][3])
 		plt.close(fig)
+
+		""" ###########################################
+		###############################################
+		comparison between dissimilarity and difference
+		###############################################
+		########################################### """
+
+		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+			candidate_idx = candidate_list.index(interesting_candidate)
+
+			vote_distrib_candidate    = np.array(filtered_election_database[interesting_candidate + " Voix"])
+			vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"])
+			candidate_vote_difference = vote_proportion_candidate - total_vote_proportion_candidate[candidate_idx]
+
+			diff_over_dissimilarity          = candidate_vote_difference / ot_dist_dissimilarity[candidate_idx, :]
+			diff_upper_lim, diff_lower_lim   = np.percentile(diff_over_dissimilarity[diff_over_dissimilarity > 0], comparison_percetiles[1]), np.percentile(diff_over_dissimilarity[diff_over_dissimilarity > 0], comparison_percetiles[0])
+			diff_is_upper, diff_is_lower     = diff_over_dissimilarity > diff_upper_lim, np.logical_and(diff_over_dissimilarity < diff_lower_lim, diff_over_dissimilarity > 0)
+			diff_is_middle                   = np.logical_and(np.logical_not(diff_is_upper), np.logical_not(diff_is_lower))
+
+			""" ########################################
+			plot comparison dissimilarity and difference
+			######################################## """
+
+			fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_middle], candidate_vote_difference[diff_is_middle], "+k", label=None)
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_upper],  candidate_vote_difference[diff_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_lower],  candidate_vote_difference[diff_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+
+			ax.set_xlim(np.percentile(ot_dist_dissimilarity[candidate_idx, :], [1, 99]) * 1.1)
+			ax.set_ylim(np.percentile(candidate_vote_difference,               [1, 99]) * 1.1)
+
+			ax.set_title(f"Comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
+			ax.set_xlabel("Our optimal-transport based dissimilarity")
+			ax.set_ylabel("vote excess/deficit")
+
+			fig.tight_layout(pad=1.0)
+			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+			fig.savefig(fig_file_name[filter_idx][5][4][interesting_candidate_idx])
+			plt.close(fig)
+
+			""" ##########################################################
+			ploting the map of the comparison dissimilarity and difference
+			########################################################## """
+
+			fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+
+			pl = plot_categories(filtered_bvote_position_database, diff_is_upper + diff_is_lower * 2, ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
+
+			ax.set_aspect(map_ratio)
+			ax.set_title(f"map of the comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
+
+			fig.savefig(fig_file_name[filter_idx][5][5][interesting_candidate_idx])
+			plt.close(fig)
 		
 

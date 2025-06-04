@@ -5,6 +5,8 @@ import ot
 from matplotlib import pyplot as plt
 from os import path
 
+overwrite = True
+
 def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
 	distrib_3d = distrib_3d_.copy()
 	reference_distrib  = np.sum(distrib_3d, axis=2).flatten()
@@ -70,13 +72,17 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
 
 	axes[0, 0].imshow(disrib_image, origin="lower")
 
+	axes[0, 0].set_title("Repartion of the two candidate (red and green)")
+
 	x = np.arange(distrib_3d.shape[0])
 	y = np.arange(distrib_3d.shape[1])
 	X, Y = np.meshgrid(x, y)
 
 	cax = axes[0, 1].contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
-	
 	cb = fig.colorbar(cax)
+
+	axes[0, 1].set_title("Local segregation index")
+	
 	for i in range(min(3, distrib_3d.shape[2])):
 		cb.ax.plot((i + 1) / (min(3, distrib_3d.shape[2]) + 1), ot_dist_contribution_candidate[i],
 			markerfacecolor=['r', 'g', 'b'][i], marker='.', markersize=12,
@@ -90,70 +96,100 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
 		(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])
 	)
 
+	axes[0, 2].set_title("Directionality")
+
 	cax = axes[1, 0].contourf(X, Y, ot_dissimilarity[:, 0].reshape(distrib_3d.shape[:2]))
 	cb = fig.colorbar(cax)
+
+	axes[1, 0].set_title("Dissimilarity for candidate 0 (red)")
 
 	cax = axes[1, 1].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
 	cb = fig.colorbar(cax)
 
+	axes[1, 1].set_title("Local contribution to segregation for candidate 0 (red)")
+
 	cax = axes[1, 2].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
 	cb = fig.colorbar(cax)
 
+	axes[1, 2].set_title("Local contribution to segregation for candidate 1 (green)")
+
 	fig.tight_layout(pad=1.0)
-	return fig
+	return fig, total_ot_dist
 
 
 distrib = np.zeros((40, 40, 2))
 distrib[:, :20,  0] = 1 
 distrib[:,   :,  1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("two-side_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.1)
+if overwrite or not path.exists("two-side_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.1)
 	fig.savefig("two-side_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("two-side_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.1)
+if overwrite or not path.exists("two-side_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.1)
 	fig.savefig("two-side_alphaNEG.png")
+	plt.close(fig)
 
 distrib = np.zeros((40, 40, 2))
 distrib[:10,   :,  0] = 1
 distrib[20:30, :,  0] = 1
 distrib[:,     :,  1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("stripes-4_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.1)
+if overwrite or not path.exists("stripes-4_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.1)
 	fig.savefig("stripes-4_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("stripes-4_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.1)
+if overwrite or not path.exists("stripes-4_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.1)
 	fig.savefig("stripes-4_alphaNEG.png")
+	plt.close(fig)
 
-for size in [2, 4, 8, 16, 32, 64]:
+size_list = [2, 4, 8, 16, 32, 64]
+seg_list  = np.zeros(len(size_list))
+for i,size in enumerate(size_list):
 	distrib = np.zeros((size, size, 2))
 	distrib[:size//2, :size//2,  0] = 1 
 	distrib[ size//2:, size//2:, 0] = 1 
 	distrib[:,     :,  1] = 1 - distrib[:,   :,   0]
 
-	if not path.exists(f"checkerboard-2-{ size }_alphaPOS.png"):
-		fig = compute_and_plot_segregation(distrib, 0.1)
+	if overwrite or not path.exists(f"checkerboard-2-{ size }_alphaPOS.png"):
+		fig, seg_list[i] = compute_and_plot_segregation(distrib, 0.1)
 		fig.savefig(f"checkerboard-2-{ size }_alphaPOS.png")
+		plt.close(fig)
 
-	if not path.exists(f"checkerboard-2-{ size }_alphaNEG.png"):
-		fig = compute_and_plot_segregation(distrib, -0.1)
+	if overwrite or not path.exists(f"checkerboard-2-{ size }_alphaNEG.png"):
+		fig, seg_list[i] = compute_and_plot_segregation(distrib, -0.1)
 		fig.savefig(f"checkerboard-2-{ size }_alphaNEG.png")
+		plt.close(fig)
+
+if sum(seg_list != 0) == len(size_list) and (overwrite or not path.exists(f"checkerboard-2-segregation_evolution.png")):
+	fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+
+	ax.plot(size_list, seg_list, "+-")
+
+	ax.set_title("Evolution of segregation index vs the subdivion of the square")
+	ax.set_xlabel("Number of subdivision per side of the square")
+	ax.set_ylabel("Global segregation index")
+
+	fig.savefig(f"checkerboard-2-segregation_evolution.png")
+	plt.close(fig)
 
 distrib = np.zeros((40, 40, 2))
 distrib[:20, :20, 0] = 1 
 distrib[20:, 20:, 0] = 1 
 distrib[:, :,     1] = 1 - distrib[:, :, 0]
 
-if not path.exists("checkerboard-2_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.1)
+if overwrite or not path.exists("checkerboard-2_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.1)
 	fig.savefig("checkerboard-2_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("checkerboard-2_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.1)
+if overwrite or not path.exists("checkerboard-2_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.1)
 	fig.savefig("checkerboard-2_alphaNEG.png")
+	plt.close(fig)
 
 
 distrib = np.zeros((40, 40, 2))
@@ -163,13 +199,15 @@ distrib[20:,   :20,   0] = distrib[:20, :20, 0]
 distrib[:,     20:,   0] = distrib[:,   :20, 0] 
 distrib[:, :,     1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("checkerboard-4_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.1)
+if overwrite or not path.exists("checkerboard-4_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.1)
 	fig.savefig("checkerboard-4_alphaPOS.png")
 
-if not path.exists("checkerboard-4_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.1)
+if overwrite or not path.exists("checkerboard-4_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.1)
 	fig.savefig("checkerboard-4_alphaNEG.png")
+	plt.close(fig)
+
 
 distrib = np.zeros((40, 40, 2))
 distrib[ 0:5,    0:5,  0] = 1 
@@ -180,13 +218,15 @@ distrib[20:,     0:20, 0] = distrib[:20, :20, 0]
 distrib[:,      20:,   0] = distrib[:,   :20, 0] 
 distrib[:,        :,   1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("checkerboard-8_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.01)
+if overwrite or not path.exists("checkerboard-8_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01)
 	fig.savefig("checkerboard-8_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("checkerboard-8_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.01)
+if overwrite or not path.exists("checkerboard-8_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01)
 	fig.savefig("checkerboard-8_alphaNEG.png")
+	plt.close(fig)
 
 
 distrib = np.zeros((40, 40, 2))
@@ -195,13 +235,15 @@ distrib[20:, 20:, 0] = 1
 distrib[:, :,     1] = 1 - distrib[:, :, 0]
 distrib[20:, :20, 0] = 0.75
 
-if not path.exists("checkerboard-2-less-segregated_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.01)
+if overwrite or not path.exists("checkerboard-2-less-segregated_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01)
 	fig.savefig("checkerboard-2-less-segregated_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("checkerboard-2-less-segregated_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.01)
+if overwrite or not path.exists("checkerboard-2-less-segregated_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01)
 	fig.savefig("checkerboard-2-less-segregated_alphaNEG.png")
+	plt.close(fig)
 
 
 distrib = np.zeros((40, 40, 2))
@@ -209,13 +251,15 @@ distrib[20:30,   :10, 0] = 1
 distrib[30:,   10:20, 0] = 1 
 distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("corner-checkerboard-2_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.01)
+if overwrite or not path.exists("corner-checkerboard-2_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01)
 	fig.savefig("corner-checkerboard-2_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("corner-checkerboard-2_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.01)
+if overwrite or not path.exists("corner-checkerboard-2_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01)
 	fig.savefig("corner-checkerboard-2_alphaNEG.png")
+	plt.close(fig)
 
 distrib = np.zeros((40, 40, 2))
 distrib[20:25,   :5,  0] = 1 
@@ -224,13 +268,15 @@ distrib[30:40,   :10, 0] = distrib[20:30, :10, 0]
 distrib[20:,   10:20, 0] = distrib[20:,   :10, 0] 
 distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
 
-if not path.exists("corner-checkerboard-4_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.01)
+if overwrite or not path.exists("corner-checkerboard-4_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01)
 	fig.savefig("corner-checkerboard-4_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("corner-checkerboard-4_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.01)
+if overwrite or not path.exists("corner-checkerboard-4_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01)
 	fig.savefig("corner-checkerboard-4_alphaNEG.png")
+	plt.close(fig)
 
 distrib = np.zeros((40, 40, 2))
 for i in range(0, 20, 4):
@@ -239,10 +285,12 @@ for i in range(22, 40, 2):
 	distrib[i:i+2, 0:20,  0] = 1 - distrib[i-2:i, :20 ,0]
 distrib[:, :, 1] = 1 - distrib[:, :, 0]
 
-if not path.exists("corner-checkerboard-10_alphaPOS.png"):
-	fig = compute_and_plot_segregation(distrib, 0.01)
+if overwrite or not path.exists("corner-checkerboard-10_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01)
 	fig.savefig("corner-checkerboard-10_alphaPOS.png")
+	plt.close(fig)
 
-if not path.exists("corner-checkerboard-10_alphaNEG.png"):
-	fig = compute_and_plot_segregation(distrib, -0.01)
+if overwrite or not path.exists("corner-checkerboard-10_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01)
 	fig.savefig("corner-checkerboard-10_alphaNEG.png")
+	plt.close(fig)
