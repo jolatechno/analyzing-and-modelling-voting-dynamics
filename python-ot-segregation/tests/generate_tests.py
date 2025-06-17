@@ -5,9 +5,9 @@ import ot
 from matplotlib import pyplot as plt
 from os import path
 
-overwrite = True
+overwrite = False
 
-def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
+def compute_and_plot_segregation(distrib_3d_, alpha=-0.01, plot_density=False):
 	distrib_3d = distrib_3d_.copy()
 	reference_distrib  = np.sum(distrib_3d, axis=2).flatten()
 	reference_distrib /= np.sum(reference_distrib)
@@ -65,6 +65,8 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
 		disrib_image[:, :, :] = distrib_3d[:, :, :3]
 	else:
 		disrib_image[:, :, :distrib_3d.shape[2]] = distrib_3d[:, :, :]
+	distrib_image_luminosity = np.repeat(np.expand_dims(np.sum(disrib_image, axis=2), axis=2), 3, axis=2)
+	disrib_image            /= np.maximum(distrib_image_luminosity, np.min(distrib_image_luminosity[distrib_image_luminosity > 0]))
 	for i in range(min(3, distrib_3d.shape[2])):
 		disrib_image[:, :, i] /= np.max(disrib_image[:, :, i])
 		disrib_image[:, :, i] = np.round(disrib_image[:, :, i] * 255)
@@ -108,10 +110,20 @@ def compute_and_plot_segregation(distrib_3d_, alpha=-0.01):
 
 	axes[1, 1].set_title("Local contribution to segregation for candidate 0 (red)")
 
-	cax = axes[1, 2].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
-	cb = fig.colorbar(cax)
 
-	axes[1, 2].set_title("Local contribution to segregation for candidate 1 (green)")
+	if plot_density:
+		population_density = distrib_3d.sum(axis=2)
+		population_density /= np.sum(population_density)
+
+		cax = axes[1, 2].contourf(X, Y, population_density)
+		cb = fig.colorbar(cax)
+		
+		axes[1, 2].set_title("Density of population")
+	else:
+		cax = axes[1, 2].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
+		cb = fig.colorbar(cax)
+
+		axes[1, 2].set_title("Local contribution to segregation for candidate 1 (green)")
 
 	fig.tight_layout(pad=1.0)
 	return fig, total_ot_dist
@@ -293,4 +305,95 @@ if overwrite or not path.exists("corner-checkerboard-10_alphaPOS.png"):
 if overwrite or not path.exists("corner-checkerboard-10_alphaNEG.png"):
 	fig, _ = compute_and_plot_segregation(distrib, -0.01)
 	fig.savefig("corner-checkerboard-10_alphaNEG.png")
+	plt.close(fig)
+
+
+distrib = np.zeros((40, 40, 2))
+I, J = np.meshgrid(np.arange(40), np.arange(40))
+lower_triangle, upper_triangle = I <= J, I >= J
+distrib[:, :, 0][lower_triangle] = 1
+distrib[:, :, 1][upper_triangle] = 1
+for i in range(40):
+	for j in range(40):
+		distrib[i, j, :] *= np.exp(-((i - 19.5)**2 + (j - 19.5)**2) / (10**2) /2) / (np.sqrt(2 * np.pi) * 10)
+	distrib[i, i, :] /= 2
+
+if overwrite or not path.exists("gaussian-center_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01, True)
+	fig.savefig("gaussian-center_alphaPOS.png")
+	plt.close(fig)
+
+if overwrite or not path.exists("gaussian-center_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01, True)
+	fig.savefig("gaussian-center_alphaNEG.png")
+	plt.close(fig)
+
+
+distrib = np.zeros((40, 40, 2))
+for i in range(40):
+	for j in range(i, 40):
+		distrib[i, j, 0] = np.exp(-((i - (19.5 - 20/3))**2 + (j - (19.5 + 20/3))**2) / (5**2) /2) / (np.sqrt(2 * np.pi) * 5)
+		distrib[j, i, 1] = distrib[i, j, 0]
+	distrib[i, i, :] /= 2
+
+if overwrite or not path.exists("gaussian-corner_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01, True)
+	fig.savefig("gaussian-corner_alphaPOS.png")
+	plt.close(fig)
+
+if overwrite or not path.exists("gaussian-corner_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01, True)
+	fig.savefig("gaussian-corner_alphaNEG.png")
+	plt.close(fig)
+
+
+distrib = np.zeros((40, 40, 2))
+radius_1, radius_0 = 20, np.sqrt(20 ** 2 / 2)
+for i in range(40):
+	for j in range(i+1):
+		radius = np.sqrt((i - 19.5)**2 + (j - 19.5)**2)
+		if radius <= radius_1:
+			if radius <= radius_0:
+				distrib[i, j, 0] = 1
+				distrib[j, i, 0] = 1
+			else:
+				distrib[i, j, 1] = 1
+				distrib[j, i, 1] = 1
+
+if overwrite or not path.exists("circles_2_candidate_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01)
+	fig.savefig("circles_2_candidate_alphaPOS.png")
+	plt.close(fig)
+
+if overwrite or not path.exists("circles_2_candidate_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01)
+	fig.savefig("circles_2_candidate_alphaNEG.png")
+	plt.close(fig)
+
+
+distrib = np.zeros((40, 40, 3))
+radius_2, radius_1, radius_0 = 20, np.sqrt(20 ** 2 / 3 * 2), np.sqrt(20 ** 2 / 3)
+for i in range(40):
+	for j in range(i+1):
+		radius = np.sqrt((i - 19.5)**2 + (j - 19.5)**2)
+		if radius <= radius_2:
+			if radius <= radius_1:
+				if radius <= radius_0:
+					distrib[i, j, 0] = 1
+					distrib[j, i, 0] = 1
+				else:
+					distrib[i, j, 1] = 1
+					distrib[j, i, 1] = 1
+			else:
+				distrib[i, j, 2] = 1
+				distrib[j, i, 2] = 1
+
+if overwrite or not path.exists("circles_3_candidate_alphaPOS.png"):
+	fig, _ = compute_and_plot_segregation(distrib, 0.01)
+	fig.savefig("circles_3_candidate_alphaPOS.png")
+	plt.close(fig)
+
+if overwrite or not path.exists("circles_3_candidate_alphaNEG.png"):
+	fig, _ = compute_and_plot_segregation(distrib, -0.01)
+	fig.savefig("circles_3_candidate_alphaNEG.png")
 	plt.close(fig)
