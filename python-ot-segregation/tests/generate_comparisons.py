@@ -5,21 +5,27 @@ import ot
 from matplotlib import pyplot as plt
 from os import path
 
-distrib_3d = np.zeros((40, 40, 2))
-I, J = np.meshgrid(np.arange(40), np.arange(40))
-lower_triangle, upper_triangle = I <= J, I >= J
-distrib_3d[:, :, 0][lower_triangle] = 1
-distrib_3d[:, :, 1][upper_triangle] = 1
+distrib_3d = np.zeros((40, 40, 3))
 for i in range(40):
 	for j in range(40):
-		distrib_3d[i, j, :] *= np.exp(-((i - 19.5)**2 + (j - 19.5)**2) / (10**2) /2) / (np.sqrt(2 * np.pi) * 10)
-	distrib_3d[i, i, :] /= 2
-
-ot_distrib = distrib_3d.reshape(-1, distrib_3d.shape[2])
-"""for i in range(distrib_3d.shape[2]):
-	ot_distrib[:, i] /= np.sum(distrib_3d[:, :, i])"""
+		if np.sqrt((i-19.5)**2 + (j-19.5)**2) <= 20:
+			if np.sqrt((i-10)**2 + (j-10)**2) <= 10:
+				distrib_3d[i, j, 0] = 0.5
+				distrib_3d[i, j, 1] = 0.3
+				distrib_3d[i, j, 2] = 0.2
+			elif np.sqrt((i-35)**2 + (j-35)**2) <= 17:
+				distrib_3d[i, j, 0] = 0.5
+				distrib_3d[i, j, 1] = 0.05
+				distrib_3d[i, j, 2] = 0.45
+			else:
+				distrib_3d[i, j, 0] = 0.6
+				distrib_3d[i, j, 1] = 0.1
+				distrib_3d[i, j, 2] = 0.3
+		distrib_3d[i, j, :] *= np.exp(-((i - 19.5)**2 + (j - 19.5)**2) / (15**2) / 2) / (np.sqrt(2 * np.pi) * 15)
 
 total_voting_population = np.sum(distrib_3d)
+
+ot_distrib = distrib_3d.reshape(-1, distrib_3d.shape[2])
 
 
 distance_matrix          = np.zeros((ot_distrib.shape[0], ot_distrib.shape[0]))
@@ -77,8 +83,8 @@ for i_alpha, alpha in enumerate([-0.01, 0.01]):
 Kl_divergence = np.zeros(ot_distrib.shape[:1])
 for i in range(distrib_3d.shape[2]):
 	total_vote_proportion_candidate = np.sum(distrib_3d[:, :, i]) / total_voting_population
-	candidate_distrib               = np.array(ot_distrib[:, i]) / (reference_distrib * total_voting_population)
-	Kl_divergence                  += total_vote_proportion_candidate * np.log(total_vote_proportion_candidate / np.maximum(candidate_distrib, 1e-5))
+	candidate_distrib_3d               = np.array(ot_distrib[:, i]) / (reference_distrib * total_voting_population)
+	Kl_divergence                  += total_vote_proportion_candidate * np.log(total_vote_proportion_candidate / np.maximum(candidate_distrib_3d, 1e-5))
 
 cax = axes[1, 0].contourf(X, Y, Kl_divergence.reshape(distrib_3d.shape[:2]))
 cb = fig.colorbar(cax)
@@ -105,6 +111,8 @@ for j in reversed(range(ot_distrib.shape[0])):
 integration_coef         = population_trajectory.copy()
 integration_coef[:, 1:] -= population_trajectory[:, :-1]
 distort_coef             = np.sum(np.multiply(focal_distances, integration_coef), axis=1)
+
+distort_coef[reference_distrib == 0] = np.nan
 
 cax = axes[1, 1].contourf(X, Y, distort_coef.reshape(distrib_3d.shape[:2]))
 cb = fig.colorbar(cax)
