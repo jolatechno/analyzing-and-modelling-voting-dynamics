@@ -36,7 +36,7 @@ for index0 in np.ndindex(distrib_3d.shape[:2]):
 		i1, j1 = index1
 		idx1 = i1*distrib_3d.shape[1] + j1
 
-		distance_matrix[idx0, idx1] = np.sqrt((i0 - i1)**2 + (j0 - j1)**2) / np.sqrt(np.prod(ot_distrib.shape[:2]))
+		distance_matrix[idx0, idx1] = np.sqrt((i0 - i1)**2 + (j0 - j1)**2) / np.sqrt(np.prod(distrib_3d.shape[:2]))
 
 
 reference_distrib  = np.sum(distrib_3d, axis=2).flatten()
@@ -50,7 +50,7 @@ y = np.arange(distrib_3d.shape[1])
 X, Y = np.meshgrid(x, y)
 
 
-for i_alpha, alpha in enumerate([-0.01, 0.01]):
+for i_alpha, alpha in enumerate([-0.1, 0.1]):
 	ot_dist_contribution_local_per_candidate = np.zeros(ot_distrib.shape)
 	ot_dist_contribution_local               = np.zeros(ot_distrib.shape[0])
 	ot_dist_contribution_candidate           = np.zeros(ot_distrib.shape[1])

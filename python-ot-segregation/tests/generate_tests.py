@@ -34,7 +34,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 			i1, j1 = index1
 			idx1 = i1*distrib_3d.shape[1] + j1
 
-			distance_matrix[idx0, idx1] = np.sqrt((i0 - i1)**2 + (j0 - j1)**2) / np.sqrt(np.prod(ot_distrib.shape[:2]))
+			distance_matrix[idx0, idx1] = np.sqrt((i0 - i1)**2 + (j0 - j1)**2) / np.sqrt(np.prod(distrib_3d.shape[:2]))
 			if distance_matrix[idx0, idx1] != 0:
 				unitary_direction_matrix[idx0, idx1, 0] = (i0 - i1)/distance_matrix[idx0, idx1]
 				unitary_direction_matrix[idx0, idx1, 1] = (j0 - j1)/distance_matrix[idx0, idx1]
