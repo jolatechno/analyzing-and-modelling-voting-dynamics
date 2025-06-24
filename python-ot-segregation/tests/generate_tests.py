@@ -4,10 +4,13 @@ import numpy as np
 import ot
 from matplotlib import pyplot as plt
 from os import path
+from matplotlib.transforms import Bbox
 
 overwrite = False
 
-def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False, plot_full=False):
+def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False, plot_full=False, separate_figs=False):
+	figs = []
+
 	distrib_3d = distrib_3d_.copy()
 	reference_distrib  = np.sum(distrib_3d, axis=2).flatten()
 	reference_distrib /= np.sum(reference_distrib)
@@ -75,60 +78,96 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 
 	if plot_full:
 		fig, axes = plt.subplots(3, 3, figsize=(5*3, 5*3))
+		figs = np.full(axes.shape, None)
 
 		axes[0, 0].imshow(disrib_image, origin="lower")
-
 		axes[0, 0].set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
+		if separate_figs:
+			figs[0, 0], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.imshow(disrib_image, origin="lower")
+			ax.set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
 
 		population_density = distrib_3d.sum(axis=2)
 		population_density /= np.sum(population_density)
 
 		cax = axes[0, 1].contourf(X, Y, population_density)
 		cb = fig.colorbar(cax)
-			
 		axes[0, 1].set_title("Population density")
+		if separate_figs:
+			figs[0, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
+			cax = ax.contourf(X, Y, population_density)
+			cb = fig.colorbar(cax)
+			ax.set_title("Population density")
 
 		axes[0, 2].quiver(
 			X[::2, ::2], Y[::2, ::2],
 			(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])[::2, ::2],
 			(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])[::2, ::2]
 		)
-
 		axes[0, 2].set_title("Directionality")
+		if separate_figs:
+			figs[0, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.quiver(
+				X[::2, ::2], Y[::2, ::2],
+				(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])[::2, ::2],
+				(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])[::2, ::2]
+			)
+			ax.set_title("Directionality")
 
 		for i in range(min(3, distrib_3d.shape[2])):
 			cax = axes[1, i].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, i].reshape(distrib_3d.shape[:2]))
 			cb = fig.colorbar(cax)
-
 			axes[1, i].set_title(f"Local heterogeneity index for candidate { i } ({ ["red", "green", "blue"][i] })")
+			if separate_figs:
+				figs[1, i], ax = plt.subplots(1, 1, figsize=(5, 5))
+				cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, i].reshape(distrib_3d.shape[:2]))
+				cb = fig.colorbar(cax)
+				ax.set_title(f"Local heterogeneity index for candidate { i } ({ ["red", "green", "blue"][i] })")
 
 			cax = axes[2, i].contourf(X, Y, ot_dissimilarity[:, i].reshape(distrib_3d.shape[:2]))
 			cb = fig.colorbar(cax)
-
 			axes[2, i].set_title(f"Signed heterogeneity for candidate { i } ({ ["red", "green", "blue"][i] }")
+			if separate_figs:
+				figs[2, i], ax = plt.subplots(1, 1, figsize=(5, 5))
+				cax = ax.contourf(X, Y, ot_dissimilarity[:, i].reshape(distrib_3d.shape[:2]))
+				cb = fig.colorbar(cax)
+				ax.set_title(f"Signed heterogeneity for candidate { i } ({ ["red", "green", "blue"][i] }")
 
 		fig.tight_layout(pad=1.0)
 
-		return fig, total_ot_dist
+		return fig, figs, total_ot_dist
 
 	else:
 		fig, axes = plt.subplots(2, 3, figsize=(5*3, 5*2))
+		figs = np.full(axes.shape, None)
 
 		axes[0, 0].imshow(disrib_image, origin="lower")
-
 		axes[0, 0].set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
+		if separate_figs:
+			figs[0, 0], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.imshow(disrib_image, origin="lower")
+			ax.set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
 
 		cax = axes[0, 1].contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
-		
 		for i in range(min(3, distrib_3d.shape[2])):
 			cb.ax.plot((i + 1) / (min(3, distrib_3d.shape[2]) + 1), ot_dist_contribution_candidate[i],
 				markerfacecolor=['r', 'g', 'b'][i], marker='.', markersize=12,
 				markeredgecolor='w', markeredgewidth=0.2)
 		cb.ax.plot(0.5, total_ot_dist,
 			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)
-
 		axes[0, 1].set_title("Local heterogeneity index")
+		if separate_figs:
+			figs[0, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
+			cax = ax.contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
+			cb = fig.colorbar(cax)
+			for i in range(min(3, distrib_3d.shape[2])):
+				cb.ax.plot((i + 1) / (min(3, distrib_3d.shape[2]) + 1), ot_dist_contribution_candidate[i],
+					markerfacecolor=['r', 'g', 'b'][i], marker='.', markersize=12,
+					markeredgecolor='w', markeredgewidth=0.2)
+			cb.ax.plot(0.5, total_ot_dist,
+				markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)
+			ax.set_title("Local heterogeneity index")
 
 		if plot_density:
 			population_density = distrib_3d.sum(axis=2)
@@ -136,35 +175,58 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 
 			cax = axes[0, 2].contourf(X, Y, population_density)
 			cb = fig.colorbar(cax)
-			
 			axes[0, 2].set_title("Population density")
+			if separate_figs:
+				figs[0, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+				cax = ax.contourf(X, Y, population_density)
+				cb = fig.colorbar(cax)
+				ax.set_title("Population density")
 		else:
 			axes[0, 2].quiver(
 				X, Y,
 				(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2]),
 				(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])
 			)
-
 			axes[0, 2].set_title("Directionality")
+			if separate_figs:
+				figs[0, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+				ax.quiver(
+					X, Y,
+					(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2]),
+					(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])
+				)
+				ax.set_title("Directionality")
 
 		cax = axes[1, 0].contourf(X, Y, ot_dissimilarity[:, 0].reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
-
 		axes[1, 0].set_title("Signed heterogeneity for candidate 0 (red)")
+		if separate_figs:
+			figs[1, 0], ax = plt.subplots(1, 1, figsize=(5, 5))
+			cax = ax.contourf(X, Y, ot_dissimilarity[:, 0].reshape(distrib_3d.shape[:2]))
+			cb = fig.colorbar(cax)
+			ax.set_title("Signed heterogeneity for candidate 0 (red)")
 
 		cax = axes[1, 1].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
-
 		axes[1, 1].set_title("Local heterogeneity index for candidate 0 (red)")
+		if separate_figs:
+			figs[1, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
+			cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
+			cb = fig.colorbar(cax)
+			ax.set_title("Local heterogeneity index for candidate 0 (red)")
 
 		cax = axes[1, 2].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
-
 		axes[1, 2].set_title("Local heterogeneity index for candidate 1 (green)")
+		if separate_figs:
+			figs[1, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+			cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
+			cb = fig.colorbar(cax)
+			ax.set_title("Local heterogeneity index for candidate 1 (green)")
 
 		fig.tight_layout(pad=1.0)
 
-		return fig, total_ot_dist
+		return fig, figs, total_ot_dist
 
 
 
@@ -173,12 +235,12 @@ distrib[:, :20,  0] = 1
 distrib[:,   :,  1] = 1 - distrib[:,   :,   0]
 
 if overwrite or not path.exists("two-side_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.1)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.1)
 	fig.savefig("two-side_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("two-side_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.1)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.1)
 	fig.savefig("two-side_alphaNEG.png")
 	plt.close(fig)
 
@@ -188,12 +250,12 @@ distrib[20:30, :,  0] = 1
 distrib[:,     :,  1] = 1 - distrib[:,   :,   0]
 
 if overwrite or not path.exists("stripes-4_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.1)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.1)
 	fig.savefig("stripes-4_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("stripes-4_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.1)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.1)
 	fig.savefig("stripes-4_alphaNEG.png")
 	plt.close(fig)
 
@@ -227,56 +289,37 @@ if sum(seg_list != 0) == len(size_list) and (overwrite or not path.exists(f"chec
 	fig.savefig(f"checkerboard-2-heterogeneity_evolution.png")
 	plt.close(fig)
 
-distrib = np.zeros((40, 40, 2))
-distrib[:20, :20, 0] = 1 
-distrib[20:, 20:, 0] = 1 
-distrib[:, :,     1] = 1 - distrib[:, :, 0]
+N, M = [40//2, 40//4, 12], [2, 4, 6]
+for n, m in zip(N, M):
+	distrib = np.zeros((n*m, n*m, 2))
 
-if overwrite or not path.exists("checkerboard-2_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.1)
-	fig.savefig("checkerboard-2_alphaPOS.png")
-	plt.close(fig)
+	for i in range(0, m, 2):
+		distrib[i*n:(i+1)*n, :n, 0] = 1
+	for i in range(1, m):
+		distrib[:, i*n:(i+1)*n, 0] = 1 - distrib[:, (i-1)*n:i*n, 0]
+	distrib[:, :, 1] = 1 - distrib[:, :, 0]
 
-if overwrite or not path.exists("checkerboard-2_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.1)
-	fig.savefig("checkerboard-2_alphaNEG.png")
-	plt.close(fig)
+	if overwrite or any([not path.exists(filename) for filename in [
+			f"checkerboard-{ m }_alphaPOS.png",
+			f"selection_article/checkerboard-{ m }_repartition.png",
+			f"selection_article/checkerboard-{ m }_convex.png"]
+		]):
+		fig, figs, _ = compute_and_plot_heterogeneity(distrib, 0.01, separate_figs=True)
+		fig.savefig(f"checkerboard-{ m }_alphaPOS.png")
+		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
+		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_convex.png")
+		plt.close(fig)
 
-
-distrib = np.zeros((40, 40, 2))
-distrib[:10,   :10,   0] = 1 
-distrib[10:20, 10:20, 0] = 1 
-distrib[20:,   :20,   0] = distrib[:20, :20, 0] 
-distrib[:,     20:,   0] = distrib[:,   :20, 0] 
-distrib[:, :,     1] = 1 - distrib[:,   :,   0]
-
-if overwrite or not path.exists("checkerboard-4_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.1)
-	fig.savefig("checkerboard-4_alphaPOS.png")
-
-if overwrite or not path.exists("checkerboard-4_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.1)
-	fig.savefig("checkerboard-4_alphaNEG.png")
-	plt.close(fig)
-
-
-n, m = 12, 6
-distrib = np.zeros((n*m, n*m, 2))
-for i in range(0, m, 2):
-	distrib[i*n:(i+1)*n, :n, 0] = 1
-for i in range(1, m):
-	distrib[:, i*n:(i+1)*n, 0] = 1 - distrib[:, (i-1)*n:i*n, 0]
-distrib[:, :, 1] = 1 - distrib[:, :, 0]
-
-if overwrite or not path.exists(f"checkerboard-{ m }_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01)
-	fig.savefig(f"checkerboard-{ m }_alphaPOS.png")
-	plt.close(fig)
-
-if overwrite or not path.exists(f"checkerboard-{ m }_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01)
-	fig.savefig(f"checkerboard-{ m }_alphaNEG.png")
-	plt.close(fig)
+	if overwrite or any([not path.exists(filename) for filename in [
+			f"checkerboard-{ m }_alphaNEG.png",
+			f"selection_article/checkerboard-{ m }_repartition.png",
+			f"selection_article/checkerboard-{ m }_concave.png"]
+		]):
+		fig, figs, _ = compute_and_plot_heterogeneity(distrib, -0.01, separate_figs=True)
+		fig.savefig(f"checkerboard-{ m }_alphaNEG.png")
+		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
+		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_concave.png")
+		plt.close(fig)
 
 
 distrib = np.zeros((40, 40, 2))
@@ -286,12 +329,12 @@ distrib[:, :,     1] = 1 - distrib[:, :, 0]
 distrib[20:, :20, 0] = 0.75
 
 if overwrite or not path.exists("checkerboard-2-less-segregated_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01)
 	fig.savefig("checkerboard-2-less-segregated_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("checkerboard-2-less-segregated_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01)
 	fig.savefig("checkerboard-2-less-segregated_alphaNEG.png")
 	plt.close(fig)
 
@@ -302,12 +345,12 @@ distrib[30:,   10:20, 0] = 1
 distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
 
 if overwrite or not path.exists("corner-checkerboard-2_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01)
 	fig.savefig("corner-checkerboard-2_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("corner-checkerboard-2_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01)
 	fig.savefig("corner-checkerboard-2_alphaNEG.png")
 	plt.close(fig)
 
@@ -319,12 +362,12 @@ distrib[20:,   10:20, 0] = distrib[20:,   :10, 0]
 distrib[:,       :,   1] = 1 - distrib[:,   :,   0]
 
 if overwrite or not path.exists("corner-checkerboard-4_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01)
 	fig.savefig("corner-checkerboard-4_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("corner-checkerboard-4_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01)
 	fig.savefig("corner-checkerboard-4_alphaNEG.png")
 	plt.close(fig)
 
@@ -336,12 +379,12 @@ for i in range(22, 40, 2):
 distrib[:, :, 1] = 1 - distrib[:, :, 0]
 
 if overwrite or not path.exists("corner-checkerboard-10_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01)
 	fig.savefig("corner-checkerboard-10_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("corner-checkerboard-10_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01)
 	fig.savefig("corner-checkerboard-10_alphaNEG.png")
 	plt.close(fig)
 
@@ -357,12 +400,12 @@ for i in range(40):
 	distrib[i, i, :] /= 2
 
 if overwrite or not path.exists("gaussian-center_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01, True)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01, True)
 	fig.savefig("gaussian-center_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("gaussian-center_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01, True)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01, True)
 	fig.savefig("gaussian-center_alphaNEG.png")
 	plt.close(fig)
 
@@ -375,12 +418,12 @@ for i in range(40):
 	distrib[i, i, :] /= 2
 
 if overwrite or not path.exists("gaussian-corner_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01, True)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01, True)
 	fig.savefig("gaussian-corner_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("gaussian-corner_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01, True)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01, True)
 	fig.savefig("gaussian-corner_alphaNEG.png")
 	plt.close(fig)
 
@@ -399,12 +442,12 @@ for i in range(40):
 				distrib[j, i, 1] = 1
 
 if overwrite or not path.exists("circles_2_candidate_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01)
 	fig.savefig("circles_2_candidate_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("circles_2_candidate_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01)
 	fig.savefig("circles_2_candidate_alphaNEG.png")
 	plt.close(fig)
 
@@ -427,12 +470,12 @@ for i in range(40):
 				distrib[j, i, 2] = 1
 
 if overwrite or not path.exists("circles_3_candidate_alphaPOS.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, 0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01)
 	fig.savefig("circles_3_candidate_alphaPOS.png")
 	plt.close(fig)
 
 if overwrite or not path.exists("circles_3_candidate_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01)
 	fig.savefig("circles_3_candidate_alphaNEG.png")
 	plt.close(fig)
 
@@ -456,6 +499,146 @@ for i in range(40):
 		distrib[i, j, :] *= np.exp(-((i - 19.5)**2 + (j - 19.5)**2) / (15**2) / 2) / (np.sqrt(2 * np.pi) * 15)
 
 if overwrite or not path.exists("full_exemple_alphaNEG.png"):
-	fig, _ = compute_and_plot_heterogeneity(distrib, -0.01, plot_full=True)
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01, plot_full=True)
 	fig.savefig("full_exemple_alphaNEG.png")
 	plt.close(fig)
+
+if overwrite or any([not path.exists(filename) for filename in [
+			"full_exemple_alphaNEG.png",
+			"selection_article/full_exemple_repartition.png",
+			"selection_article/full_exemple_directionality.png",
+		] + [
+			f"selection_article/full_exemple_heterogeneity_candidate_{ i }.png" for i in range(3)
+		] + [
+			f"selection_article/full_exemple_signed_heterogeneity_candidate_{ i }.png" for i in range(3)
+		]
+	]):
+	fig, figs, _ = compute_and_plot_heterogeneity(distrib, -0.01, plot_full=True, separate_figs=True)
+	fig.savefig("full_exemple_alphaNEG.png")
+	figs[0, 0].savefig("selection_article/full_exemple_repartition.png")
+	figs[0, 1].savefig("selection_article/full_exemple_population_density.png")
+	figs[0, 2].savefig("selection_article/full_exemple_directionality.png")
+	for i in range(3):
+		figs[1, i].savefig(f"selection_article/full_exemple_heterogeneity_candidate_{ i }.png")
+		figs[2, i].savefig(f"selection_article/full_exemple_signed_heterogeneity_candidate_{ i }.png")
+
+	plt.close(fig)
+
+
+""" ##################################################
+######################################################
+################ Generate comparisons ################
+######################################################
+################################################## """
+
+
+
+if overwrite or any([not path.exists(filename) for filename in [
+		"index_comparison_map.png",
+		"selection_article/full_exemple_concave.png",
+		"selection_article/full_exemple_convex.png",
+		"selection_article/full_exemple_kl_div.png",
+		"selection_article/full_exemple_multiscale.png"]
+	]):
+
+	total_voting_population = np.sum(distrib)
+
+	ot_distrib = distrib.reshape(-1, distrib.shape[2])
+
+
+	distance_matrix          = np.zeros((ot_distrib.shape[0], ot_distrib.shape[0]))
+	for index0 in np.ndindex(distrib.shape[:2]):
+		i0, j0 = index0
+		idx0 = i0*distrib.shape[1] + j0
+		for index1 in np.ndindex(distrib.shape[:2]):
+			i1, j1 = index1
+			idx1 = i1*distrib.shape[1] + j1
+
+			distance_matrix[idx0, idx1] = np.sqrt((i0 - i1)**2 + (j0 - j1)**2) / np.sqrt(np.prod(distrib.shape[:2]))
+
+
+	reference_distrib  = np.sum(distrib, axis=2).flatten()
+	reference_distrib /= np.sum(reference_distrib)
+
+
+	fig, axes = plt.subplots(2, 2, figsize=(5*2, 5*2))
+
+	x = np.arange(distrib.shape[0])
+	y = np.arange(distrib.shape[1])
+	X, Y = np.meshgrid(x, y)
+
+
+	for i_alpha, alpha in enumerate([-0.1, 0.1]):
+		ot_dist_contribution_local_per_candidate = np.zeros(ot_distrib.shape)
+		ot_dist_contribution_local               = np.zeros(ot_distrib.shape[0])
+		ot_dist_contribution_candidate           = np.zeros(ot_distrib.shape[1])
+		total_ot_dist                            = 0
+		
+		distance_matrix_alpha = np.power(distance_matrix, 1+alpha)
+
+		for i in range(distrib.shape[2]):
+			total_vote_candidate = np.sum(distrib[:, :, i])
+
+			candidate_ot_mat = ot.emd(reference_distrib, ot_distrib[:, i] / total_vote_candidate, distance_matrix_alpha)*distance_matrix
+
+			ot_dist_contribution_local_per_candidate[:, i]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
+			ot_dist_contribution_candidate[             i]  = np.sum(ot_dist_contribution_local_per_candidate[:, i] * reference_distrib)
+			ot_dist_contribution_local                     += ot_dist_contribution_local_per_candidate[:, i] * total_vote_candidate / total_voting_population
+			total_ot_dist                                  += ot_dist_contribution_candidate[i]              * total_vote_candidate / total_voting_population
+
+		cax = axes[0, i_alpha].contourf(X, Y, ot_dist_contribution_local.reshape(distrib.shape[:2]))
+		cb = fig.colorbar(cax)
+
+		axes[0, i_alpha].set_title(f"Local heterogeneity index, { ["concave", "convex"][i_alpha] }")
+
+		for i in range(min(3, distrib.shape[2])):
+			cb.ax.plot((i + 1) / (min(3, distrib.shape[2]) + 1), ot_dist_contribution_candidate[i],
+				markerfacecolor=['r', 'g', 'b'][i], marker='.', markersize=12,
+				markeredgecolor='w', markeredgewidth=0.2)
+		cb.ax.plot(0.5, total_ot_dist,
+			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)
+
+	Kl_divergence = np.zeros(ot_distrib.shape[:1])
+	for i in range(distrib.shape[2]):
+		total_vote_proportion_candidate = np.sum(distrib[:, :, i]) / total_voting_population
+		candidate_distrib               = np.array(ot_distrib[:, i]) / (reference_distrib * total_voting_population)
+		Kl_divergence                  += total_vote_proportion_candidate * np.log(total_vote_proportion_candidate / np.maximum(candidate_distrib, 1e-5))
+
+	cax = axes[1, 0].contourf(X, Y, Kl_divergence.reshape(distrib.shape[:2]))
+	cb = fig.colorbar(cax)
+
+	axes[1, 0].set_title("KL-divergence to the global average")
+
+	idx_matrix        = np.argsort(distance_matrix, axis=1)
+	vote_trajectories = np.zeros((ot_distrib.shape[1], ot_distrib.shape[0], ot_distrib.shape[0]))
+	Kl_trajectories   = np.zeros((                     ot_distrib.shape[0], ot_distrib.shape[0]))
+	focal_distances   = np.zeros((                     ot_distrib.shape[0], ot_distrib.shape[0]))
+	for i in range(ot_distrib.shape[1]):
+		vote_trajectories[i, :, :] = np.cumsum(ot_distrib[:, i][idx_matrix], axis=1)
+	population_trajectory = np.maximum(vote_trajectories.sum(axis=0), 1e-7)
+	for i in range(ot_distrib.shape[1]):
+		vote_trajectories[i, :, :] /= population_trajectory
+		vote_trajectories[i, :, :]  = np.maximum(vote_trajectories[i, :, :], 1e-7)
+	normalisation_factor = np.sum(vote_trajectories, axis=0)
+	for i in range(ot_distrib.shape[1]):
+		total_vote_proportion_candidate = np.sum(distrib[:, :, i]) / total_voting_population
+		vote_trajectories[i, :, :] /= normalisation_factor
+		Kl_trajectories            += total_vote_proportion_candidate * np.log(total_vote_proportion_candidate / vote_trajectories[i, :, :])
+	for j in reversed(range(ot_distrib.shape[0])):
+		focal_distances[:, j] = np.max(Kl_trajectories[:, j:j+2], axis=1)
+	integration_coef         = population_trajectory.copy()
+	integration_coef[:, 1:] -= population_trajectory[:, :-1]
+	distort_coef             = np.sum(np.multiply(focal_distances, integration_coef), axis=1)
+
+	distort_coef[reference_distrib == 0] = np.nan
+
+	cax = axes[1, 1].contourf(X, Y, distort_coef.reshape(distrib.shape[:2]))
+	cb = fig.colorbar(cax)
+
+	axes[1, 1].set_title("Multiscalar heterogeneity index")
+
+	fig.savefig("index_comparison_map.png")
+	save_single_subgraph(fig, axes[0, 0], "selection_article/full_exemple_concave.png")
+	save_single_subgraph(fig, axes[0, 1], "selection_article/full_exemple_convex.png")
+	save_single_subgraph(fig, axes[1, 0], "selection_article/full_exemple_kl_div.png")
+	save_single_subgraph(fig, axes[1, 1], "selection_article/full_exemple_multiscale.png")
