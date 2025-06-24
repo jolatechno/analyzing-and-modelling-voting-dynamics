@@ -5,6 +5,7 @@ from util.util import *
 import pandas as pd
 import numpy as np
 import ot
+import sys
 from matplotlib import pyplot as plt
 from scipy import interpolate
 
@@ -112,10 +113,10 @@ read field from the preprocessed election database
 ##################################################
 ############################################## """
 
-print(f"Reading data from \"{ input_file_names[election_id] }\"")
+print(f"Reading data from \"{ input_file_names[election_id] }\"", file=sys.stderr)
 election_database = pd.read_csv(input_file_names[election_id], low_memory=False)
 
-print(f"Reading data from \"{ bvote_position_file_name }\"")
+print(f"Reading data from \"{ bvote_position_file_name }\"", file=sys.stderr)
 bvote_position_database = pd.read_csv(bvote_position_file_name, low_memory=False)
 
 """ #####################
@@ -278,6 +279,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		line = cbar.ax.plot(0.5, ot_dist_candidates[candidate_idx],
 			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
 		cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
+
+		print(f"{ round(ot_dist_candidates[candidate_idx]) }m for { interesting_candidate } for {  commune[filter_idx][0] }")
 
 		ax.set_aspect(map_ratio)
 		ax.set_title(f"Local segregation index in Paris for { interesting_candidate }\nduring the 2022 presidencial elections")

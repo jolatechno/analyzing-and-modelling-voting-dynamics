@@ -289,7 +289,7 @@ if sum(seg_list != 0) == len(size_list) and (overwrite or not path.exists(f"chec
 	fig.savefig(f"checkerboard-2-heterogeneity_evolution.png")
 	plt.close(fig)
 
-N, M = [40//2, 40//4, 12], [2, 4, 6]
+N, M = [40//2, 40//4, 10], [2, 4, 6]
 for n, m in zip(N, M):
 	distrib = np.zeros((n*m, n*m, 2))
 
@@ -304,7 +304,7 @@ for n, m in zip(N, M):
 			f"selection_article/checkerboard-{ m }_repartition.png",
 			f"selection_article/checkerboard-{ m }_convex.png"]
 		]):
-		fig, figs, _ = compute_and_plot_heterogeneity(distrib, 0.01, separate_figs=True)
+		fig, figs, seg = compute_and_plot_heterogeneity(distrib, 0.01, separate_figs=True)
 		fig.savefig(f"checkerboard-{ m }_alphaPOS.png")
 		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
 		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_convex.png")
@@ -312,18 +312,22 @@ for n, m in zip(N, M):
 		for fig_ in figs.flatten():
 			plt.close(fig_)
 
+		print(f"{ round(seg, 3) } heterogeneity for { m } checkerboard (convex)")
+
 	if overwrite or any([not path.exists(filename) for filename in [
 			f"checkerboard-{ m }_alphaNEG.png",
 			f"selection_article/checkerboard-{ m }_repartition.png",
 			f"selection_article/checkerboard-{ m }_concave.png"]
 		]):
-		fig, figs, _ = compute_and_plot_heterogeneity(distrib, -0.01, separate_figs=True)
+		fig, figs, seg = compute_and_plot_heterogeneity(distrib, -0.01, separate_figs=True)
 		fig.savefig(f"checkerboard-{ m }_alphaNEG.png")
 		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
 		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_concave.png")
 		plt.close(fig)
 		for fig_ in figs.flatten():
 			plt.close(fig_)
+
+		print(f"{ round(seg, 3) } heterogeneity for { m } checkerboard (concave)")
 
 
 distrib = np.zeros((40, 40, 2))

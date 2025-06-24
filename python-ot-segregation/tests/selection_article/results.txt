@@ -1,0 +1,6 @@
+0.167 heterogeneity for 2 checkerboard (convex)
+0.167 heterogeneity for 2 checkerboard (concave)
+0.06 heterogeneity for 4 checkerboard (convex)
+0.06 heterogeneity for 4 checkerboard (concave)
+0.036 heterogeneity for 6 checkerboard (convex)
+0.036 heterogeneity for 6 checkerboard (concave)
