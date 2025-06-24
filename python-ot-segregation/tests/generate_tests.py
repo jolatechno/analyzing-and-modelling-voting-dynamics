@@ -96,7 +96,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		if separate_figs:
 			figs[0, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
 			cax = ax.contourf(X, Y, population_density)
-			cb = fig.colorbar(cax)
+			cb = figs[0, 1].colorbar(cax)
 			ax.set_title("Population density")
 
 		axes[0, 2].quiver(
@@ -121,7 +121,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 			if separate_figs:
 				figs[1, i], ax = plt.subplots(1, 1, figsize=(5, 5))
 				cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, i].reshape(distrib_3d.shape[:2]))
-				cb = fig.colorbar(cax)
+				cb = figs[1, i].colorbar(cax)
 				ax.set_title(f"Local heterogeneity index for candidate { i } ({ ["red", "green", "blue"][i] })")
 
 			cax = axes[2, i].contourf(X, Y, ot_dissimilarity[:, i].reshape(distrib_3d.shape[:2]))
@@ -130,7 +130,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 			if separate_figs:
 				figs[2, i], ax = plt.subplots(1, 1, figsize=(5, 5))
 				cax = ax.contourf(X, Y, ot_dissimilarity[:, i].reshape(distrib_3d.shape[:2]))
-				cb = fig.colorbar(cax)
+				cb = figs[2, i].colorbar(cax)
 				ax.set_title(f"Signed heterogeneity for candidate { i } ({ ["red", "green", "blue"][i] }")
 
 		fig.tight_layout(pad=1.0)
@@ -160,7 +160,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		if separate_figs:
 			figs[0, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
 			cax = ax.contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
-			cb = fig.colorbar(cax)
+			cb = figs[0, 1].colorbar(cax)
 			for i in range(min(3, distrib_3d.shape[2])):
 				cb.ax.plot((i + 1) / (min(3, distrib_3d.shape[2]) + 1), ot_dist_contribution_candidate[i],
 					markerfacecolor=['r', 'g', 'b'][i], marker='.', markersize=12,
@@ -179,7 +179,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 			if separate_figs:
 				figs[0, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
 				cax = ax.contourf(X, Y, population_density)
-				cb = fig.colorbar(cax)
+				cb = figs[0, 2].colorbar(cax)
 				ax.set_title("Population density")
 		else:
 			axes[0, 2].quiver(
@@ -203,7 +203,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		if separate_figs:
 			figs[1, 0], ax = plt.subplots(1, 1, figsize=(5, 5))
 			cax = ax.contourf(X, Y, ot_dissimilarity[:, 0].reshape(distrib_3d.shape[:2]))
-			cb = fig.colorbar(cax)
+			cb = figs[1, 0].colorbar(cax)
 			ax.set_title("Signed heterogeneity for candidate 0 (red)")
 
 		cax = axes[1, 1].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
@@ -212,7 +212,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		if separate_figs:
 			figs[1, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
 			cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
-			cb = fig.colorbar(cax)
+			cb = figs[1, 1].colorbar(cax)
 			ax.set_title("Local heterogeneity index for candidate 0 (red)")
 
 		cax = axes[1, 2].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
@@ -221,7 +221,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		if separate_figs:
 			figs[1, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
 			cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
-			cb = fig.colorbar(cax)
+			cb = figs[1, 2].colorbar(cax)
 			ax.set_title("Local heterogeneity index for candidate 1 (green)")
 
 		fig.tight_layout(pad=1.0)
@@ -309,6 +309,8 @@ for n, m in zip(N, M):
 		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
 		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_convex.png")
 		plt.close(fig)
+		for fig_ in figs.flatten():
+			plt.close(fig_)
 
 	if overwrite or any([not path.exists(filename) for filename in [
 			f"checkerboard-{ m }_alphaNEG.png",
@@ -320,6 +322,8 @@ for n, m in zip(N, M):
 		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
 		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_concave.png")
 		plt.close(fig)
+		for fig_ in figs.flatten():
+			plt.close(fig_)
 
 
 distrib = np.zeros((40, 40, 2))
@@ -523,6 +527,8 @@ if overwrite or any([not path.exists(filename) for filename in [
 		figs[2, i].savefig(f"selection_article/full_exemple_signed_heterogeneity_candidate_{ i }.png")
 
 	plt.close(fig)
+	for fig_ in figs.flatten():
+		plt.close(fig_)
 
 
 """ ##################################################
@@ -562,6 +568,7 @@ if overwrite or any([not path.exists(filename) for filename in [
 
 
 	fig, axes = plt.subplots(2, 2, figsize=(5*2, 5*2))
+	figs = np.full(axes.shape, None)
 
 	x = np.arange(distrib.shape[0])
 	y = np.arange(distrib.shape[1])
@@ -588,9 +595,18 @@ if overwrite or any([not path.exists(filename) for filename in [
 
 		cax = axes[0, i_alpha].contourf(X, Y, ot_dist_contribution_local.reshape(distrib.shape[:2]))
 		cb = fig.colorbar(cax)
-
 		axes[0, i_alpha].set_title(f"Local heterogeneity index, { ["concave", "convex"][i_alpha] }")
+		for i in range(min(3, distrib.shape[2])):
+			cb.ax.plot((i + 1) / (min(3, distrib.shape[2]) + 1), ot_dist_contribution_candidate[i],
+				markerfacecolor=['r', 'g', 'b'][i], marker='.', markersize=12,
+				markeredgecolor='w', markeredgewidth=0.2)
+		cb.ax.plot(0.5, total_ot_dist,
+			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)
 
+		figs[0, i_alpha], ax = plt.subplots(1, 1, figsize=(5,5))
+		cax = ax.contourf(X, Y, ot_dist_contribution_local.reshape(distrib.shape[:2]))
+		cb = figs[0, i_alpha].colorbar(cax)
+		axes[0, i_alpha].set_title(f"Local heterogeneity index, { ["concave", "convex"][i_alpha] }")
 		for i in range(min(3, distrib.shape[2])):
 			cb.ax.plot((i + 1) / (min(3, distrib.shape[2]) + 1), ot_dist_contribution_candidate[i],
 				markerfacecolor=['r', 'g', 'b'][i], marker='.', markersize=12,
@@ -606,8 +622,12 @@ if overwrite or any([not path.exists(filename) for filename in [
 
 	cax = axes[1, 0].contourf(X, Y, Kl_divergence.reshape(distrib.shape[:2]))
 	cb = fig.colorbar(cax)
-
 	axes[1, 0].set_title("KL-divergence to the global average")
+
+	figs[1, 0], ax = plt.subplots(1, 1, figsize=(5,5))
+	cax = ax.contourf(X, Y, Kl_divergence.reshape(distrib.shape[:2]))
+	cb = figs[1, 0].colorbar(cax)
+	ax.set_title("KL-divergence to the global average")
 
 	idx_matrix        = np.argsort(distance_matrix, axis=1)
 	vote_trajectories = np.zeros((ot_distrib.shape[1], ot_distrib.shape[0], ot_distrib.shape[0]))
@@ -634,11 +654,15 @@ if overwrite or any([not path.exists(filename) for filename in [
 
 	cax = axes[1, 1].contourf(X, Y, distort_coef.reshape(distrib.shape[:2]))
 	cb = fig.colorbar(cax)
-
 	axes[1, 1].set_title("Multiscalar heterogeneity index")
 
+	figs[1, 1], ax = plt.subplots(1, 1, figsize=(5,5))
+	cax = ax.contourf(X, Y, distort_coef.reshape(distrib.shape[:2]))
+	cb = figs[1, 1].colorbar(cax)
+	ax.set_title("KL-divergence to the global average")
+
 	fig.savefig("index_comparison_map.png")
-	save_single_subgraph(fig, axes[0, 0], "selection_article/full_exemple_concave.png")
-	save_single_subgraph(fig, axes[0, 1], "selection_article/full_exemple_convex.png")
-	save_single_subgraph(fig, axes[1, 0], "selection_article/full_exemple_kl_div.png")
-	save_single_subgraph(fig, axes[1, 1], "selection_article/full_exemple_multiscale.png")
+	figs[0, 0].savefig("selection_article/full_exemple_concave.png")
+	figs[0, 1].savefig("selection_article/full_exemple_convex.png")
+	figs[1, 0].savefig("selection_article/full_exemple_kl_div.png")
+	figs[1, 1].savefig("selection_article/full_exemple_multiscale.png")
