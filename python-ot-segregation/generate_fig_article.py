@@ -6,8 +6,16 @@ import pandas as pd
 import numpy as np
 import ot
 import sys
-from matplotlib import pyplot as plt
 from scipy import interpolate
+import matplotlib
+from matplotlib import pyplot as plt
+from matplotlib.ticker import MaxNLocator
+
+def get_lambda_line_filter(long0, lat0, long1, lat1, select_top=False):
+	a = (lat1 - lat0) / (long1 - long0)
+	b = lat0 - a * long0
+
+	return lambda long_, lat_ : lat_ > long_ * a + b if select_top else lat_ < long_ * a + b
 
 election_id  = "france_pres_tour1_2022"
 commune = [
@@ -16,7 +24,16 @@ commune = [
 	#["Marseille"],
 	["Paris"]
 ]
-clip_segregation = None # [200, 3200]
+dont_show_filter = [
+	#[],
+	#[],
+	#[],
+	[
+		get_lambda_line_filter(2.250, 48.845, 2.280, 48.885, True),
+		get_lambda_line_filter(2.385, 48.820, 2.430, 48.845, False)
+	]
+]
+if_clip_segregation = True
 interesting_candidates = [
 	#["LE PEN", "MACRON", "MÉLENCHON"],
 	#["LE PEN", "MACRON", "MÉLENCHON"],
@@ -74,24 +91,38 @@ def compute_distance(lon1, lat1, lon2, lat2):
 
 	return R * c
 
-def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_reu", clip=None):
+def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_reu", clip=None, filters=[], norm="linear"):
 	dat, lon, lat = [], [], []
 	data_to_use = data if clip is None else np.clip(data, *clip)
 	for id_,value in zip(id_field,data_to_use):
 		mask = position_database[id_field_name] == id_
-		lon.extend(np.array(position_database[mask]["longitude"]))
-		lat.extend(np.array(position_database[mask]["latitude"]))
-		dat.extend([value] * np.sum(mask))
+		long_toadd, lat_toadd = np.array(position_database[mask]["longitude"]), np.array(position_database[mask]["latitude"])
+		show = np.full(long_toadd.shape, True)
+		for filter_ in filters:
+			for j in range(len(long_toadd)):
+				if show[j]:
+					if filter_(long_toadd[j], lat_toadd[j]):
+						show[j] = False
+		lon.extend(long_toadd[show])
+		lat.extend(lat_toadd[show])
+		dat.extend([value] * np.sum(show))
 
-	return ax.scatter(lon, lat, c=dat, s=0.7, alpha=1)
+	return ax.scatter(lon, lat, c=dat, s=0.7, alpha=1, norm=norm)
 
-def plot_categories(position_database, categories, colors, id_field, id_field_name="id_brut_bv_reu", labels=None):
+def plot_categories(position_database, categories, colors, id_field, id_field_name="id_brut_bv_reu", labels=None, filters=[]):
 	cat, lon, lat = [], [], []
 	for id_,value in zip(id_field,categories):
 		mask = position_database[id_field_name] == id_
-		lon.extend(np.array(position_database[mask]["longitude"]))
-		lat.extend(np.array(position_database[mask]["latitude"]))
-		cat.extend([value] * np.sum(mask))
+		long_toadd, lat_toadd = np.array(position_database[mask]["longitude"]), np.array(position_database[mask]["latitude"])
+		show = np.full(long_toadd.shape, True)
+		for filter_ in filters:
+			for j in range(len(long_toadd)):
+				if show[j]:
+					if filter_(long_toadd[j], lat_toadd[j]):
+						show[j] = False
+		lon.extend(long_toadd[show])
+		lat.extend(lat_toadd[show])
+		cat.extend([value] * np.sum(show))
 	cat, lon, lat = np.array(cat), np.array(lon), np.array(lat)
 
 	label_is_none = labels is None
@@ -197,17 +228,31 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		ot_dist_contribution_candidates[i, :]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
 		ot_dist_dissimilarity[          i, :]  = (candidate_ot_mat.sum(axis=0) - candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
-		ot_dist_contribution                  += ot_dist_contribution_candidates[i] * total_vote_candidates[i] / total_voting_population
+		ot_dist_contribution                  += ot_dist_contribution_candidates[i] *total_vote_candidates[i] / total_voting_population
 		ot_dist_candidates[             i   ]  = np.sum(ot_dist_contribution_candidates[i] * reference_distrib)
-		total_ot_dist                         += ot_dist_candidates[i] * total_vote_candidates[i] / total_voting_population
+		total_ot_dist                         += ot_dist_candidates[i]              *total_vote_candidates[i] / total_voting_population
 		
-		ot_direction_per_candidate[:, 0,            i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
-		ot_direction_per_candidate[:, 1,            i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
-		ot_direction                                   += ot_direction_per_candidate[:, :, i] * total_vote_candidates[i] / total_voting_population
+		ot_direction_per_candidate[:, 0,   i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
+		ot_direction_per_candidate[:, 1,   i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
+		ot_direction                          += ot_direction_per_candidate[:, :, i]*total_vote_candidates[i] / total_voting_population
 
 	total_ot_dist                    = np.sum(ot_dist_contribution * reference_distrib)
 	total_vote_proportion_candidate  = total_vote_candidates / total_voting_population
 	total_vote_proportion_candidate /= np.sum(total_vote_proportion_candidate)
+
+	clip_segregation, clip_dissimilarity, clip_votes = None, None, None
+	if if_clip_segregation:
+		clip_votes = [0, 0]
+		for interesting_candidate in interesting_candidates[filter_idx]:
+			candidate_idx     = candidate_list.index(interesting_candidate)
+			candidate_distrib = np.array(filtered_election_database[interesting_candidate + " Voix"]) / (reference_distrib * total_voting_population)
+			clip_votes[1]     = max(    clip_votes[1], np.percentile(candidate_distrib, 93))
+			clip_votes[0]     = max(min(clip_votes[0], np.percentile(candidate_distrib, 12)), 0.01)
+		clip_segregation   = [
+			min(np.percentile(ot_dist_contribution_candidates, 12),  np.percentile(ot_dist_contribution, 12)),
+			max(np.percentile(ot_dist_contribution_candidates, 93), np.percentile(ot_dist_contribution, 93))
+		]
+		clip_dissimilarity = [np.percentile(ot_dist_dissimilarity, 4), np.percentile(ot_dist_dissimilarity, 96)]
 
 	map_ratio = get_map_ratio(lon, lat)
 
@@ -219,18 +264,25 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
 		candidate_idx = candidate_list.index(interesting_candidate)
-		fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 		vote_distrib_candidate    = np.array(filtered_election_database[interesting_candidate + " Voix"])
 		vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"])
 
-		pl = plot_geo_data(filtered_bvote_position_database, vote_proportion_candidate, filtered_election_database["id_brut_bv_reu"])
+		pl = plot_geo_data(filtered_bvote_position_database, vote_proportion_candidate, filtered_election_database["id_brut_bv_reu"],
+			clip=clip_votes, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
 
-		cbar = fig.colorbar(pl, label="proportion of votes")
+		cbar = fig.colorbar(pl, label="proportion of votes", format='%1.2f')
+		cbar.mappable.set_clim(*clip_votes)
+		cbar.mappable.set_cmap("viridis")
 
+		""" ###################################################
+		code to show the segregation index for each candidate :
+		#######################################################
 		line = cbar.ax.plot(0.5, total_vote_proportion_candidate[candidate_idx],
 			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
 		cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
+		################################################### """
 
 		ax.set_aspect(map_ratio)
 		ax.set_title(f"Vote proportion for { interesting_candidate }\nduring the 2022 presidencial elections")
@@ -245,23 +297,39 @@ for filter_idx,geographical_filter in enumerate(commune):
 	######################
 	################## """
 
-	fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+	fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-	pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution, filtered_election_database["id_brut_bv_reu"], clip=clip_segregation)
+	pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution, filtered_election_database["id_brut_bv_reu"],
+		clip=clip_segregation, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
 
-	cbar = fig.colorbar(pl, label="local contribution [m]")
+	""" ########################################
+	code to show a grid to get coordinats easily
+	############################################
+	ax.xaxis.set_major_locator(MaxNLocator(nbins=20))
+	ax.yaxis.set_major_locator(MaxNLocator(nbins=20))
+	ax.tick_params(axis='x', labelrotation=90)
+	ax.grid()
+	######################################## """
 
-	"""for candidate in interesting_candidates.keys() :
+	cbar = fig.colorbar(pl, label="local contribution [m]", format='%1.0f')
+	cbar.mappable.set_clim(*clip_segregation)
+	cbar.mappable.set_cmap("viridis")
+
+	""" ###################################################
+	code to show the segregation index for each candidate :
+	#######################################################
+	for candidate in interesting_candidates.keys() :
 		candidate_idx = candidate_list.index(candidate)
 		line = cbar.ax.plot(0.5, ot_dist_candidates[candidate_idx],
 			markerfacecolor='w', markeredgecolor='w', marker='+', markersize=10)[0]
-		cbar.ax.text(-1.1, line.get_ydata()-20, interesting_candidates[candidate]["abv"])"""
+		cbar.ax.text(-1.1, line.get_ydata()-20, interesting_candidates[candidate]["abv"])
 	line = cbar.ax.plot(0.5, total_ot_dist,
 		markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
 	cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
+	################################################### """
 
 	ax.set_aspect(map_ratio)
-	ax.set_title("Local segregation index in Paris\nduring the 2022 presidencial elections")
+	ax.set_title("Local heteogeneity index\nduring the 2022 presidencial elections")
 
 	fig.tight_layout(pad=1.0)
 	fig.savefig(fig_file_name[filter_idx][1])
@@ -270,20 +338,27 @@ for filter_idx,geographical_filter in enumerate(commune):
 	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
 		candidate_idx = candidate_list.index(interesting_candidate)
 
-		fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1.5, 6/map_ratio + 0.5))
 
-		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution_candidates[candidate_idx, :], filtered_election_database["id_brut_bv_reu"], clip=clip_segregation)
+		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution_candidates[candidate_idx, :], filtered_election_database["id_brut_bv_reu"],
+			clip=clip_segregation, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
 
-		cbar = fig.colorbar(pl, label="local contribution [m]")
+		cbar = fig.colorbar(pl, label="local contribution [m]", format='%1.0f')
+		cbar.mappable.set_clim(*clip_segregation)
+		cbar.mappable.set_cmap("viridis")
 
+		""" ###################################################
+		code to show the segregation index for each candidate :
+		#######################################################
 		line = cbar.ax.plot(0.5, ot_dist_candidates[candidate_idx],
 			markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)[0]
 		cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
+		################################################### """
 
 		print(f"{ round(ot_dist_candidates[candidate_idx]) }m for { interesting_candidate } for {  commune[filter_idx][0] }")
 
 		ax.set_aspect(map_ratio)
-		ax.set_title(f"Local segregation index in Paris for { interesting_candidate }\nduring the 2022 presidencial elections")
+		ax.set_title(f"Local heteogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
 
 		fig.tight_layout(pad=1.0)
 		fig.savefig(fig_file_name[filter_idx][2][interesting_candidate_idx])
@@ -298,14 +373,17 @@ for filter_idx,geographical_filter in enumerate(commune):
 	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
 		candidate_idx = candidate_list.index(interesting_candidate)
 
-		fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6/map_ratio + 2))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1.5, 6/map_ratio + 0.5))
 
-		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_dissimilarity[candidate_idx, :], filtered_election_database["id_brut_bv_reu"])
+		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_dissimilarity[candidate_idx, :], filtered_election_database["id_brut_bv_reu"],
+			clip=clip_dissimilarity, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
 
-		cbar = fig.colorbar(pl, label="dissimilarity [m]")
+		cbar = fig.colorbar(pl, label="signed heterogeneity [m]", format='%1.2f')
+		cbar.mappable.set_clim(*clip_dissimilarity)
+		cbar.mappable.set_cmap("managua")
 
 		ax.set_aspect(map_ratio)
-		ax.set_title(f"Dissimilarity in Paris for { interesting_candidate }\nduring the 2022 presidencial elections")
+		ax.set_title(f"signed heterogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
 
 		fig.tight_layout(pad=1.0)
 		fig.savefig(fig_file_name[filter_idx][3][interesting_candidate_idx])
@@ -323,12 +401,12 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 	ax.quiver(
 		lon, lat,
-		ot_direction[:, 0] / ot_dist_contribution,
-		ot_direction[:, 1] / ot_dist_contribution
+		(ot_direction[:, 0] / ot_dist_contribution),
+		(ot_direction[:, 1] / ot_dist_contribution)
 	)
 
 	ax.set_aspect(map_ratio)
-	ax.set_title("Direction of segregation in Paris\nduring the 2022 presidencial elections")
+	ax.set_title("Direction of heteogeneity during\nthe 2022 presidencial elections")
 
 	fig.savefig(fig_file_name[filter_idx][4])
 	plt.close(fig)
@@ -366,7 +444,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_xscale("log")
 		ax.set_yscale("log")
 
-		ax.set_title("Comparison of our segregation index to the KL-divergence")
+		ax.set_title("Comparison of our heteogeneity index to the KL-divergence")
 		ax.set_xlabel("Our optimal-transport based index")
 		ax.set_ylabel("KL-divergence")
 
@@ -381,11 +459,12 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
 
-		pl = plot_categories(filtered_bvote_position_database, Kl_is_upper + Kl_is_lower * 2, ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_categories(filtered_bvote_position_database, (Kl_is_upper + Kl_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 		ax.set_aspect(map_ratio)
-		ax.set_title("map of the comparison of our segregation\nindex to the KL-divergence")
+		ax.set_title("map of the comparison of our heteogeneity\nindex to the KL-divergence")
 
 		fig.savefig(fig_file_name[filter_idx][5][1])
 		plt.close(fig)
@@ -437,9 +516,9 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_xscale("log")
 		ax.set_yscale("log")
 
-		ax.set_title("Comparison of our segregation index to\nthe multiscalar segregation index")
+		ax.set_title("Comparison of our heteogeneity index to\nthe multiscalar heteogeneity index")
 		ax.set_xlabel("Our optimal-transport based index")
-		ax.set_ylabel("Multiscalar segregation index (non-normalized)")
+		ax.set_ylabel("Multiscalar heteogeneity index (non-normalized)")
 
 		fig.tight_layout(pad=1.0)
 		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
@@ -452,11 +531,12 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
 
-		pl = plot_categories(filtered_bvote_position_database, dist_is_upper + dist_is_lower * 2, ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_categories(filtered_bvote_position_database, (dist_is_upper + dist_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 		ax.set_aspect(map_ratio)
-		ax.set_title("map of the comparison of our segregation index\nto the multiscalar segregation index")
+		ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
 
 		fig.savefig(fig_file_name[filter_idx][5][3])
 		plt.close(fig)
@@ -507,7 +587,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
 
-			pl = plot_categories(filtered_bvote_position_database, diff_is_upper + diff_is_lower * 2, ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			pl = plot_categories(filtered_bvote_position_database, (diff_is_upper + diff_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+				filters=dont_show_filter[filter_idx],
 				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 			ax.set_aspect(map_ratio)
