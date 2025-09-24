@@ -5,6 +5,6 @@
 **/cache
 **.ipynb_checkpoints
 
-computation/output/**
-!computation/output/Readme.txt
-!computation/output/config.json
+multiscalar_lens/computation/output/**
+!multiscalar_lens/computation/output/Readme.txt
+!multiscalar_lens/computation/output/config.json

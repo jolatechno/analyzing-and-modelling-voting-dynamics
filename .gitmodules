@@ -1,6 +1,6 @@
 [submodule "computation/modular_election_simulation_framework"]
 	path = computation/modular_election_simulation_framework
 	url = https://github.com/jolatechno/modular_election_simulation_framework.git
-[submodule "ot-heterogeneity"]
-	path = ot-heterogeneity
+[submodule "optimal_transport/ot-heterogeneity"]
+	path = optimal_transport/ot-heterogeneity
 	url = https://github.com/jolatechno/ot-heterogeneity.git
