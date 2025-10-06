@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from util.util import *
+
 import pandas as pd
 import numpy as np
 import ot
@@ -11,11 +13,6 @@ from matplotlib.ticker import MaxNLocator
 
 import oterogeneity as oth
 from oterogeneity import utils
-
-sys.path.append(".library_dev/src/")
-
-import ot_heterogeneity_lib
-import utils
 
 def get_lambda_line_filter(long0, lat0, long1, lat1, select_top=False):
 	a = (lat1 - lat0) / (long1 - long0)
@@ -198,13 +195,46 @@ for filter_idx,geographical_filter in enumerate(commune):
 	""" #####################
 	compute optimal transport
 	##################### """
+
+	"""total_ot_dist         = 0
+	ot_dist_candidates    = np.zeros(len(candidate_list))
+	total_vote_candidates = np.zeros(len(candidate_list))
+
+	ot_dist_contribution            = np.zeros(                      len(filtered_election_database["Votants"]))
+	ot_dist_contribution_candidates = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
+	ot_dist_dissimilarity           = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
+
+	ot_direction_per_candidate = np.zeros((len(filtered_election_database["Votants"]), 2, len(candidate_list)))
+	ot_direction               = np.zeros((len(filtered_election_database["Votants"]), 2))
+
+	total_voting_population = np.sum(  filtered_election_database["Votants"])
+	reference_distrib       = np.array(filtered_election_database["Votants"]) / total_voting_population
+
+	candidate_padding_length = max([len(x) for x in candidate_list])
+	for i,candidate in enumerate(candidate_list):
+		total_vote_candidates[i] = np.sum(filtered_election_database[candidate + " Voix"])
+		candidate_distrib        = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidates[i]
+
+		candidate_ot_mat = ot.emd(reference_distrib, candidate_distrib, distance_matrix_alpha)*distance_matrix
+
+		ot_dist_contribution_candidates[i, :]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
+		ot_dist_dissimilarity[          i, :]  = (candidate_ot_mat.sum(axis=0) - candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
+		ot_dist_contribution                  += ot_dist_contribution_candidates[i] *total_vote_candidates[i] / total_voting_population
+		ot_dist_candidates[             i   ]  = np.sum(ot_dist_contribution_candidates[i] * reference_distrib)
+		total_ot_dist                         += ot_dist_candidates[i]              *total_vote_candidates[i] / total_voting_population
+		
+		ot_direction_per_candidate[:, 0,   i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
+		ot_direction_per_candidate[:, 1,   i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
+		ot_direction                          += ot_direction_per_candidate[:, :, i]*total_vote_candidates[i] / total_voting_population
+
+	total_ot_dist                    = np.sum(ot_dist_contribution * reference_distrib)"""
 	
 	distrib_canidates        = np.array([np.array(filtered_election_database[candidate + " Voix"]) for candidate in candidate_list])
 	total_vote_candidates    = np.sum(distrib_canidates, axis=1)
 	total_voting_population  = np.sum(total_vote_candidates)
 	reference_distrib        = np.clip(np.sum(distrib_canidates, axis=0) / total_voting_population, 1e-6, np.inf)
 
-	results = oth.ot_heterogeneity_populations(distrib_canidates, distance_matrix, unitary_direction_matrix, compute_direction=True)
+	results = oth.ot_heterogeneity_populations(distrib_canidates, distance_matrix, unitary_direction_matrix)
 	
 	total_ot_dist      = results.global_heterogeneity
 	ot_dist_candidates = results.global_heterogeneity_per_category
@@ -376,12 +406,10 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 	fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
 
-	relative_direction = np.power(ot_direction[:, 0], 2) + np.power(ot_direction[:, 1], 2) / ot_dist_contribution
-
 	ax.quiver(
 		lon, lat,
-		(ot_direction[:, 0] / ot_dist_contribution),
-		(ot_direction[:, 1] / ot_dist_contribution)
+		(ot_direction[:, 1] / ot_dist_contribution),
+		(ot_direction[:, 0] / ot_dist_contribution)
 	)
 
 	ax.set_aspect(map_ratio)
