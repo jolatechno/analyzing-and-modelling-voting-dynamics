@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from util.util import *
-
 import pandas as pd
 import numpy as np
 import ot
@@ -10,6 +8,9 @@ from scipy import interpolate
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
+
+import oterogeneity as oth
+from oterogeneity import utils
 
 sys.path.append(".library_dev/src/")
 
@@ -174,27 +175,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 	############ """
 
 	num_nodes       = len(filtered_election_database["longitude"])
-	distance_matrix = np.zeros((num_nodes, num_nodes))
 
 	lon = np.array(filtered_election_database["longitude"])
 	lat = np.array(filtered_election_database["latitude" ])
-	for i in range(1, num_nodes):
-		distance_matrix[i, :i] = np.maximum(compute_distance(lon[:i], lat[:i], lon[i], lat[i]), 10)
-		distance_matrix[:i, i] = distance_matrix[i, :i]
-	distance_matrix_alpha = np.pow(distance_matrix, 1 + epsilon)
 
-	"""unitary_direction_matrix = np.zeros((distance_matrix.shape[0], distance_matrix.shape[0], 2))
-	
-	for i in range(1, num_nodes):		
-		distances_line = distance_matrix[i, :i]
-		unitary_direction_matrix[i, :i, 0] = (lon[i] - lon[:i]) / distances_line
-		unitary_direction_matrix[:i, i, 0] = -unitary_direction_matrix[i, :i, 0]
-		unitary_direction_matrix[i, :i, 1] = (lat[i] - lat[:i]) / distances_line
-		unitary_direction_matrix[:i, i, 1] = -unitary_direction_matrix[i, :i, 1]"""
-
-	coordinates = np.array([lon, lat])
-
-	unitary_direction_matrix = utils.compute_unitary_direction_matrix(coordinates)
+	unitary_direction_matrix, distance_matrix = utils.compute_unitary_direction_matrix_polar(lat, lon, unit="deg")
 
 	""" ##########################
 	##############################
@@ -213,48 +198,13 @@ for filter_idx,geographical_filter in enumerate(commune):
 	""" #####################
 	compute optimal transport
 	##################### """
-
-	"""total_ot_dist         = 0
-	ot_dist_candidates    = np.zeros(len(candidate_list))
-	total_vote_candidates = np.zeros(len(candidate_list))
-
-	ot_dist_contribution            = np.zeros(                      len(filtered_election_database["Votants"]))
-	ot_dist_contribution_candidates = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
-	ot_dist_dissimilarity           = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
-
-	ot_direction_per_candidate = np.zeros((len(filtered_election_database["Votants"]), 2, len(candidate_list)))
-	ot_direction               = np.zeros((len(filtered_election_database["Votants"]), 2))
-
-	total_voting_population = np.sum(  filtered_election_database["Votants"])
-	reference_distrib       = np.array(filtered_election_database["Votants"]) / total_voting_population
-
-	candidate_padding_length = max([len(x) for x in candidate_list])
-	for i,candidate in enumerate(candidate_list):
-		total_vote_candidates[i] = np.sum(filtered_election_database[candidate + " Voix"])
-		candidate_distrib        = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidates[i]
-
-		candidate_ot_mat = ot.emd(reference_distrib, candidate_distrib, distance_matrix_alpha)*distance_matrix
-
-		ot_dist_contribution_candidates[i, :]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
-		ot_dist_dissimilarity[          i, :]  = (candidate_ot_mat.sum(axis=0) - candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
-		ot_dist_contribution                  += ot_dist_contribution_candidates[i] *total_vote_candidates[i] / total_voting_population
-		ot_dist_candidates[             i   ]  = np.sum(ot_dist_contribution_candidates[i] * reference_distrib)
-		total_ot_dist                         += ot_dist_candidates[i]              *total_vote_candidates[i] / total_voting_population
-		
-		ot_direction_per_candidate[:, 0,   i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
-		ot_direction_per_candidate[:, 1,   i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
-		ot_direction                          += ot_direction_per_candidate[:, :, i]*total_vote_candidates[i] / total_voting_population
-
-	total_ot_dist                    = np.sum(ot_dist_contribution * reference_distrib)"""
-
-	#unitary_direction_matrix = np.swapaxes(np.swapaxes(unitary_direction_matrix, 2, 1), 1, 0)
 	
 	distrib_canidates        = np.array([np.array(filtered_election_database[candidate + " Voix"]) for candidate in candidate_list])
 	total_vote_candidates    = np.sum(distrib_canidates, axis=1)
 	total_voting_population  = np.sum(total_vote_candidates)
 	reference_distrib        = np.clip(np.sum(distrib_canidates, axis=0) / total_voting_population, 1e-6, np.inf)
 
-	results = ot_heterogeneity_lib.ot_heterogeneity_populations(distrib_canidates, distance_matrix, unitary_direction_matrix, compute_direction=True)
+	results = oth.ot_heterogeneity_populations(distrib_canidates, distance_matrix, unitary_direction_matrix, compute_direction=True)
 	
 	total_ot_dist      = results.global_heterogeneity
 	ot_dist_candidates = results.global_heterogeneity_per_category
