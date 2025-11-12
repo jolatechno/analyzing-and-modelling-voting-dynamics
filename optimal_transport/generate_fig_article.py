@@ -75,7 +75,13 @@ for i,comparison in enumerate(index_comparison):
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_multiscalar.png",
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_multiscalar_map.png",
 			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_dissimilarity_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
-			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_dissimilarity_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]]
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_dissimilarity_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]],
+			 f"results/article/{ commune[i][0] }/comparison/convex/fig_{ commune[i][0] }_convex_map.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_convex_concave.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_convex_concave_map.png",
+			[f"results/article/{ commune[i][0] }/comparison/convex/fig_{ commune[i][0] }_convex_map_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_convex_concave_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_convex_concave_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]]
 		])
 
 epsilon = -0.02
@@ -195,39 +201,6 @@ for filter_idx,geographical_filter in enumerate(commune):
 	""" #####################
 	compute optimal transport
 	##################### """
-
-	"""total_ot_dist         = 0
-	ot_dist_candidates    = np.zeros(len(candidate_list))
-	total_vote_candidates = np.zeros(len(candidate_list))
-
-	ot_dist_contribution            = np.zeros(                      len(filtered_election_database["Votants"]))
-	ot_dist_contribution_candidates = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
-	ot_dist_dissimilarity           = np.zeros((len(candidate_list), len(filtered_election_database["Votants"])))
-
-	ot_direction_per_candidate = np.zeros((len(filtered_election_database["Votants"]), 2, len(candidate_list)))
-	ot_direction               = np.zeros((len(filtered_election_database["Votants"]), 2))
-
-	total_voting_population = np.sum(  filtered_election_database["Votants"])
-	reference_distrib       = np.array(filtered_election_database["Votants"]) / total_voting_population
-
-	candidate_padding_length = max([len(x) for x in candidate_list])
-	for i,candidate in enumerate(candidate_list):
-		total_vote_candidates[i] = np.sum(filtered_election_database[candidate + " Voix"])
-		candidate_distrib        = np.array(filtered_election_database[candidate + " Voix"]) / total_vote_candidates[i]
-
-		candidate_ot_mat = ot.emd(reference_distrib, candidate_distrib, distance_matrix_alpha)*distance_matrix
-
-		ot_dist_contribution_candidates[i, :]  = (candidate_ot_mat.sum(axis=0) + candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
-		ot_dist_dissimilarity[          i, :]  = (candidate_ot_mat.sum(axis=0) - candidate_ot_mat.sum(axis=1)) / 2 / reference_distrib
-		ot_dist_contribution                  += ot_dist_contribution_candidates[i] *total_vote_candidates[i] / total_voting_population
-		ot_dist_candidates[             i   ]  = np.sum(ot_dist_contribution_candidates[i] * reference_distrib)
-		total_ot_dist                         += ot_dist_candidates[i]              *total_vote_candidates[i] / total_voting_population
-		
-		ot_direction_per_candidate[:, 0,   i]  = ((unitary_direction_matrix[:, :, 0]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 0].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
-		ot_direction_per_candidate[:, 1,   i]  = ((unitary_direction_matrix[:, :, 1]*candidate_ot_mat).sum(axis=0) + (unitary_direction_matrix[:, :, 1].T*candidate_ot_mat).sum(axis=1)) / 2 / reference_distrib
-		ot_direction                          += ot_direction_per_candidate[:, :, i]*total_vote_candidates[i] / total_voting_population
-
-	total_ot_dist                    = np.sum(ot_dist_contribution * reference_distrib)"""
 	
 	distrib_canidates        = np.array([np.array(filtered_election_database[candidate + " Voix"]) for candidate in candidate_list])
 	total_vote_candidates    = np.sum(distrib_canidates, axis=1)
@@ -408,8 +381,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 	ax.quiver(
 		lon, lat,
-		(ot_direction[:, 1] / ot_dist_contribution),
-		(ot_direction[:, 0] / ot_dist_contribution)
+		(ot_direction[:, 1] / np.clip(ot_dist_contribution, max(1e-6, np.percentile(ot_dist_contribution, 0.5)), np.inf)),
+		(ot_direction[:, 0] / np.clip(ot_dist_contribution, max(1e-6, np.percentile(ot_dist_contribution, 0.5)), np.inf))
 	)
 
 	ax.set_aspect(map_ratio)
@@ -430,7 +403,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 			candidate_distrib  = np.array(filtered_election_database[candidate + " Voix"]) / (reference_distrib * total_voting_population)
 			Kl_divergence     += total_vote_proportion_candidate[i] * np.log(total_vote_proportion_candidate[i] / np.maximum(candidate_distrib, 1e-5))
 
-		Kl_divergence_over_ot_segregation = Kl_divergence / ot_dist_contribution
+		Kl_divergence_over_ot_segregation = Kl_divergence / np.clip(ot_dist_contribution, max(1e-6, np.percentile(ot_dist_contribution, 0.5)), np.inf)
 		Kl_upper_lim, Kl_lower_lim        = np.percentile(Kl_divergence_over_ot_segregation, comparison_percetiles[1]), np.percentile(Kl_divergence_over_ot_segregation, comparison_percetiles[0])
 		Kl_is_upper, Kl_is_lower          = Kl_divergence_over_ot_segregation > Kl_upper_lim, Kl_divergence_over_ot_segregation < Kl_lower_lim
 		Kl_is_middle                      = np.logical_and(np.logical_not(Kl_is_upper), np.logical_not(Kl_is_lower))
@@ -502,7 +475,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		integration_coef[:, 1:] -= population_trajectory[:, :-1]
 		distort_coef             = np.sum(np.multiply(focal_distances, integration_coef), axis=1)
 
-		distort_coef_over_ot_segregation = distort_coef / ot_dist_contribution
+		distort_coef_over_ot_segregation = distort_coef / np.clip(ot_dist_contribution, max(1e-6, np.percentile(ot_dist_contribution, 0.5)), np.inf)
 		dist_upper_lim, dist_lower_lim   = np.percentile(distort_coef_over_ot_segregation, comparison_percetiles[1]), np.percentile(distort_coef_over_ot_segregation, comparison_percetiles[0])
 		dist_is_upper, dist_is_lower     = distort_coef_over_ot_segregation > dist_upper_lim, distort_coef_over_ot_segregation < dist_lower_lim
 		dist_is_middle                   = np.logical_and(np.logical_not(dist_is_upper), np.logical_not(dist_is_lower))
@@ -561,7 +534,13 @@ for filter_idx,geographical_filter in enumerate(commune):
 			vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"])
 			candidate_vote_difference = vote_proportion_candidate - total_vote_proportion_candidate[candidate_idx]
 
-			diff_over_dissimilarity          = candidate_vote_difference / ot_dist_dissimilarity[candidate_idx, :]
+			ot_dist_dissimilarity_is_negative   = ot_dist_dissimilarity[candidate_idx, :] < 0
+			ot_dist_dissimilarity_abs           = np.abs(ot_dist_dissimilarity[candidate_idx, :])
+			ot_dist_dissimilarity_clipped_limit = max(1e-6, np.percentile(ot_dist_dissimilarity_abs, 0.5))
+			ot_dist_dissimilarity_clipped       = np.clip(ot_dist_dissimilarity_abs, ot_dist_dissimilarity_clipped_limit, np.inf)
+			ot_dist_dissimilarity_clipped[ot_dist_dissimilarity_is_negative] *= -1
+
+			diff_over_dissimilarity          = candidate_vote_difference / ot_dist_dissimilarity_clipped
 			diff_upper_lim, diff_lower_lim   = np.percentile(diff_over_dissimilarity[diff_over_dissimilarity > 0], comparison_percetiles[1]), np.percentile(diff_over_dissimilarity[diff_over_dissimilarity > 0], comparison_percetiles[0])
 			diff_is_upper, diff_is_lower     = diff_over_dissimilarity > diff_upper_lim, np.logical_and(diff_over_dissimilarity < diff_lower_lim, diff_over_dissimilarity > 0)
 			diff_is_middle                   = np.logical_and(np.logical_not(diff_is_upper), np.logical_not(diff_is_lower))
@@ -603,5 +582,147 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig.savefig(fig_file_name[filter_idx][5][5][interesting_candidate_idx])
 			plt.close(fig)
+
+		""" ############################################
+		################################################
+		comparison with between concave and convex index
+		################################################
+		############################################ """
+
+		results_convex = oth.ot_heterogeneity_populations(distrib_canidates, distance_matrix, unitary_direction_matrix, epsilon_exponent=1e-3)
+
+		ot_dist_contribution_convex            = results_convex.local_heterogeneity
+		ot_dist_contribution_candidates_convex = results_convex.local_heterogeneity_per_category
+
+		convex_over_concave_segregation    = ot_dist_contribution_convex / np.clip(ot_dist_contribution, max(1e-6, np.percentile(ot_dist_contribution, 0.5)), np.inf)
+		convex_upper_lim, convex_lower_lim = np.percentile(convex_over_concave_segregation, comparison_percetiles[1]), np.percentile(convex_over_concave_segregation, comparison_percetiles[0])
+		convex_is_upper, convex_is_lower   = convex_over_concave_segregation > convex_upper_lim, convex_over_concave_segregation < convex_lower_lim
+		convex_is_middle                   = np.logical_and(np.logical_not(convex_is_upper), np.logical_not(convex_is_lower))
+
+		""" ############################
+		plotting the map for convex cost
+		############################ """
+
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
+
+		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution_convex, filtered_election_database["id_brut_bv_reu"],
+			clip=clip_segregation, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
+
+		cbar = fig.colorbar(pl, label="local contribution [m]", format='%1.0f')
+		cbar.mappable.set_clim(*clip_segregation)
+		cbar.mappable.set_cmap("viridis")
+
+		ax.set_aspect(map_ratio)
+		ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections")
+
+		fig.tight_layout(pad=1.0)
+		fig.savefig(fig_file_name[filter_idx][5][6])
+		plt.close(fig)
+
+		""" ############################################
+		plot comparison between concave and convex index
+		############################################ """
+
+		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+		ax.plot(ot_dist_contribution[convex_is_middle], ot_dist_contribution_convex[convex_is_middle], "+k", label=None)
+		ax.plot(ot_dist_contribution[convex_is_upper],  ot_dist_contribution_convex[convex_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[convex_is_lower],  ot_dist_contribution_convex[convex_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+
+		ax.set_xlim(np.percentile(ot_dist_contribution,        [1, 99]) * np.array([0.9, 1.1]))
+		ax.set_ylim(np.percentile(ot_dist_contribution_convex, [1, 99]) * np.array([0.9, 1.1]))
+
+		ax.set_xscale("log")
+		ax.set_yscale("log")
+
+		ax.set_title("Comparison of our heteogeneity index to\nbetween convex and concave")
+		ax.set_xlabel("Concave index")
+		ax.set_ylabel("Convex index")
+
+		fig.tight_layout(pad=1.0)
+		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+		fig.savefig(fig_file_name[filter_idx][5][7])
+		plt.close(fig)
+
+		""" ###################################################################
+		ploting the map of the comparison with between concave and convex index
+		################################################################### """
+
+		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+
+		pl = plot_categories(filtered_bvote_position_database, (convex_is_upper + convex_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			filters=dont_show_filter[filter_idx],
+			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
+
+		ax.set_aspect(map_ratio)
+		ax.set_title("map of the comparison of our heteogeneity index\nbetween convex and concave")
+
+		fig.savefig(fig_file_name[filter_idx][5][8])
+		plt.close(fig)
 		
+		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+			candidate_idx = candidate_list.index(interesting_candidate)
+
+			convex_over_concave                = ot_dist_contribution_candidates_convex[candidate_idx, :] / np.clip(ot_dist_contribution_candidates[candidate_idx, :], max(1e-6, np.percentile(ot_dist_contribution_candidates[candidate_idx, :], 0.5)), np.inf)
+			convex_upper_lim, convex_lower_lim = np.percentile(convex_over_concave[convex_over_concave > 0], comparison_percetiles[1]), np.percentile(convex_over_concave[convex_over_concave > 0], comparison_percetiles[0])
+			convex_is_upper, convex_is_lower   = convex_over_concave > convex_upper_lim, np.logical_and(convex_over_concave < convex_lower_lim, convex_over_concave > 0)
+			convex_is_middle                   = np.logical_and(np.logical_not(convex_is_upper), np.logical_not(convex_is_lower))
+
+			""" ############################
+			plotting the map for convex cost
+			############################ """
+
+			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
+
+			pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution_candidates_convex[candidate_idx, :], filtered_election_database["id_brut_bv_reu"],
+				clip=clip_segregation, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
+
+			cbar = fig.colorbar(pl, label="local contribution [m]", format='%1.0f')
+			cbar.mappable.set_clim(*clip_segregation)
+			cbar.mappable.set_cmap("viridis")
+
+			ax.set_aspect(map_ratio)
+			ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections\nfor { interesting_candidate }")
+
+			fig.tight_layout(pad=1.0)
+			fig.savefig(fig_file_name[filter_idx][5][9][interesting_candidate_idx])
+			plt.close(fig)
+
+			""" #########################################################################
+			plot comparison between concave and convex index for candidates per candidate
+			######################################################################### """
+
+			fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_middle], ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_middle], "+k", label=None)
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_upper],  ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_lower],  ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+
+			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[candidate_idx, :],        [1, 99]) * 1.1)
+			ax.set_ylim(np.percentile(ot_dist_contribution_candidates_convex[candidate_idx, :], [1, 99]) * 1.1)
+
+			ax.set_title(f"Comparison of our index\nbetween convex and concave\nfor { interesting_candidate }")
+			ax.set_xlabel("Concave index")
+			ax.set_ylabel("Convex index")
+
+			fig.tight_layout(pad=1.0)
+			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+			fig.savefig(fig_file_name[filter_idx][5][10][interesting_candidate_idx])
+			plt.close(fig)
+
+			""" #############################################################################
+			ploting the map of the comparison between concave and convex index for candidates
+			############################################################################# """
+
+			fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+
+			pl = plot_categories(filtered_bvote_position_database, (convex_is_upper + convex_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+				filters=dont_show_filter[filter_idx],
+				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
+
+			ax.set_aspect(map_ratio)
+			ax.set_title(f"map of the comparison of our index\nbetween convex and concave\nfor { interesting_candidate }")
+
+			fig.savefig(fig_file_name[filter_idx][5][11][interesting_candidate_idx])
+			plt.close(fig)
 
