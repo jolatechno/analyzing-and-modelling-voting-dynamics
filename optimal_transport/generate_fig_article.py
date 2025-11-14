@@ -103,7 +103,7 @@ def compute_distance(lon1, lat1, lon2, lat2):
 def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_reu", clip=None, filters=[], norm="linear"):
 	dat, lon, lat = [], [], []
 	data_to_use = data if clip is None else np.clip(data, *clip)
-	for id_,value in zip(id_field,data_to_use):
+	for id_,value in zip(id_field, data_to_use):
 		mask = position_database[id_field_name] == id_
 		long_toadd, lat_toadd = np.array(position_database[mask]["longitude"]), np.array(position_database[mask]["latitude"])
 		show = np.full(long_toadd.shape, True)
@@ -117,6 +117,38 @@ def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_r
 		dat.extend([value] * np.sum(show))
 
 	return ax.scatter(lon, lat, c=dat, s=0.7, alpha=1, norm=norm)
+
+def plot_hatching(position_database, data, id_field, id_field_name="id_brut_bv_reu", hatches_limit=0, filters=[], n_points=100, hatches_strength=3):
+	dat, lon, lat = [], [], []
+	for id_,value in zip(id_field, data):
+		mask = position_database[id_field_name] == id_
+		long_toadd, lat_toadd = np.array(position_database[mask]["longitude"]), np.array(position_database[mask]["latitude"])
+		show = np.full(long_toadd.shape, True)
+		for filter_ in filters:
+			for j in range(len(long_toadd)):
+				if show[j]:
+					if filter_(long_toadd[j], lat_toadd[j]):
+						show[j] = False
+		lon.extend(long_toadd[show])
+		lat.extend(lat_toadd[show])
+		dat.extend([value] * np.sum(show))
+
+	lon_plot_1d = np.linspace(np.min(lon), np.max(lon), n_points)
+	lat_plot_1d = np.linspace(np.min(lat), np.max(lat), n_points)
+	lon_plot, lat_plot = np.meshgrid(lon_plot_1d, lat_plot_1d)
+	dat_plot  = np.zeros((n_points, n_points))
+	dat_count = np.zeros((n_points, n_points))
+
+	for lon_,lat_,val_ in zip(lon, lat, dat):
+		idx_lon = np.searchsorted(lon_plot_1d, lon_)
+		idx_lat = np.searchsorted(lat_plot_1d, lat_)
+		dat_count[idx_lat, idx_lon] += 1
+		dat_plot[ idx_lat, idx_lon] += val_
+
+	dat_plot[dat_count == 0] = -np.inf
+	dat_plot /= np.maximum(dat_count, 1)
+
+	return ax.contourf(lon_plot, lat_plot, dat_plot, levels=[-np.inf, hatches_limit, np.inf], hatches=['', '/'*hatches_strength])
 
 def plot_categories(position_database, categories, colors, id_field, id_field_name="id_brut_bv_reu", labels=None, filters=[]):
 	cat, lon, lat = [], [], []
@@ -234,7 +266,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 			min(np.percentile(ot_dist_contribution_candidates, 12),  np.percentile(ot_dist_contribution, 12)),
 			max(np.percentile(ot_dist_contribution_candidates, 93), np.percentile(ot_dist_contribution, 93))
 		]
-		clip_dissimilarity = [np.percentile(ot_dist_dissimilarity, 4), np.percentile(ot_dist_dissimilarity, 96)]
+		#clip_dissimilarity = [np.percentile(ot_dist_dissimilarity, 4), np.percentile(ot_dist_dissimilarity, 96)]
+		clip_dissimilarity = [np.percentile(np.abs(ot_dist_dissimilarity), 4), np.percentile(np.abs(ot_dist_dissimilarity), 96)]
 
 	map_ratio = get_map_ratio(lon, lat)
 
@@ -357,12 +390,17 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1.5, 6/map_ratio + 0.5))
 
-		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_dissimilarity[candidate_idx, :], filtered_election_database["id_brut_bv_reu"],
+		#pl = plot_geo_data(filtered_bvote_position_database, ot_dist_dissimilarity[candidate_idx, :], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_geo_data(filtered_bvote_position_database, np.abs(ot_dist_dissimilarity[candidate_idx, :]), filtered_election_database["id_brut_bv_reu"],
 			clip=clip_dissimilarity, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
+
+		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] < 0) - 0.5, filtered_election_database["id_brut_bv_reu"],
+			filters=dont_show_filter[filter_idx])
 
 		cbar = fig.colorbar(pl, label="signed heterogeneity [m]", format='%1.2f')
 		cbar.mappable.set_clim(*clip_dissimilarity)
-		cbar.mappable.set_cmap("managua")
+		#cbar.mappable.set_cmap("managua")
+		cbar.mappable.set_cmap("viridis")
 
 		ax.set_aspect(map_ratio)
 		ax.set_title(f"signed heterogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
