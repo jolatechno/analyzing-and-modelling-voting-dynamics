@@ -23,7 +23,7 @@ def compute_distance(lon1, lat1, lon2, lat2):
 	return R * c
 
 input_file_names = {
-	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
+	"france_pres_tour1_2022" : "../data/france_pres_tour1_2022_preprocessed.csv"
 }
 
 geographical_filter_departement_list = [str(idx).zfill(2) for idx in range(1, 95+1)]

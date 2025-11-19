@@ -86,20 +86,6 @@ for i,comparison in enumerate(index_comparison):
 
 epsilon = -0.02
 
-def compute_distance(lon1, lat1, lon2, lat2):
-	R = 6371e3
-	phi1         = lat1 * np.pi/180
-	phi2         = lat2 * np.pi/180
-	delta_phi    = (lat2-lat1) * np.pi/180
-	delta_lambda = (lon2-lon1) * np.pi/180
-
-	a = np.sin(delta_phi/2)    * np.sin(delta_phi/2) + \
-		np.cos(phi1)           * np.cos(phi2) * \
-		np.sin(delta_lambda/2) ** 2
-	c = 2 * np.atan2(np.sqrt(a), np.sqrt(1-a))
-
-	return R * c
-
 def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_reu", clip=None, filters=[], norm="linear"):
 	dat, lon, lat = [], [], []
 	data_to_use = data if clip is None else np.clip(data, *clip)
@@ -209,7 +195,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	################
 	############ """
 
-	num_nodes       = len(filtered_election_database["longitude"])
+	num_nodes = len(filtered_election_database["longitude"])
 
 	lon = np.array(filtered_election_database["longitude"])
 	lat = np.array(filtered_election_database["latitude" ])

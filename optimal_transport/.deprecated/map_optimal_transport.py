@@ -11,29 +11,29 @@ election_id            = "france_pres_tour1_2022"
 geographical_filter_id = "Paris"
 
 input_file_names = {
-	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
+	"france_pres_tour1_2022" : "../data/france_pres_tour1_2022_preprocessed.csv"
 }
 distance_file_names = {
-	"Paris"             : "data/distances_paris.csv",
-	"Petite_couronne"   : "data/distances_petite_couronne.csv",
-	"Region_parisienne" : "data/distances_region_parisienne.csv",
-	"Metropole"         : "data/distances_metropole.csv"
+	"Paris"             : "../data/distances_paris.csv",
+	"Petite_couronne"   : "../data/distances_petite_couronne.csv",
+	"Region_parisienne" : "../data/distances_region_parisienne.csv",
+	"Metropole"         : "../data/distances_metropole.csv"
 }
 
 save_file_name = {
 	"france_pres_tour1_2022" : {
-		"Paris"             : "data/france_pres_tour1_2022_paris_ot_map.csv",
-		"Petite_couronne"   : "data/france_pres_tour1_2022_petite_couronne_ot_map.csv",
-		"Region_parisienne" : "data/france_pres_tour1_2022_region_parisienne_ot_map.csv",
-		"Metropole"         : "data/france_pres_tour1_2022_metropole_ot_map.csv"
+		"Paris"             : "../data/france_pres_tour1_2022_paris_ot_map.csv",
+		"Petite_couronne"   : "../data/france_pres_tour1_2022_petite_couronne_ot_map.csv",
+		"Region_parisienne" : "../data/france_pres_tour1_2022_region_parisienne_ot_map.csv",
+		"Metropole"         : "../data/france_pres_tour1_2022_metropole_ot_map.csv"
 	}
 }
 fig_file_name = {
 	"france_pres_tour1_2022" : {
-		"Paris"             : "results/france_pres_tour1_2022_paris_ot_map.png",
-		"Petite_couronne"   : "results/france_pres_tour1_2022_petite_couronne_ot_map.png",
-		"Region_parisienne" : "results/france_pres_tour1_2022_region_parisienne_ot_map.png",
-		"Metropole"         : "results/france_pres_tour1_2022_metropole_ot_map.png"
+		"Paris"             : "../results/france_pres_tour1_2022_paris_ot_map.png",
+		"Petite_couronne"   : "../results/france_pres_tour1_2022_petite_couronne_ot_map.png",
+		"Region_parisienne" : "../results/france_pres_tour1_2022_region_parisienne_ot_map.png",
+		"Metropole"         : "../results/france_pres_tour1_2022_metropole_ot_map.png"
 	}
 }
 
@@ -52,8 +52,8 @@ plot_direction = {
 }
 direction_file_names = {
 	"Paris"             : {
-		"x" : "data/direction_paris_x.csv",
-		"y" : "data/direction_paris_y.csv"
+		"x" : "../data/direction_paris_x.csv",
+		"y" : "../data/direction_paris_y.csv"
 	}
 }
 

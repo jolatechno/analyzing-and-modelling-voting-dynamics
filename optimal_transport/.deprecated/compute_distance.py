@@ -22,13 +22,13 @@ osm_pbf_file_name = "data/france-latest.osm.pbf"
 osm_pbf_file_url  = "https://www.data.gouv.fr/fr/datasets/r/01fdab09-ed86-4259-b863-69913a3e04d1"
 
 input_file_names = {
-	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
+	"france_pres_tour1_2022" : "../data/france_pres_tour1_2022_preprocessed.csv"
 }
 distance_file_names = {
-	"Paris"             : "data/distances_paris.csv",
-	"Petite_couronne"   : "data/distances_petite_couronne.csv",
-	"Region_parisienne" : "data/distances_region_parisienne.csv",
-	"Metropole"         : "data/distances_metropole.csv"
+	"Paris"             : "../data/distances_paris.csv",
+	"Petite_couronne"   : "../data/distances_petite_couronne.csv",
+	"Region_parisienne" : "../data/distances_region_parisienne.csv",
+	"Metropole"         : "../data/distances_metropole.csv"
 }
 
 geographical_filter_departement_list = {
@@ -46,8 +46,8 @@ compute_direction = {
 }
 direction_file_names = {
 	"Paris"             : {
-		"x" : "data/direction_paris_x.csv",
-		"y" : "data/direction_paris_y.csv"
+		"x" : "../data/direction_paris_x.csv",
+		"y" : "../data/direction_paris_y.csv"
 	}
 }
 

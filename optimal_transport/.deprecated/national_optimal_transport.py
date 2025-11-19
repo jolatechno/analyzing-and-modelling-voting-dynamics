@@ -10,13 +10,13 @@ geographical_filter_id = "Petite_couronne"
 trajectory_step        = 5
 
 input_file_names = {
-	"france_pres_tour1_2022" : "data/france_pres_tour1_2022_preprocessed.csv"
+	"france_pres_tour1_2022" : "../data/france_pres_tour1_2022_preprocessed.csv"
 }
 distance_file_names = {
-	"Paris"             : "data/distances_paris.csv",
-	"Petite_couronne"   : "data/distances_petite_couronne.csv",
-	"Region_parisienne" : "data/distances_region_parisienne.csv",
-	"Metropole"         : "data/distances_metropole.csv"
+	"Paris"             : "../data/distances_paris.csv",
+	"Petite_couronne"   : "../data/distances_petite_couronne.csv",
+	"Region_parisienne" : "../data/distances_region_parisienne.csv",
+	"Metropole"         : "../data/distances_metropole.csv"
 }
 
 geographical_filter_departement_list = {
