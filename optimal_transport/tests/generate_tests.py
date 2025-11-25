@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from perlin_noise import PerlinNoise, Interp
+
 import numpy as np
 import ot
 from matplotlib import pyplot as plt
@@ -228,7 +230,32 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 
 		return fig, figs, total_ot_dist
 
+distrib = np.zeros((60, 60, 2))
 
+seed = 10
+noise = PerlinNoise(seed, 5, 0.2, 4, interp=Interp.CUBIC)
+ratio0, ratio1 = (noise.get(distrib.shape[0]) - noise.get(0)) / distrib.shape[0], (noise.get(distrib.shape[0] * 1.5) - noise.get(distrib.shape[0])) / (distrib.shape[0] / 2)
+for i in range(int(distrib.shape[0] * 3/4)):
+	limit_ = int(np.clip(np.round(i + noise.get(i) - ratio0*i - noise.get(0)), 0, distrib.shape[0]-1))
+	distrib[i, :limit_, 0] = 1
+for i in range(int(distrib.shape[0] * 3/4), distrib.shape[0]):
+	limit_ = int(np.clip(np.round(distrib.shape[0] * 3/4 - (i - distrib.shape[0] * 3/4) + noise.get(i) - ratio0*i - noise.get(0)), 0, distrib.shape[0]-1))
+	distrib[i, :limit_, 0] = 1
+for i in range(int(distrib.shape[0] / 2)):
+	limit_ = int(np.clip(np.round(distrib.shape[0] / 2 + i + noise.get(i + distrib.shape[0]) - ratio1*i - noise.get(distrib.shape[0])), 0, distrib.shape[0]-1))
+	distrib[i, limit_:, 0] = 1
+
+distrib[:,   :,  1] = 1 - distrib[:,   :,   0]
+
+if overwrite or not path.exists("perlinBorder_alphaPOS.png"):
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.1)
+	fig.savefig("perlinBorder_alphaPOS.png")
+	plt.close(fig)
+
+if overwrite or not path.exists("perlinBorder_alphaNEG.png"):
+	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.1)
+	fig.savefig("perlinBorder_alphaNEG.png")
+	plt.close(fig)
 
 distrib = np.zeros((40, 40, 2))
 distrib[:, :20,  0] = 1 
