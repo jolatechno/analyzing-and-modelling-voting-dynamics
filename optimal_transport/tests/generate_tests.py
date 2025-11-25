@@ -316,7 +316,7 @@ if sum(seg_list != 0) == len(size_list) and (overwrite or not path.exists(f"chec
 	fig.savefig(f"checkerboard-2-heterogeneity_evolution.png")
 	plt.close(fig)
 
-N, M = [40//2, 40//4, 10], [2, 4, 6]
+N, M = [40//2, 20, 40//4, 10], [2, 3, 4, 6]
 for n, m in zip(N, M):
 	distrib = np.zeros((n*m, n*m, 2))
 
