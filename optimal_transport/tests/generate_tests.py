@@ -247,15 +247,30 @@ for i in range(int(distrib.shape[0] / 2)):
 
 distrib[:,   :,  1] = 1 - distrib[:,   :,   0]
 
-if overwrite or not path.exists("perlinBorder_alphaPOS.png"):
-	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.1)
+if overwrite or any([not path.exists(filename) for filename in [
+			"perlinBorder_alphaPOS.png",
+			"selection_article/perlinBorder_repartition.png",
+			"selection_article/perlinBorder_convex.png"]]):
+	fig, figs, _ = compute_and_plot_heterogeneity(distrib, 0.1, separate_figs=True)
 	fig.savefig("perlinBorder_alphaPOS.png")
+	figs[0, 0].savefig("selection_article/perlinBorder_repartition.png")
+	figs[0, 1].savefig("selection_article/perlinBorder_convex.png")
 	plt.close(fig)
+	for fig_ in figs.flatten():
+		plt.close(fig_)
 
-if overwrite or not path.exists("perlinBorder_alphaNEG.png"):
-	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.1)
+if overwrite or any([not path.exists(filename) for filename in [
+			"perlinBorder_alphaNEG.png",
+			"selection_article/perlinBorder_repartition.png",
+			"selection_article/perlinBorder_concave.png"]]):
+	fig, figs, _ = compute_and_plot_heterogeneity(distrib, -0.1, separate_figs=True)
 	fig.savefig("perlinBorder_alphaNEG.png")
+	figs[0, 0].savefig("selection_article/perlinBorder_repartition.png")
+	figs[0, 1].savefig("selection_article/perlinBorder_concave.png")
 	plt.close(fig)
+	for fig_ in figs.flatten():
+		plt.close(fig_)
+
 
 distrib = np.zeros((40, 40, 2))
 distrib[:, :20,  0] = 1 
@@ -434,33 +449,69 @@ for i in range(40):
 		distrib[i, j, :] *= np.exp(-((i - 19.5)**2 + (j - 19.5)**2) / (10**2) /2) / (np.sqrt(2 * np.pi) * 10)
 	distrib[i, i, :] /= 2
 
-if overwrite or not path.exists("gaussian-center_alphaPOS.png"):
-	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01, True)
+if overwrite or any([not path.exists(filename) for filename in [
+			"gaussian-center_alphaPOS.png",
+			"selection_article/gaussian-center_repartition.png",
+			"selection_article/gaussian-center_convex.png",
+			"selection_article/gaussian-center_density.png"]]):
+	fig, figs, _ = compute_and_plot_heterogeneity(distrib, 0.1, True, separate_figs=True)
 	fig.savefig("gaussian-center_alphaPOS.png")
+	figs[0, 0].savefig("selection_article/gaussian-center_repartition.png")
+	figs[0, 1].savefig("selection_article/gaussian-center_convex.png")
+	figs[1, 2].savefig("selection_article/gaussian-center_density.png")
 	plt.close(fig)
+	for fig_ in figs.flatten():
+		plt.close(fig_)
 
-if overwrite or not path.exists("gaussian-center_alphaNEG.png"):
-	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01, True)
+if overwrite or any([not path.exists(filename) for filename in [
+			"gaussian-center_alphaNEG.png",
+			"selection_article/gaussian-center_repartition.png",
+			"selection_article/gaussian-center_concave.png",
+			"selection_article/gaussian-center_density.png"]]):
+	fig, figs, _ = compute_and_plot_heterogeneity(distrib, -0.1, True, separate_figs=True)
 	fig.savefig("gaussian-center_alphaNEG.png")
+	figs[0, 0].savefig("selection_article/gaussian-center_repartition.png")
+	figs[0, 1].savefig("selection_article/gaussian-center_concave.png")
+	figs[1, 2].savefig("selection_article/gaussian-center_density.png")
 	plt.close(fig)
+	for fig_ in figs.flatten():
+		plt.close(fig_)
 
 
 distrib = np.zeros((40, 40, 2))
 for i in range(40):
 	for j in range(i, 40):
-		distrib[i, j, 0] = np.exp(-((i - (19.5 - 20/3))**2 + (j - (19.5 + 20/3))**2) / (5**2) /2) / (np.sqrt(2 * np.pi) * 5)
-		distrib[j, i, 1] = distrib[i, j, 0]
+		distrib[i, j, 1] = np.exp(-((i - (19.5 - 20/3))**2 + (j - (19.5 + 20/3))**2) / (5**2) /2) / (np.sqrt(2 * np.pi) * 5)
+		distrib[j, i, 0] = distrib[i, j, 1]
 	distrib[i, i, :] /= 2
 
-if overwrite or not path.exists("gaussian-corner_alphaPOS.png"):
-	fig, _, _ = compute_and_plot_heterogeneity(distrib, 0.01, True)
+if overwrite or any([not path.exists(filename) for filename in [
+			"gaussian-corner_alphaPOS.png",
+			"selection_article/gaussian-corner_repartition.png",
+			"selection_article/gaussian-corner_convex.png",
+			"selection_article/gaussian-corner_density.png"]]):
+	fig, figs, _ = compute_and_plot_heterogeneity(distrib, 0.1, True, separate_figs=True)
 	fig.savefig("gaussian-corner_alphaPOS.png")
+	figs[0, 0].savefig("selection_article/gaussian-corner_repartition.png")
+	figs[0, 1].savefig("selection_article/gaussian-corner_convex.png")
+	figs[1, 2].savefig("selection_article/gaussian-corner_density.png")
 	plt.close(fig)
+	for fig_ in figs.flatten():
+		plt.close(fig_)
 
-if overwrite or not path.exists("gaussian-corner_alphaNEG.png"):
-	fig, _, _ = compute_and_plot_heterogeneity(distrib, -0.01, True)
+if overwrite or any([not path.exists(filename) for filename in [
+			"gaussian-corner_alphaNEG.png",
+			"selection_article/gaussian-corner_repartition.png",
+			"selection_article/gaussian-corner_concave.png",
+			"selection_article/gaussian-corner_density.png"]]):
+	fig, figs, _ = compute_and_plot_heterogeneity(distrib, -0.1, True, separate_figs=True)
 	fig.savefig("gaussian-corner_alphaNEG.png")
+	figs[0, 0].savefig("selection_article/gaussian-corner_repartition.png")
+	figs[0, 1].savefig("selection_article/gaussian-corner_concave.png")
+	figs[1, 2].savefig("selection_article/gaussian-corner_density.png")
 	plt.close(fig)
+	for fig_ in figs.flatten():
+		plt.close(fig_)
 
 
 distrib = np.zeros((40, 40, 2))
