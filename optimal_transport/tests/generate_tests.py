@@ -301,38 +301,45 @@ if overwrite or not path.exists("stripes-4_alphaNEG.png"):
 	fig.savefig("stripes-4_alphaNEG.png")
 	plt.close(fig)
 
-size_list = [2, 4, 8, 16, 32, 64]
+size_list, m = [1, 2, 4, 8, 16, 21], 3
 seg_list  = np.zeros(len(size_list))
-for i,size in enumerate(size_list):
-	distrib = np.zeros((size, size, 2))
-	distrib[:size//2, :size//2,  0] = 1 
-	distrib[ size//2:, size//2:, 0] = 1 
-	distrib[:,     :,  1] = 1 - distrib[:,   :,   0]
+for idx,size in enumerate(size_list):
+	distrib = np.zeros((size*m, size*m, 2))
 
-	if overwrite or not path.exists(f"checkerboard-2-{ size }_alphaPOS.png"):
-		fig, seg_list[i] = compute_and_plot_heterogeneity(distrib, 0.1)
-		fig.savefig(f"checkerboard-2-{ size }_alphaPOS.png")
+	for i in range(0, m, 2):
+		distrib[i*size:(i+1)*size, :size, 0] = 1
+	for i in range(1, m):
+		distrib[:, i*size:(i+1)*size, 0] = 1 - distrib[:, (i-1)*size:i*size, 0]
+	distrib[:, :, 1] = 1 - distrib[:, :, 0]
+
+	if overwrite or not path.exists(f"checkerboard-3-{ size }_alphaPOS.png") or not path.exists("selection_article/checkerboard-3-heterogeneity_evolution.png"):
+		fig, _, seg_list[idx] = compute_and_plot_heterogeneity(distrib, 0.1)
+		fig.savefig(f"checkerboard-3-{ size }_alphaPOS.png")
 		plt.close(fig)
 
-	if overwrite or not path.exists(f"checkerboard-2-{ size }_alphaNEG.png"):
-		fig, seg_list[i] = compute_and_plot_heterogeneity(distrib, -0.1)
-		fig.savefig(f"checkerboard-2-{ size }_alphaNEG.png")
+	if overwrite or not path.exists(f"checkerboard-3-{ size }_alphaNEG.png"):
+		fig, _, seg_list[idx] = compute_and_plot_heterogeneity(distrib, -0.1)
+		fig.savefig(f"checkerboard-3-{ size }_alphaNEG.png")
 		plt.close(fig)
 
-if sum(seg_list != 0) == len(size_list) and (overwrite or not path.exists(f"checkerboard-2-heterogeneity_evolution.png")):
+if sum(seg_list != 0) == len(size_list) and (overwrite or not path.exists("selection_article/checkerboard-3-heterogeneity_evolution.png")):
 	fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 
 	ax.plot(size_list, seg_list, "+-")
 
-	ax.set_title("Evolution of heterogeneity index vs the subdivion of the square")
-	ax.set_xlabel("Number of subdivision per side of the square")
+	ax.set_title("Evolution of heterogeneity index\nvs the granularity of the distribution")
+	ax.set_xlabel("Number of subdivision per section")
 	ax.set_ylabel("Global heterogeneity index")
 
-	fig.savefig(f"checkerboard-2-heterogeneity_evolution.png")
+	ax.set_xscale("log")
+	ax.set_xticks(size_list, labels=[str(size) for size in size_list])
+
+	fig.savefig(f"selection_article/checkerboard-3-heterogeneity_evolution.png")
 	plt.close(fig)
 
-N, M = [40//2, 20, 40//4, 10], [2, 3, 4, 6]
-for n, m in zip(N, M):
+N, M = [40//2, 20, 40//4, 10, 7], [2, 3, 4, 6, 8]
+seg_list  = np.zeros(len(N))
+for idx,(n, m) in enumerate(zip(N, M)):
 	distrib = np.zeros((n*m, n*m, 2))
 
 	for i in range(0, m, 2):
@@ -344,9 +351,10 @@ for n, m in zip(N, M):
 	if overwrite or any([not path.exists(filename) for filename in [
 			f"checkerboard-{ m }_alphaPOS.png",
 			f"selection_article/checkerboard-{ m }_repartition.png",
-			f"selection_article/checkerboard-{ m }_convex.png"]
+			f"selection_article/checkerboard-{ m }_convex.png",
+			"selection_article/cherboard-size-heterogeneity_evolution.png"]
 		]):
-		fig, figs, seg = compute_and_plot_heterogeneity(distrib, 0.01, separate_figs=True)
+		fig, figs, seg_list[idx] = compute_and_plot_heterogeneity(distrib, 0.01, separate_figs=True)
 		fig.savefig(f"checkerboard-{ m }_alphaPOS.png")
 		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
 		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_convex.png")
@@ -354,14 +362,14 @@ for n, m in zip(N, M):
 		for fig_ in figs.flatten():
 			plt.close(fig_)
 
-		print(f"{ round(seg, 3) } heterogeneity for { m } checkerboard (convex)")
+		print(f"{ round(seg_list[idx], 3) } heterogeneity for { m } checkerboard (convex)")
 
 	if overwrite or any([not path.exists(filename) for filename in [
 			f"checkerboard-{ m }_alphaNEG.png",
 			f"selection_article/checkerboard-{ m }_repartition.png",
 			f"selection_article/checkerboard-{ m }_concave.png"]
 		]):
-		fig, figs, seg = compute_and_plot_heterogeneity(distrib, -0.01, separate_figs=True)
+		fig, figs, seg_list[idx] = compute_and_plot_heterogeneity(distrib, -0.01, separate_figs=True)
 		fig.savefig(f"checkerboard-{ m }_alphaNEG.png")
 		figs[0, 0].savefig(f"selection_article/checkerboard-{ m }_repartition.png")
 		figs[0, 1].savefig(f"selection_article/checkerboard-{ m }_concave.png")
@@ -369,7 +377,25 @@ for n, m in zip(N, M):
 		for fig_ in figs.flatten():
 			plt.close(fig_)
 
-		print(f"{ round(seg, 3) } heterogeneity for { m } checkerboard (concave)")
+		print(f"{ round(seg_list[idx], 3) } heterogeneity for { m } checkerboard (concave)")
+
+if sum(seg_list != 0) == len(M) and (overwrite or not path.exists("selection_article/cherboard-size-heterogeneity_evolution.png")):
+	fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+
+	ax.plot(M, seg_list, "+-")
+
+	ax.set_title("Evolution of heterogeneity index vs\nthe number of subdivion of the checkerboard")
+	ax.set_xlabel("Number of segment per side of the square")
+	ax.set_ylabel("Global heterogeneity index")
+
+	ax.set_xscale("log")
+	ax.set_yscale("log")
+	ax.set_xticks(M, labels=[str(size) for size in M])
+	ticks=[round(x, -int(np.floor(np.log10(abs(x))))) for x in seg_list]
+	ax.set_yticks(ticks, labels=[str(x) for x in ticks])
+
+	fig.savefig(f"selection_article/cherboard-size-heterogeneity_evolution.png")
+	plt.close(fig)
 
 
 distrib = np.zeros((40, 40, 2))
@@ -458,7 +484,7 @@ if overwrite or any([not path.exists(filename) for filename in [
 	fig.savefig("gaussian-center_alphaPOS.png")
 	figs[0, 0].savefig("selection_article/gaussian-center_repartition.png")
 	figs[0, 1].savefig("selection_article/gaussian-center_convex.png")
-	figs[1, 2].savefig("selection_article/gaussian-center_density.png")
+	figs[0, 2].savefig("selection_article/gaussian-center_density.png")
 	plt.close(fig)
 	for fig_ in figs.flatten():
 		plt.close(fig_)
@@ -472,7 +498,7 @@ if overwrite or any([not path.exists(filename) for filename in [
 	fig.savefig("gaussian-center_alphaNEG.png")
 	figs[0, 0].savefig("selection_article/gaussian-center_repartition.png")
 	figs[0, 1].savefig("selection_article/gaussian-center_concave.png")
-	figs[1, 2].savefig("selection_article/gaussian-center_density.png")
+	figs[0, 2].savefig("selection_article/gaussian-center_density.png")
 	plt.close(fig)
 	for fig_ in figs.flatten():
 		plt.close(fig_)
@@ -494,7 +520,7 @@ if overwrite or any([not path.exists(filename) for filename in [
 	fig.savefig("gaussian-corner_alphaPOS.png")
 	figs[0, 0].savefig("selection_article/gaussian-corner_repartition.png")
 	figs[0, 1].savefig("selection_article/gaussian-corner_convex.png")
-	figs[1, 2].savefig("selection_article/gaussian-corner_density.png")
+	figs[0, 2].savefig("selection_article/gaussian-corner_density.png")
 	plt.close(fig)
 	for fig_ in figs.flatten():
 		plt.close(fig_)
@@ -508,7 +534,7 @@ if overwrite or any([not path.exists(filename) for filename in [
 	fig.savefig("gaussian-corner_alphaNEG.png")
 	figs[0, 0].savefig("selection_article/gaussian-corner_repartition.png")
 	figs[0, 1].savefig("selection_article/gaussian-corner_concave.png")
-	figs[1, 2].savefig("selection_article/gaussian-corner_density.png")
+	figs[0, 2].savefig("selection_article/gaussian-corner_density.png")
 	plt.close(fig)
 	for fig_ in figs.flatten():
 		plt.close(fig_)
