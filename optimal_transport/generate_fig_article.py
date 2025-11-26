@@ -20,6 +20,14 @@ def get_lambda_line_filter(long0, lat0, long1, lat1, select_top=False):
 
 	return lambda long_, lat_ : lat_ > long_ * a + b if select_top else lat_ < long_ * a + b
 
+## TO BE READ FROM THE FILE
+candidate_list = [
+	'ARTHAUD', 'ROUSSEL', 'MACRON',
+	'LASSALLE', 'LE PEN', 'ZEMMOUR',
+	'MÉLENCHON', 'HIDALGO', 'JADOT',
+	'PÉCRESSE', 'POUTOU', 'DUPONT-AIGNAN'
+]
+
 election_id  = "france_pres_tour1_2022"
 commune = [
 	#["Lyon"],
@@ -185,6 +193,10 @@ for filter_idx,geographical_filter in enumerate(commune):
 	geographical_mask = np.isin(election_database["Libellé de la commune"], geographical_filter)
 	filtered_election_database = election_database[geographical_mask]
 	filtered_election_database = filtered_election_database.dropna(subset=["longitude", "latitude"]).reset_index(drop=True)
+	keep = np.full(len(filtered_election_database), False)
+	for candidate in interesting_candidates[filter_idx]:
+		keep = np.logical_or(keep, filtered_election_database[candidate + " Voix"] > 0)
+	filtered_election_database = filtered_election_database[keep]
 	filtered_bvote_position_database = bvote_position_database[np.isin(
 		bvote_position_database["id_brut_bv_reu"].str[:4], 
 		np.unique(filtered_election_database["id_brut_bv_reu"].str[:4]))]
@@ -207,14 +219,6 @@ for filter_idx,geographical_filter in enumerate(commune):
 	compute/read optimal transport
 	##############################
 	########################## """
-
-	## TO BE READ FROM THE FILE
-	candidate_list = [
-		'ARTHAUD', 'ROUSSEL', 'MACRON',
-		'LASSALLE', 'LE PEN', 'ZEMMOUR',
-		'MÉLENCHON', 'HIDALGO', 'JADOT',
-		'PÉCRESSE', 'POUTOU', 'DUPONT-AIGNAN'
-	]
 
 	""" #####################
 	compute optimal transport
