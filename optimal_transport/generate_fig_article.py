@@ -49,7 +49,7 @@ interesting_candidates = [
 	#["LE PEN", "MACRON", "MÉLENCHON"],
 	#["LE PEN", "MACRON", "MÉLENCHON"],
 	#["LE PEN", "MACRON", "MÉLENCHON"],
-	["LE PEN", "MACRON", "MÉLENCHON", "ZEMMOUR"]
+	["MACRON", "MÉLENCHON", "ZEMMOUR"]
 ]
 index_comparison = [
 	#False,
@@ -69,6 +69,7 @@ bvote_position_file_name  = "data/table-adresses-preprocessed.csv"
 fig_file_name = [
 	[
 		[f"results/article/{ geo[0] }/fig_{ geo[0] }_votes_{ candidate.replace(" ", "_") }.png"         for candidate in interesting_candidates[i]],
+		 f"results/article/{ geo[0] }/fig_{ geo[0] }_votes_global.png",
 		 f"results/article/{ geo[0] }/fig_{ geo[0] }_segregation.png",
 		[f"results/article/{ geo[0] }/fig_{ geo[0] }_segregation_{ candidate.replace(" ", "_") }.png"   for candidate in interesting_candidates[i]],
 		[f"results/article/{ geo[0] }/fig_{ geo[0] }_dissimilarity_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]],
@@ -267,6 +268,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	##########
 	###### """
 
+	
 	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
 		candidate_idx = candidate_list.index(interesting_candidate)
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
@@ -292,9 +294,41 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_aspect(map_ratio)
 		ax.set_title(f"Vote proportion for { interesting_candidate }\nduring the 2022 presidencial elections")
 
+		ax.set_xticks([])
+		ax.set_yticks([])
+
 		fig.tight_layout(pad=1.0)
 		fig.savefig(fig_file_name[filter_idx][0][interesting_candidate_idx])
 		plt.close(fig)
+
+	""" ###############
+	###################
+	plot vote bar chart
+	###################
+	############### """
+
+	fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+
+	sorted_votes = np.argsort(total_vote_proportion_candidate)[::-1]
+	ax.bar(
+		range(len(total_vote_proportion_candidate)),
+		total_vote_proportion_candidate[sorted_votes] * 100,
+		facecolor=["r" if candidate_list[candidate_idx] in interesting_candidates[filter_idx] else "C0" for candidate_idx in sorted_votes]
+	)
+	ax.set_xticks(
+		range(len(total_vote_proportion_candidate)),
+		labels=[
+			candidate_list[candidate_idx] for candidate_idx in sorted_votes
+		],
+		rotation=45
+	)
+
+	ax.set_title("Vote proportion for candidates\nduring the 2022 presidencial elections")
+	ax.set_ylabel("proportion of votes [%]")
+
+	fig.tight_layout(pad=1.0)
+	fig.savefig(fig_file_name[filter_idx][1])
+	plt.close(fig)
 
 	""" ##################
 	######################
@@ -337,7 +371,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	ax.set_title("Local heteogeneity index\nduring the 2022 presidencial elections")
 
 	fig.tight_layout(pad=1.0)
-	fig.savefig(fig_file_name[filter_idx][1])
+	fig.savefig(fig_file_name[filter_idx][2])
 	plt.close(fig)
 
 	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
@@ -365,8 +399,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_aspect(map_ratio)
 		ax.set_title(f"Local heteogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
 
+		ax.set_xticks([])
+		ax.set_yticks([])
+
 		fig.tight_layout(pad=1.0)
-		fig.savefig(fig_file_name[filter_idx][2][interesting_candidate_idx])
+		fig.savefig(fig_file_name[filter_idx][3][interesting_candidate_idx])
 		plt.close(fig)
 
 	""" ##################
@@ -394,9 +431,12 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		ax.set_aspect(map_ratio)
 		ax.set_title(f"signed heterogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
+		
+		ax.set_xticks([])
+		ax.set_yticks([])
 
 		fig.tight_layout(pad=1.0)
-		fig.savefig(fig_file_name[filter_idx][3][interesting_candidate_idx])
+		fig.savefig(fig_file_name[filter_idx][4][interesting_candidate_idx])
 		plt.close(fig)
 
 	""" ##########
@@ -416,7 +456,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	ax.set_aspect(map_ratio)
 	ax.set_title("Direction of heteogeneity during\nthe 2022 presidencial elections")
 
-	fig.savefig(fig_file_name[filter_idx][4])
+	fig.savefig(fig_file_name[filter_idx][5])
 	plt.close(fig)
 
 	if index_comparison[filter_idx]:
@@ -458,7 +498,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig.tight_layout(pad=1.0)
 		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
-		fig.savefig(fig_file_name[filter_idx][5][0])
+		fig.savefig(fig_file_name[filter_idx][6][0])
 		plt.close(fig)
 
 		""" ##########################################################
@@ -473,8 +513,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		ax.set_aspect(map_ratio)
 		ax.set_title("map of the comparison of our heteogeneity\nindex to the KL-divergence")
+		
+		ax.set_xticks([])
+		ax.set_yticks([])
 
-		fig.savefig(fig_file_name[filter_idx][5][1])
+		fig.savefig(fig_file_name[filter_idx][6][1])
 		plt.close(fig)
 
 		""" #################################
@@ -530,7 +573,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig.tight_layout(pad=1.0)
 		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
-		fig.savefig(fig_file_name[filter_idx][5][2])
+		fig.savefig(fig_file_name[filter_idx][6][2])
 		plt.close(fig)
 
 		""" ########################################################
@@ -545,8 +588,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		ax.set_aspect(map_ratio)
 		ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
+		
+		ax.set_xticks([])
+		ax.set_yticks([])
 
-		fig.savefig(fig_file_name[filter_idx][5][3])
+		fig.savefig(fig_file_name[filter_idx][6][3])
 		plt.close(fig)
 
 		""" ###########################################
@@ -592,7 +638,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig.tight_layout(pad=1.0)
 			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
-			fig.savefig(fig_file_name[filter_idx][5][4][interesting_candidate_idx])
+			fig.savefig(fig_file_name[filter_idx][6][4][interesting_candidate_idx])
 			plt.close(fig)
 
 			""" ##########################################################
@@ -607,8 +653,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			ax.set_aspect(map_ratio)
 			ax.set_title(f"map of the comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
+			
+			ax.set_xticks([])
+			ax.set_yticks([])
 
-			fig.savefig(fig_file_name[filter_idx][5][5][interesting_candidate_idx])
+			fig.savefig(fig_file_name[filter_idx][6][5][interesting_candidate_idx])
 			plt.close(fig)
 
 		""" ############################################
@@ -644,7 +693,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections")
 
 		fig.tight_layout(pad=1.0)
-		fig.savefig(fig_file_name[filter_idx][5][6])
+		fig.savefig(fig_file_name[filter_idx][6][6])
 		plt.close(fig)
 
 		""" ############################################
@@ -669,7 +718,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig.tight_layout(pad=1.0)
 		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
-		fig.savefig(fig_file_name[filter_idx][5][7])
+		fig.savefig(fig_file_name[filter_idx][6][7])
 		plt.close(fig)
 
 		""" ###################################################################
@@ -684,8 +733,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		ax.set_aspect(map_ratio)
 		ax.set_title("map of the comparison of our heteogeneity index\nbetween convex and concave")
+		
+		ax.set_xticks([])
+		ax.set_yticks([])
 
-		fig.savefig(fig_file_name[filter_idx][5][8])
+		fig.savefig(fig_file_name[filter_idx][6][8])
 		plt.close(fig)
 		
 		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
@@ -712,8 +764,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_aspect(map_ratio)
 			ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections\nfor { interesting_candidate }")
 
+			ax.set_xticks([])
+			ax.set_yticks([])
+
 			fig.tight_layout(pad=1.0)
-			fig.savefig(fig_file_name[filter_idx][5][9][interesting_candidate_idx])
+			fig.savefig(fig_file_name[filter_idx][6][9][interesting_candidate_idx])
 			plt.close(fig)
 
 			""" #########################################################################
@@ -735,7 +790,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig.tight_layout(pad=1.0)
 			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
-			fig.savefig(fig_file_name[filter_idx][5][10][interesting_candidate_idx])
+			fig.savefig(fig_file_name[filter_idx][6][10][interesting_candidate_idx])
 			plt.close(fig)
 
 			""" #############################################################################
@@ -751,6 +806,9 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_aspect(map_ratio)
 			ax.set_title(f"map of the comparison of our index\nbetween convex and concave\nfor { interesting_candidate }")
 
-			fig.savefig(fig_file_name[filter_idx][5][11][interesting_candidate_idx])
+			ax.set_xticks([])
+			ax.set_yticks([])
+
+			fig.savefig(fig_file_name[filter_idx][6][11][interesting_candidate_idx])
 			plt.close(fig)
 
