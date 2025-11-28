@@ -81,13 +81,19 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 	if plot_full:
 		fig, axes = plt.subplots(3, 3, figsize=(5*3, 5*3))
 		figs = np.full(axes.shape, None)
+		for axes_ in axes:
+			for ax in axes_:
+				ax.set_aspect(1)
 
 		axes[0, 0].imshow(disrib_image, origin="lower")
 		axes[0, 0].set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
 		if separate_figs:
 			figs[0, 0], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			ax.imshow(disrib_image, origin="lower")
-			ax.set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
 
 		population_density = distrib_3d.sum(axis=2)
 		population_density /= np.sum(population_density)
@@ -97,9 +103,12 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		axes[0, 1].set_title("Population density")
 		if separate_figs:
 			figs[0, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			cax = ax.contourf(X, Y, population_density)
 			cb = figs[0, 1].colorbar(cax)
-			ax.set_title("Population density")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Population density")
 
 		axes[0, 2].quiver(
 			X[::2, ::2], Y[::2, ::2],
@@ -109,12 +118,15 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		axes[0, 2].set_title("Directionality")
 		if separate_figs:
 			figs[0, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			ax.quiver(
 				X[::2, ::2], Y[::2, ::2],
 				(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])[::2, ::2],
 				(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])[::2, ::2]
 			)
-			ax.set_title("Directionality")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Directionality")
 
 		for i in range(min(3, distrib_3d.shape[2])):
 			cax = axes[1, i].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, i].reshape(distrib_3d.shape[:2]))
@@ -122,19 +134,29 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 			axes[1, i].set_title(f"Local heterogeneity index for candidate { i } ({ ["red", "green", "blue"][i] })")
 			if separate_figs:
 				figs[1, i], ax = plt.subplots(1, 1, figsize=(5, 5))
+				ax.set_aspect(1)
 				cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, i].reshape(distrib_3d.shape[:2]))
 				cb = figs[1, i].colorbar(cax)
-				ax.set_title(f"Local heterogeneity index for candidate { i } ({ ["red", "green", "blue"][i] })")
+				ax.set_xticks([])
+				ax.set_yticks([])
+				#ax.set_title(f"Local heterogeneity index for candidate { i } ({ ["red", "green", "blue"][i] })")
 
 			cax = axes[2, i].contourf(X, Y, ot_dissimilarity[:, i].reshape(distrib_3d.shape[:2]))
 			cb = fig.colorbar(cax)
 			axes[2, i].set_title(f"Signed heterogeneity for candidate { i } ({ ["red", "green", "blue"][i] }")
 			if separate_figs:
 				figs[2, i], ax = plt.subplots(1, 1, figsize=(5, 5))
+				ax.set_aspect(1)
 				cax = ax.contourf(X, Y, ot_dissimilarity[:, i].reshape(distrib_3d.shape[:2]))
 				cb = figs[2, i].colorbar(cax)
-				ax.set_title(f"Signed heterogeneity for candidate { i } ({ ["red", "green", "blue"][i] }")
+				ax.set_xticks([])
+				ax.set_yticks([])
+				#ax.set_title(f"Signed heterogeneity for candidate { i } ({ ["red", "green", "blue"][i] }")
 
+		for axes_ in axes:
+			for ax in axes_:
+				ax.set_xticks([])
+				ax.set_yticks([])
 		fig.tight_layout(pad=1.0)
 
 		return fig, figs, total_ot_dist
@@ -142,13 +164,19 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 	else:
 		fig, axes = plt.subplots(2, 3, figsize=(5*3, 5*2))
 		figs = np.full(axes.shape, None)
+		for axes_ in axes:
+			for ax in axes_:
+				ax.set_aspect(1)
 
 		axes[0, 0].imshow(disrib_image, origin="lower")
 		axes[0, 0].set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
 		if separate_figs:
 			figs[0, 0], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			ax.imshow(disrib_image, origin="lower")
-			ax.set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Repartition of the two candidate (red and green)" if distrib_3d.shape[2] == 2 else "Repartition of the three candidate (red green and blue)")
 
 		cax = axes[0, 1].contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
@@ -161,6 +189,7 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 		axes[0, 1].set_title("Local heterogeneity index")
 		if separate_figs:
 			figs[0, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			cax = ax.contourf(X, Y, ot_dist_contribution_local.reshape(distrib_3d.shape[:2]))
 			cb = figs[0, 1].colorbar(cax)
 			for i in range(min(3, distrib_3d.shape[2])):
@@ -169,7 +198,9 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 					markeredgecolor='w', markeredgewidth=0.2)
 			cb.ax.plot(0.5, total_ot_dist,
 				markerfacecolor='w', markeredgecolor='w', marker='x', markersize=10)
-			ax.set_title("Local heterogeneity index")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Local heterogeneity index")
 
 		if plot_density:
 			population_density = distrib_3d.sum(axis=2)
@@ -180,9 +211,12 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 			axes[0, 2].set_title("Population density")
 			if separate_figs:
 				figs[0, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+				ax.set_aspect(1)
 				cax = ax.contourf(X, Y, population_density)
 				cb = figs[0, 2].colorbar(cax)
-				ax.set_title("Population density")
+				ax.set_xticks([])
+				ax.set_yticks([])
+				#ax.set_title("Population density")
 		else:
 			axes[0, 2].quiver(
 				X, Y,
@@ -192,41 +226,57 @@ def compute_and_plot_heterogeneity(distrib_3d_, alpha=-0.01, plot_density=False,
 			axes[0, 2].set_title("Directionality")
 			if separate_figs:
 				figs[0, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+				ax.set_aspect(1)
 				ax.quiver(
 					X, Y,
 					(ot_direction[:, 1] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2]),
 					(ot_direction[:, 0] / ot_dist_contribution_local).reshape(distrib_3d.shape[:2])
 				)
-				ax.set_title("Directionality")
+				ax.set_xticks([])
+				ax.set_yticks([])
+				#ax.set_title("Directionality")
 
 		cax = axes[1, 0].contourf(X, Y, ot_dissimilarity[:, 0].reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
 		axes[1, 0].set_title("Signed heterogeneity for candidate 0 (red)")
 		if separate_figs:
 			figs[1, 0], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			cax = ax.contourf(X, Y, ot_dissimilarity[:, 0].reshape(distrib_3d.shape[:2]))
 			cb = figs[1, 0].colorbar(cax)
-			ax.set_title("Signed heterogeneity for candidate 0 (red)")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Signed heterogeneity for candidate 0 (red)")
 
 		cax = axes[1, 1].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
 		axes[1, 1].set_title("Local heterogeneity index for candidate 0 (red)")
 		if separate_figs:
 			figs[1, 1], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 0].reshape(distrib_3d.shape[:2]))
 			cb = figs[1, 1].colorbar(cax)
-			ax.set_title("Local heterogeneity index for candidate 0 (red)")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Local heterogeneity index for candidate 0 (red)")
 
 		cax = axes[1, 2].contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
 		cb = fig.colorbar(cax)
 		axes[1, 2].set_title("Local heterogeneity index for candidate 1 (green)")
 		if separate_figs:
 			figs[1, 2], ax = plt.subplots(1, 1, figsize=(5, 5))
+			ax.set_aspect(1)
 			cax = ax.contourf(X, Y, ot_dist_contribution_local_per_candidate[:, 1].reshape(distrib_3d.shape[:2]))
 			cb = figs[1, 2].colorbar(cax)
-			ax.set_title("Local heterogeneity index for candidate 1 (green)")
+			ax.set_xticks([])
+			ax.set_yticks([])
+			#ax.set_title("Local heterogeneity index for candidate 1 (green)")
 
 		fig.tight_layout(pad=1.0)
+		for axes_ in axes:
+			for ax in axes_:
+				ax.set_xticks([])
+				ax.set_yticks([])
 
 		return fig, figs, total_ot_dist
 
@@ -327,7 +377,7 @@ if sum(seg_list != 0) == len(size_list) and (overwrite or not path.exists("selec
 
 	ax.plot(size_list, seg_list, "+-")
 
-	ax.set_title("Evolution of heterogeneity index\nvs the granularity of the distribution")
+	#ax.set_title("Evolution of heterogeneity index\nvs the granularity of the distribution")
 	ax.set_xlabel("Number of subdivision per section")
 	ax.set_ylabel("Global heterogeneity index")
 
@@ -384,7 +434,7 @@ if sum(seg_list != 0) == len(M) and (overwrite or not path.exists("selection_art
 
 	ax.plot(M, seg_list, "+-")
 
-	ax.set_title("Evolution of heterogeneity index vs\nthe number of subdivion of the checkerboard")
+	#ax.set_title("Evolution of heterogeneity index vs\nthe number of subdivion of the checkerboard")
 	ax.set_xlabel("Number of segment per side of the square")
 	ax.set_ylabel("Global heterogeneity index")
 

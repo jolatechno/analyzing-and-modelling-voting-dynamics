@@ -14,6 +14,9 @@ from matplotlib.ticker import MaxNLocator
 import oterogeneity as oth
 from oterogeneity import utils
 
+show_title_and_legend = False
+every_fig_same_ratio = True
+
 def get_lambda_line_filter(long0, lat0, long1, lat1, select_top=False):
 	a = (lat1 - lat0) / (long1 - long0)
 	b = lat0 - a * long0
@@ -172,7 +175,8 @@ def plot_categories(position_database, categories, colors, id_field, id_field_na
 	if not label_is_none:
 		fig = ax.get_figure()
 		fig.tight_layout(pad=1.0)
-		fig.legend()
+		if show_title_and_legend:
+			fig.legend()
 
 """ ##############################################
 ##################################################
@@ -292,7 +296,9 @@ for filter_idx,geographical_filter in enumerate(commune):
 		################################################### """
 
 		ax.set_aspect(map_ratio)
-		ax.set_title(f"Vote proportion for { interesting_candidate }\nduring the 2022 presidencial elections")
+
+		if show_title_and_legend:
+			ax.set_title(f"Vote proportion for { interesting_candidate }\nduring the 2022 presidencial elections")
 
 		ax.set_xticks([])
 		ax.set_yticks([])
@@ -307,7 +313,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	###################
 	############### """
 
-	fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+	fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 	sorted_votes = np.argsort(total_vote_proportion_candidate)[::-1]
 	ax.bar(
@@ -323,7 +329,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		rotation=45
 	)
 
-	ax.set_title("Vote proportion for candidates\nduring the 2022 presidencial elections")
+	if show_title_and_legend:
+		ax.set_title("Vote proportion for candidates\nduring the 2022 presidencial elections")
 	ax.set_ylabel("proportion of votes [%]")
 
 	fig.tight_layout(pad=1.0)
@@ -367,8 +374,12 @@ for filter_idx,geographical_filter in enumerate(commune):
 	cbar.ax.text(-1.1, line.get_ydata()-20, "avg.")
 	################################################### """
 
+	ax.set_xticks([])
+	ax.set_yticks([])
+
 	ax.set_aspect(map_ratio)
-	ax.set_title("Local heteogeneity index\nduring the 2022 presidencial elections")
+	if show_title_and_legend:
+		ax.set_title("Local heteogeneity index\nduring the 2022 presidencial elections")
 
 	fig.tight_layout(pad=1.0)
 	fig.savefig(fig_file_name[filter_idx][2])
@@ -377,7 +388,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
 		candidate_idx = candidate_list.index(interesting_candidate)
 
-		fig, ax = plt.subplots(1, 1, figsize=(6 + 1.5, 6/map_ratio + 0.5))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 		pl = plot_geo_data(filtered_bvote_position_database, ot_dist_contribution_candidates[candidate_idx, :], filtered_election_database["id_brut_bv_reu"],
 			clip=clip_segregation, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
@@ -397,7 +408,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		print(f"{ round(ot_dist_candidates[candidate_idx]) }m for { interesting_candidate } for {  commune[filter_idx][0] }")
 
 		ax.set_aspect(map_ratio)
-		ax.set_title(f"Local heteogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
+		if show_title_and_legend:
+			ax.set_title(f"Local heteogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
 
 		ax.set_xticks([])
 		ax.set_yticks([])
@@ -415,7 +427,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
 		candidate_idx = candidate_list.index(interesting_candidate)
 
-		fig, ax = plt.subplots(1, 1, figsize=(6 + 1.5, 6/map_ratio + 0.5))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 		#pl = plot_geo_data(filtered_bvote_position_database, ot_dist_dissimilarity[candidate_idx, :], filtered_election_database["id_brut_bv_reu"],
 		pl = plot_geo_data(filtered_bvote_position_database, np.abs(ot_dist_dissimilarity[candidate_idx, :]), filtered_election_database["id_brut_bv_reu"],
@@ -430,7 +442,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		cbar.mappable.set_cmap("viridis")
 
 		ax.set_aspect(map_ratio)
-		ax.set_title(f"signed heterogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
+		if show_title_and_legend:
+			ax.set_title(f"signed heterogeneity index for { interesting_candidate }\nduring the 2022 presidencial elections")
 		
 		ax.set_xticks([])
 		ax.set_yticks([])
@@ -445,7 +458,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 	##############
 	########## """
 
-	fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+	fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 	ax.quiver(
 		lon, lat,
@@ -453,8 +466,12 @@ for filter_idx,geographical_filter in enumerate(commune):
 		(ot_direction[:, 0] / np.clip(ot_dist_contribution, max(1e-6, np.percentile(ot_dist_contribution, 0.5)), np.inf))
 	)
 
+	ax.set_xticks([])
+	ax.set_yticks([])
+
 	ax.set_aspect(map_ratio)
-	ax.set_title("Direction of heteogeneity during\nthe 2022 presidencial elections")
+	if show_title_and_legend:
+		ax.set_title("Direction of heteogeneity during\nthe 2022 presidencial elections")
 
 	fig.savefig(fig_file_name[filter_idx][5])
 	plt.close(fig)
@@ -480,7 +497,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		plot comparison with the KL divergence index
 		######################################## """
 
-		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[Kl_is_middle], Kl_divergence[Kl_is_middle], "+k", label=None)
 		ax.plot(ot_dist_contribution[Kl_is_upper],  Kl_divergence[Kl_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
@@ -492,12 +509,14 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_xscale("log")
 		ax.set_yscale("log")
 
-		ax.set_title("Comparison of our heteogeneity index to the KL-divergence")
+		if show_title_and_legend:
+			ax.set_title("Comparison of our heteogeneity index to the KL-divergence")
 		ax.set_xlabel("Our optimal-transport based index")
 		ax.set_ylabel("KL-divergence")
 
 		fig.tight_layout(pad=1.0)
-		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+		if show_title_and_legend:
+			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
 		fig.savefig(fig_file_name[filter_idx][6][0])
 		plt.close(fig)
 
@@ -505,14 +524,15 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ploting the map of the comparison with the KL divergence index
 		########################################################## """
 
-		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 		pl = plot_categories(filtered_bvote_position_database, (Kl_is_upper + Kl_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 		ax.set_aspect(map_ratio)
-		ax.set_title("map of the comparison of our heteogeneity\nindex to the KL-divergence")
+		if show_title_and_legend:
+			ax.set_title("map of the comparison of our heteogeneity\nindex to the KL-divergence")
 		
 		ax.set_xticks([])
 		ax.set_yticks([])
@@ -555,7 +575,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		plot comparison with the multiscalar index
 		###################################### """
 
-		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[dist_is_middle], distort_coef[dist_is_middle], "+k", label=None)
 		ax.plot(ot_dist_contribution[dist_is_upper],  distort_coef[dist_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
@@ -567,12 +587,14 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_xscale("log")
 		ax.set_yscale("log")
 
-		ax.set_title("Comparison of our heteogeneity index to\nthe multiscalar heteogeneity index")
+		if show_title_and_legend:
+			ax.set_title("Comparison of our heteogeneity index to\nthe multiscalar heteogeneity index")
 		ax.set_xlabel("Our optimal-transport based index")
 		ax.set_ylabel("Multiscalar heteogeneity index (non-normalized)")
 
 		fig.tight_layout(pad=1.0)
-		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+		if show_title_and_legend:
+			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
 		fig.savefig(fig_file_name[filter_idx][6][2])
 		plt.close(fig)
 
@@ -580,14 +602,15 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ploting the map of the comparison with the multiscalar index
 		######################################################## """
 
-		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 		pl = plot_categories(filtered_bvote_position_database, (dist_is_upper + dist_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 		ax.set_aspect(map_ratio)
-		ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
+		if show_title_and_legend:
+			ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
 		
 		ax.set_xticks([])
 		ax.set_yticks([])
@@ -623,7 +646,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 			plot comparison dissimilarity and difference
 			######################################## """
 
-			fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_middle], candidate_vote_difference[diff_is_middle], "+k", label=None)
 			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_upper],  candidate_vote_difference[diff_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
@@ -632,12 +655,14 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_xlim(np.percentile(ot_dist_dissimilarity[candidate_idx, :], [1, 99]) * 1.1)
 			ax.set_ylim(np.percentile(candidate_vote_difference,               [1, 99]) * 1.1)
 
-			ax.set_title(f"Comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
+			if show_title_and_legend:
+				ax.set_title(f"Comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
 			ax.set_xlabel("Our optimal-transport based dissimilarity")
 			ax.set_ylabel("vote excess/deficit")
 
 			fig.tight_layout(pad=1.0)
-			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+			if show_title_and_legend:
+				fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
 			fig.savefig(fig_file_name[filter_idx][6][4][interesting_candidate_idx])
 			plt.close(fig)
 
@@ -645,14 +670,15 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ploting the map of the comparison dissimilarity and difference
 			########################################################## """
 
-			fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 			pl = plot_categories(filtered_bvote_position_database, (diff_is_upper + diff_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
 				filters=dont_show_filter[filter_idx],
 				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 			ax.set_aspect(map_ratio)
-			ax.set_title(f"map of the comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
+			if show_title_and_legend:
+				ax.set_title(f"map of the comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
 			
 			ax.set_xticks([])
 			ax.set_yticks([])
@@ -690,7 +716,11 @@ for filter_idx,geographical_filter in enumerate(commune):
 		cbar.mappable.set_cmap("viridis")
 
 		ax.set_aspect(map_ratio)
-		ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections")
+		if show_title_and_legend:
+			ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections")
+		
+		ax.set_xticks([])
+		ax.set_yticks([])
 
 		fig.tight_layout(pad=1.0)
 		fig.savefig(fig_file_name[filter_idx][6][6])
@@ -700,7 +730,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		plot comparison between concave and convex index
 		############################################ """
 
-		fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[convex_is_middle], ot_dist_contribution_convex[convex_is_middle], "+k", label=None)
 		ax.plot(ot_dist_contribution[convex_is_upper],  ot_dist_contribution_convex[convex_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
@@ -712,12 +742,14 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_xscale("log")
 		ax.set_yscale("log")
 
-		ax.set_title("Comparison of our heteogeneity index to\nbetween convex and concave")
+		if show_title_and_legend:
+			ax.set_title("Comparison of our heteogeneity index to\nbetween convex and concave")
 		ax.set_xlabel("Concave index")
 		ax.set_ylabel("Convex index")
 
 		fig.tight_layout(pad=1.0)
-		fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+		if show_title_and_legend:
+			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
 		fig.savefig(fig_file_name[filter_idx][6][7])
 		plt.close(fig)
 
@@ -725,14 +757,15 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ploting the map of the comparison with between concave and convex index
 		################################################################### """
 
-		fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 		pl = plot_categories(filtered_bvote_position_database, (convex_is_upper + convex_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 		ax.set_aspect(map_ratio)
-		ax.set_title("map of the comparison of our heteogeneity index\nbetween convex and concave")
+		if show_title_and_legend:
+			ax.set_title("map of the comparison of our heteogeneity index\nbetween convex and concave")
 		
 		ax.set_xticks([])
 		ax.set_yticks([])
@@ -762,7 +795,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 			cbar.mappable.set_cmap("viridis")
 
 			ax.set_aspect(map_ratio)
-			ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections\nfor { interesting_candidate }")
+			if show_title_and_legend:
+				ax.set_title("Local heteogeneity (convex) index\nduring the 2022 presidencial elections\nfor { interesting_candidate }")
 
 			ax.set_xticks([])
 			ax.set_yticks([])
@@ -775,7 +809,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 			plot comparison between concave and convex index for candidates per candidate
 			######################################################################### """
 
-			fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_middle], ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_middle], "+k", label=None)
 			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_upper],  ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
@@ -784,12 +818,14 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[candidate_idx, :],        [1, 99]) * 1.1)
 			ax.set_ylim(np.percentile(ot_dist_contribution_candidates_convex[candidate_idx, :], [1, 99]) * 1.1)
 
-			ax.set_title(f"Comparison of our index\nbetween convex and concave\nfor { interesting_candidate }")
+			if show_title_and_legend:
+				ax.set_title(f"Comparison of our index\nbetween convex and concave\nfor { interesting_candidate }")
 			ax.set_xlabel("Concave index")
 			ax.set_ylabel("Convex index")
 
 			fig.tight_layout(pad=1.0)
-			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+			if show_title_and_legend:
+				fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
 			fig.savefig(fig_file_name[filter_idx][6][10][interesting_candidate_idx])
 			plt.close(fig)
 
@@ -797,14 +833,15 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ploting the map of the comparison between concave and convex index for candidates
 			############################################################################# """
 
-			fig, ax = plt.subplots(1, 1, figsize=(6, 6/map_ratio + 1))
+			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 			pl = plot_categories(filtered_bvote_position_database, (convex_is_upper + convex_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
 				filters=dont_show_filter[filter_idx],
 				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
 			ax.set_aspect(map_ratio)
-			ax.set_title(f"map of the comparison of our index\nbetween convex and concave\nfor { interesting_candidate }")
+			if show_title_and_legend:
+				ax.set_title(f"map of the comparison of our index\nbetween convex and concave\nfor { interesting_candidate }")
 
 			ax.set_xticks([])
 			ax.set_yticks([])
