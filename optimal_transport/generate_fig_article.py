@@ -255,8 +255,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		for interesting_candidate in interesting_candidates[filter_idx]:
 			candidate_idx     = candidate_list.index(interesting_candidate)
 			candidate_distrib = np.array(filtered_election_database[interesting_candidate + " Voix"]) / (reference_distrib * total_voting_population)
-			clip_votes[1]     = max(    clip_votes[1], np.percentile(candidate_distrib, 93))
-			clip_votes[0]     = max(min(clip_votes[0], np.percentile(candidate_distrib, 12)), 0.01)
+			clip_votes[1]     = max(    clip_votes[1], np.percentile(candidate_distrib, 90))
+			clip_votes[0]     = max(min(clip_votes[0], np.percentile(candidate_distrib, 10)), 0.02)
 		clip_segregation   = [
 			min(np.percentile(ot_dist_contribution_candidates, 12),  np.percentile(ot_dist_contribution, 12)),
 			max(np.percentile(ot_dist_contribution_candidates, 93), np.percentile(ot_dist_contribution, 93))
@@ -278,13 +278,13 @@ for filter_idx,geographical_filter in enumerate(commune):
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
 		vote_distrib_candidate    = np.array(filtered_election_database[interesting_candidate + " Voix"])
-		vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"])
+		vote_proportion_candidate = vote_distrib_candidate / np.array(filtered_election_database["Votants"]) * 100
 
 		pl = plot_geo_data(filtered_bvote_position_database, vote_proportion_candidate, filtered_election_database["id_brut_bv_reu"],
-			clip=clip_votes, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
+			clip=[clip_votes[0]*100, clip_votes[1]*100], filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
 
-		cbar = fig.colorbar(pl, label="proportion of votes", format='%1.2f')
-		cbar.mappable.set_clim(*clip_votes)
+		cbar = fig.colorbar(pl, label="proportion of votes [%]", format='%1.0f')
+		cbar.mappable.set_clim(clip_votes[0]*100, clip_votes[1]*100)
 		cbar.mappable.set_cmap("viridis")
 
 		""" ###################################################
@@ -436,7 +436,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] < 0) - 0.5, filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx])
 
-		cbar = fig.colorbar(pl, label="signed heterogeneity [m]", format='%1.2f')
+		cbar = fig.colorbar(pl, label="signed heterogeneity [m]", format='%1.0f')
 		cbar.mappable.set_clim(*clip_dissimilarity)
 		#cbar.mappable.set_cmap("managua")
 		cbar.mappable.set_cmap("viridis")
