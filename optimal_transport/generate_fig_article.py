@@ -116,7 +116,7 @@ def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_r
 
 	return ax.scatter(lon, lat, c=dat, s=0.7, alpha=1, norm=norm)
 
-def plot_hatching(position_database, data, id_field, id_field_name="id_brut_bv_reu", hatches_limit=0, filters=[], n_points=100, hatches_strength=3):
+def plot_hatching(position_database, data, id_field, id_field_name="id_brut_bv_reu", hatches_limit=0, filters=[], n_points=50, hatching="/", color="r", alpha=0.7):
 	dat, lon, lat = [], [], []
 	for id_,value in zip(id_field, data):
 		mask = position_database[id_field_name] == id_
@@ -131,22 +131,24 @@ def plot_hatching(position_database, data, id_field, id_field_name="id_brut_bv_r
 		lat.extend(lat_toadd[show])
 		dat.extend([value] * np.sum(show))
 
-	lon_plot_1d = np.linspace(np.min(lon), np.max(lon), n_points)
-	lat_plot_1d = np.linspace(np.min(lat), np.max(lat), n_points)
-	lon_plot, lat_plot = np.meshgrid(lon_plot_1d, lat_plot_1d)
+	lon_id_1d = np.linspace(np.min(lon), np.max(lon), n_points)
+	lat_id_1d = np.linspace(np.min(lat), np.max(lat), n_points)
+	lon_plot, lat_plot = np.meshgrid(lon_id_1d - (lon_id_1d[1] - lon_id_1d[0]) / 2, lat_id_1d - (lat_id_1d[1] - lat_id_1d[0]) / 2)
 	dat_plot  = np.zeros((n_points, n_points))
 	dat_count = np.zeros((n_points, n_points))
 
 	for lon_,lat_,val_ in zip(lon, lat, dat):
-		idx_lon = np.searchsorted(lon_plot_1d, lon_)
-		idx_lat = np.searchsorted(lat_plot_1d, lat_)
+		idx_lon = np.searchsorted(lon_id_1d, lon_)
+		idx_lat = np.searchsorted(lat_id_1d, lat_)
 		dat_count[idx_lat, idx_lon] += 1
 		dat_plot[ idx_lat, idx_lon] += val_
 
 	dat_plot[dat_count == 0] = -np.inf
 	dat_plot /= np.maximum(dat_count, 1)
 
-	return ax.contourf(lon_plot, lat_plot, dat_plot, levels=[-np.inf, hatches_limit, np.inf], hatches=['', '/'*hatches_strength])
+	c = ax.contourf(lon_plot, lat_plot, dat_plot, levels=[hatches_limit, np.inf], hatches=[hatching], alpha=alpha)
+	c.set_edgecolor(color)
+	return c
 
 def plot_categories(position_database, categories, colors, id_field, id_field_name="id_brut_bv_reu", labels=None, filters=[]):
 	cat, lon, lat = [], [], []
@@ -433,7 +435,9 @@ for filter_idx,geographical_filter in enumerate(commune):
 		pl = plot_geo_data(filtered_bvote_position_database, np.abs(ot_dist_dissimilarity[candidate_idx, :]), filtered_election_database["id_brut_bv_reu"],
 			clip=clip_dissimilarity, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
 
-		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] < 0) - 0.5, filtered_election_database["id_brut_bv_reu"],
+		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] < 0) - 0.5, filtered_election_database["id_brut_bv_reu"], hatching="/" *3, color="r", alpha=0.5,
+			filters=dont_show_filter[filter_idx])
+		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] > 0) - 0.5, filtered_election_database["id_brut_bv_reu"], hatching="\\"*3, color="c", alpha=0.6,
 			filters=dont_show_filter[filter_idx])
 
 		cbar = fig.colorbar(pl, label="signed heterogeneity [m]", format='%1.0f')
