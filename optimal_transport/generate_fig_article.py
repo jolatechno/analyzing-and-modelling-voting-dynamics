@@ -116,7 +116,7 @@ def plot_geo_data(position_database, data, id_field, id_field_name="id_brut_bv_r
 
 	return ax.scatter(lon, lat, c=dat, s=0.7, alpha=1, norm=norm)
 
-def plot_hatching(position_database, data, id_field, id_field_name="id_brut_bv_reu", hatches_limit=0, filters=[], n_points=50, hatching="/", color="r", alpha=0.7):
+def plot_hatching(position_database, data, id_field, id_field_name="id_brut_bv_reu", hatches_limit=0, filters=[], n_points=100, hatching="/", color="r", alpha=0.7, linewidth=0.2, remove_holes=True):
 	dat, lon, lat = [], [], []
 	for id_,value in zip(id_field, data):
 		mask = position_database[id_field_name] == id_
@@ -146,8 +146,43 @@ def plot_hatching(position_database, data, id_field, id_field_name="id_brut_bv_r
 	dat_plot[dat_count == 0] = -np.inf
 	dat_plot /= np.maximum(dat_count, 1)
 
+	if remove_holes:
+		for idx_lat in range(n_points):
+			for idx_lon in range(n_points):
+				if dat_count[idx_lat, idx_lon] == 0:
+					if np.any(dat_count[idx_lat:, idx_lon] > 0) and np.any(dat_count[:idx_lat, idx_lon] > 0) \
+						and np.any(dat_count[idx_lat, idx_lon:] > 0) and np.any(dat_count[idx_lat, :idx_lon] > 0):
+						min_idx_diff = np.inf
+						for idx_lat_ in range(idx_lat+1, n_points):
+							if dat_count[idx_lat_, idx_lon] > 0:
+								min_idx_diff = idx_lat_ - idx_lat
+								dat_plot[idx_lat, idx_lon] = dat_plot[idx_lat_, idx_lon]
+								break
+						for idx_lat_ in range(idx_lat-1, -1, -1):
+							if dat_count[idx_lat_, idx_lon] > 0:
+								idx_diff = idx_lat - idx_lat_
+								if idx_diff < min_idx_diff:
+									min_idx_diff = idx_diff
+									dat_plot[idx_lat, idx_lon] = dat_plot[idx_lat_, idx_lon]
+									break
+						for idx_lon_ in range(idx_lon+1, n_points):
+							if dat_count[idx_lat, idx_lon_] > 0:
+								idx_diff = idx_lon_ - idx_lon
+								if idx_diff < min_idx_diff:
+									min_idx_diff = idx_diff
+									dat_plot[idx_lat, idx_lon] = dat_plot[idx_lat, idx_lon_]
+									break
+						for idx_lon_ in range(idx_lon-1, -1, -1):
+							if dat_count[idx_lat, idx_lon_] > 0:
+								idx_diff = idx_lon - idx_lon_
+								if idx_diff < min_idx_diff:
+									min_idx_diff = idx_diff
+									dat_plot[idx_lat, idx_lon] = dat_plot[idx_lat, idx_lon_]
+									break
+
 	c = ax.contourf(lon_plot, lat_plot, dat_plot, levels=[hatches_limit, np.inf], hatches=[hatching], alpha=alpha)
 	c.set_edgecolor(color)
+	c.set_linewidth(linewidth)
 	return c
 
 def plot_categories(position_database, categories, colors, id_field, id_field_name="id_brut_bv_reu", labels=None, filters=[]):
@@ -231,12 +266,12 @@ for filter_idx,geographical_filter in enumerate(commune):
 	compute optimal transport
 	##################### """
 	
-	distrib_canidates        = np.array([np.array(filtered_election_database[candidate + " Voix"]) for candidate in candidate_list])
-	total_vote_candidates    = np.sum(distrib_canidates, axis=1)
+	distrib_candidates        = np.array([np.array(filtered_election_database[candidate + " Voix"]) for candidate in candidate_list])
+	total_vote_candidates    = np.sum(distrib_candidates, axis=1)
 	total_voting_population  = np.sum(total_vote_candidates)
-	reference_distrib        = np.clip(np.sum(distrib_canidates, axis=0) / total_voting_population, 1e-6, np.inf)
+	reference_distrib        = np.clip(np.sum(distrib_candidates, axis=0) / total_voting_population, 1e-6, np.inf)
 
-	results = oth.ot_heterogeneity_populations(distrib_canidates, distance_matrix, unitary_direction_matrix)
+	results = oth.ot_heterogeneity_populations(distrib_candidates, distance_matrix, unitary_direction_matrix=unitary_direction_matrix)
 	
 	total_ot_dist      = results.global_heterogeneity
 	ot_dist_candidates = results.global_heterogeneity_per_category
@@ -435,9 +470,9 @@ for filter_idx,geographical_filter in enumerate(commune):
 		pl = plot_geo_data(filtered_bvote_position_database, np.abs(ot_dist_dissimilarity[candidate_idx, :]), filtered_election_database["id_brut_bv_reu"],
 			clip=clip_dissimilarity, filters=dont_show_filter[filter_idx], norm=matplotlib.colors.SymLogNorm(linthresh=0.001, base=2))
 
-		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] < 0) - 0.5, filtered_election_database["id_brut_bv_reu"], hatching="/" *3, color="r", alpha=0.5,
+		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] < 0) - 0.5, filtered_election_database["id_brut_bv_reu"], hatching="/" *3, color="r", alpha=0.6,
 			filters=dont_show_filter[filter_idx])
-		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] > 0) - 0.5, filtered_election_database["id_brut_bv_reu"], hatching="\\"*3, color="c", alpha=0.6,
+		plot_hatching(filtered_bvote_position_database, (ot_dist_dissimilarity[candidate_idx, :] > 0) - 0.5, filtered_election_database["id_brut_bv_reu"], hatching="\\"*3, color="aqua", alpha=0.7,
 			filters=dont_show_filter[filter_idx])
 
 		cbar = fig.colorbar(pl, label="signed heterogeneity [m]", format='%1.0f')
@@ -696,7 +731,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		################################################
 		############################################ """
 
-		results_convex = oth.ot_heterogeneity_populations(distrib_canidates, distance_matrix, unitary_direction_matrix, epsilon_exponent=1e-3)
+		results_convex = oth.ot_heterogeneity_populations(distrib_candidates, distance_matrix, unitary_direction_matrix=unitary_direction_matrix, epsilon_exponent=1e-3)
 
 		ot_dist_contribution_convex            = results_convex.local_heterogeneity
 		ot_dist_contribution_candidates_convex = results_convex.local_heterogeneity_per_category
