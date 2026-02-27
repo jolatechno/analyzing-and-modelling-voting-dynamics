@@ -10,6 +10,7 @@ from scipy import interpolate
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import urllib.request
 
 import oterogeneity as oth
 from oterogeneity import utils
