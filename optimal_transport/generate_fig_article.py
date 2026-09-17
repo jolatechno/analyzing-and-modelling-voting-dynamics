@@ -548,8 +548,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[Kl_is_middle], Kl_divergence[Kl_is_middle], "+k", label=None)
-		ax.plot(ot_dist_contribution[Kl_is_upper],  Kl_divergence[Kl_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-		ax.plot(ot_dist_contribution[Kl_is_lower],  Kl_divergence[Kl_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[Kl_is_upper],  Kl_divergence[Kl_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[Kl_is_lower],  Kl_divergence[Kl_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
 		ax.set_ylim(np.percentile(Kl_divergence,        [1, 99]) * np.array([0.9, 1.1]))
@@ -574,7 +574,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-		pl = plot_categories(filtered_bvote_position_database, (Kl_is_upper + Kl_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_categories(filtered_bvote_position_database, (Kl_is_lower + Kl_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
@@ -626,8 +626,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[dist_is_middle], distort_coef[dist_is_middle], "+k", label=None)
-		ax.plot(ot_dist_contribution[dist_is_upper],  distort_coef[dist_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-		ax.plot(ot_dist_contribution[dist_is_lower],  distort_coef[dist_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[dist_is_upper],  distort_coef[dist_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[dist_is_lower],  distort_coef[dist_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
 		ax.set_ylim(np.percentile(distort_coef,         [1, 99]) * np.array([0.9, 1.1]))
@@ -652,7 +652,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-		pl = plot_categories(filtered_bvote_position_database, (dist_is_upper + dist_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_categories(filtered_bvote_position_database, (dist_is_lower + dist_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
@@ -697,8 +697,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_middle], candidate_vote_difference[diff_is_middle], "+k", label=None)
-			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_upper],  candidate_vote_difference[diff_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_lower],  candidate_vote_difference[diff_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_upper],  candidate_vote_difference[diff_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][diff_is_lower],  candidate_vote_difference[diff_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 			ax.set_xlim(np.percentile(ot_dist_dissimilarity[candidate_idx, :], [1, 99]) * 1.1)
 			ax.set_ylim(np.percentile(candidate_vote_difference,               [1, 99]) * 1.1)
@@ -720,7 +720,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-			pl = plot_categories(filtered_bvote_position_database, (diff_is_upper + diff_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			pl = plot_categories(filtered_bvote_position_database, (diff_is_lower + diff_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 				filters=dont_show_filter[filter_idx],
 				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
@@ -776,7 +776,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		diss_is_upper, diss_is_lower   = dissimilarity_over_ot > diss_upper_lim, dissimilarity_over_ot < diss_lower_lim
 		diss_is_middle                 = np.logical_and(np.logical_not(diss_is_upper), np.logical_not(diss_is_lower))
 
-		isolation_over_ot            = isolation / ot_dist_contribution
+		isolation_over_ot            = isolation / np.log(ot_dist_contribution)
 		iso_upper_lim, iso_lower_lim = np.percentile(isolation_over_ot, comparison_percetiles[1]), np.percentile(isolation_over_ot, comparison_percetiles[0])
 		iso_is_upper, iso_is_lower   = isolation_over_ot > iso_upper_lim, isolation_over_ot < iso_lower_lim
 		iso_is_middle                = np.logical_and(np.logical_not(iso_is_upper), np.logical_not(iso_is_lower))
@@ -788,14 +788,14 @@ for filter_idx,geographical_filter in enumerate(commune):
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[diss_is_middle], dissimilarity[diss_is_middle], "+k", label=None)
-		ax.plot(ot_dist_contribution[diss_is_upper],  dissimilarity[diss_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-		ax.plot(ot_dist_contribution[diss_is_lower],  dissimilarity[diss_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[diss_is_upper],  dissimilarity[diss_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[diss_is_lower],  dissimilarity[diss_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
 		ax.set_ylim(np.percentile(dissimilarity,        [1, 99]) * np.array([0.9, 1.1]))
 
 		ax.set_xscale("log")
-		ax.set_yscale("log")
+		#ax.set_yscale("log")
 
 		if show_title_and_legend:
 			ax.set_title("Comparison of our heteogeneity index to\nthe dissimilarity index")
@@ -815,14 +815,14 @@ for filter_idx,geographical_filter in enumerate(commune):
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[iso_is_middle], isolation[iso_is_middle], "+k", label=None)
-		ax.plot(ot_dist_contribution[iso_is_upper],  isolation[iso_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-		ax.plot(ot_dist_contribution[iso_is_lower],  isolation[iso_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[iso_is_upper],  isolation[iso_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[iso_is_lower],  isolation[iso_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
 		ax.set_ylim(np.percentile(isolation,            [1, 99]) * np.array([0.9, 1.1]))
 
 		ax.set_xscale("log")
-		ax.set_yscale("log")
+		#ax.set_yscale("log")
 
 		if show_title_and_legend:
 			ax.set_title("Comparison of our heteogeneity index to\nthe isolation index")
@@ -841,7 +841,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-		pl = plot_categories(filtered_bvote_position_database, (diss_is_upper + diss_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_categories(filtered_bvote_position_database, (diss_is_lower + diss_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
@@ -850,7 +850,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
 		
 		ax.set_xticks([])
-		ax.set_yticks([])
+		#ax.set_yticks([])
 
 		fig.savefig(fig_file_name[filter_idx][6][8])
 		plt.close(fig)
@@ -861,7 +861,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-		pl = plot_categories(filtered_bvote_position_database, (iso_is_upper + iso_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_categories(filtered_bvote_position_database, (iso_is_lower + iso_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
@@ -870,13 +870,13 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
 		
 		ax.set_xticks([])
-		ax.set_yticks([])
+		#ax.set_yticks([])
 
 		fig.savefig(fig_file_name[filter_idx][6][9])
 		plt.close(fig)
 
 		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
-			isolation_over_ot            = isolation_per_candidate[interesting_candidate_idx, :] / ot_dist_contribution_candidates[interesting_candidate_idx, :]
+			isolation_over_ot            = isolation_per_candidate[interesting_candidate_idx, :] / np.log(ot_dist_contribution_candidates[interesting_candidate_idx, :])
 			iso_upper_lim, iso_lower_lim = np.percentile(isolation_over_ot, comparison_percetiles[1]), np.percentile(isolation_over_ot, comparison_percetiles[0])
 			iso_is_upper, iso_is_lower   = isolation_over_ot > iso_upper_lim, isolation_over_ot < iso_lower_lim
 			iso_is_middle                = np.logical_and(np.logical_not(iso_is_upper), np.logical_not(iso_is_lower))
@@ -888,8 +888,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_middle], isolation_per_candidate[interesting_candidate_idx, :][iso_is_middle], "+k", label=None)
-			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_upper],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_lower],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_upper],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_lower],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[interesting_candidate_idx, :], [1, 99]) * 1.1)
 			ax.set_ylim(np.percentile(isolation_per_candidate[interesting_candidate_idx, :],         [1, 99]) * 1.1)
@@ -911,7 +911,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-			pl = plot_categories(filtered_bvote_position_database, (iso_is_upper + iso_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			pl = plot_categories(filtered_bvote_position_database, (iso_is_lower + iso_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 				filters=dont_show_filter[filter_idx],
 				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
@@ -973,8 +973,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 		ax.plot(ot_dist_contribution[convex_is_middle], ot_dist_contribution_convex[convex_is_middle], "+k", label=None)
-		ax.plot(ot_dist_contribution[convex_is_upper],  ot_dist_contribution_convex[convex_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-		ax.plot(ot_dist_contribution[convex_is_lower],  ot_dist_contribution_convex[convex_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[convex_is_upper],  ot_dist_contribution_convex[convex_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[convex_is_lower],  ot_dist_contribution_convex[convex_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 		ax.set_xlim(np.percentile(ot_dist_contribution,        [1, 99]) * np.array([0.9, 1.1]))
 		ax.set_ylim(np.percentile(ot_dist_contribution_convex, [1, 99]) * np.array([0.9, 1.1]))
@@ -999,7 +999,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-		pl = plot_categories(filtered_bvote_position_database, (convex_is_upper + convex_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+		pl = plot_categories(filtered_bvote_position_database, (convex_is_lower + convex_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 			filters=dont_show_filter[filter_idx],
 			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
@@ -1052,8 +1052,8 @@ for filter_idx,geographical_filter in enumerate(commune):
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
 			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_middle], ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_middle], "+k", label=None)
-			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_upper],  ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_lower],  ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_upper],  ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][convex_is_lower],  ot_dist_contribution_candidates_convex[candidate_idx, :][convex_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
 			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[candidate_idx, :],        [1, 99]) * 1.1)
 			ax.set_ylim(np.percentile(ot_dist_contribution_candidates_convex[candidate_idx, :], [1, 99]) * 1.1)
@@ -1075,7 +1075,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
 
-			pl = plot_categories(filtered_bvote_position_database, (convex_is_upper + convex_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			pl = plot_categories(filtered_bvote_position_database, (convex_is_lower + convex_is_upper * 2), ["k", "r", "b"], filtered_election_database["id_brut_bv_reu"],
 				filters=dont_show_filter[filter_idx],
 				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
 
