@@ -89,6 +89,14 @@ for i,comparison in enumerate(index_comparison):
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_multiscalar_map.png",
 			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_dissimilarity_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
 			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_dissimilarity_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]],
+
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_diss.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_isolation.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_diss_map.png",
+			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_isolation_map.png",
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_diss_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_diss_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]],
+
 			 f"results/article/{ commune[i][0] }/comparison/convex/fig_{ commune[i][0] }_convex_map.png",
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_convex_concave.png",
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_convex_concave_map.png",
@@ -726,6 +734,198 @@ for filter_idx,geographical_filter in enumerate(commune):
 			fig.savefig(fig_file_name[filter_idx][6][5][interesting_candidate_idx])
 			plt.close(fig)
 
+		""" #################################
+		#####################################
+		comparison with the dissimilarity and
+		          isolation indeces
+		#####################################
+		################################# """
+
+		dissimilarity           = np.zeros_like(np.array(filtered_election_database["Votants"]), dtype=float)
+		isolation               = np.zeros_like(dissimilarity)
+		L_in                    = np.zeros((len(candidate_list),                     len(isolation)), dtype=float)
+		isolation_per_candidate = np.zeros((len(interesting_candidates[filter_idx]), len(isolation)), dtype=float)
+
+		std_distance = 750
+		kernel = np.exp(-np.power(distance_matrix, 2) / (std_distance ** 2))
+
+		for candidate_idx, candidate in enumerate(candidate_list):
+			vote_distrib_candidate    = np.array(filtered_election_database[candidate + " Voix"]).astype(float)
+			L_in[candidate_idx] = np.sum(kernel * np.repeat(np.expand_dims(vote_distrib_candidate, axis=0), len(vote_distrib_candidate), axis=0), axis=1)
+
+		L_i = np.sum(L_in, axis=0)
+
+		I = np.sum(total_vote_proportion_candidate * (1 - total_vote_proportion_candidate))
+		for candidate_idx, candidate in enumerate(candidate_list):
+			vote_distrib_candidate    = np.array(filtered_election_database[candidate + " Voix"]).astype(float)
+			distrib_population        = np.array(filtered_election_database["Votants"]).astype(float)
+
+			dissimilarity += np.abs(L_in[candidate_idx, :] / L_i - vote_distrib_candidate / distrib_population)
+
+			isolation += total_vote_proportion_candidate[candidate_idx] * vote_distrib_candidate / distrib_population * L_in[candidate_idx, :] / L_i
+		dissimilarity /= I
+
+		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+			vote_distrib_candidate    = np.array(filtered_election_database[interesting_candidate + " Voix"]).astype(float)
+			distrib_population        = np.array(filtered_election_database["Votants"]).astype(float)
+
+			isolation_per_candidate[interesting_candidate_idx, :] = vote_distrib_candidate / distrib_population * L_in[candidate_idx, :] / L_i
+
+		dissimilarity_over_ot          = dissimilarity / ot_dist_contribution
+		diss_upper_lim, diss_lower_lim = np.percentile(dissimilarity_over_ot, comparison_percetiles[1]), np.percentile(dissimilarity_over_ot, comparison_percetiles[0])
+		diss_is_upper, diss_is_lower   = dissimilarity_over_ot > diss_upper_lim, dissimilarity_over_ot < diss_lower_lim
+		diss_is_middle                 = np.logical_and(np.logical_not(diss_is_upper), np.logical_not(diss_is_lower))
+
+		isolation_over_ot            = isolation / ot_dist_contribution
+		iso_upper_lim, iso_lower_lim = np.percentile(isolation_over_ot, comparison_percetiles[1]), np.percentile(isolation_over_ot, comparison_percetiles[0])
+		iso_is_upper, iso_is_lower   = isolation_over_ot > iso_upper_lim, isolation_over_ot < iso_lower_lim
+		iso_is_middle                = np.logical_and(np.logical_not(iso_is_upper), np.logical_not(iso_is_lower))
+
+		""" ##############################
+		plot comparison with dissimilarity
+		############################## """
+
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
+
+		ax.plot(ot_dist_contribution[diss_is_middle], dissimilarity[diss_is_middle], "+k", label=None)
+		ax.plot(ot_dist_contribution[diss_is_upper],  dissimilarity[diss_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[diss_is_lower],  dissimilarity[diss_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+
+		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
+		ax.set_ylim(np.percentile(dissimilarity,        [1, 99]) * np.array([0.9, 1.1]))
+
+		ax.set_xscale("log")
+		ax.set_yscale("log")
+
+		if show_title_and_legend:
+			ax.set_title("Comparison of our heteogeneity index to\nthe dissimilarity index")
+		ax.set_xlabel("Our optimal-transport based index")
+		ax.set_ylabel("Dissimilarity index")
+
+		fig.tight_layout(pad=1.0)
+		if show_title_and_legend:
+			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+		fig.savefig(fig_file_name[filter_idx][6][6])
+		plt.close(fig)
+
+		""" ##########################
+		plot comparison with isolation
+		########################## """
+
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
+
+		ax.plot(ot_dist_contribution[iso_is_middle], isolation[iso_is_middle], "+k", label=None)
+		ax.plot(ot_dist_contribution[iso_is_upper],  isolation[iso_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+		ax.plot(ot_dist_contribution[iso_is_lower],  isolation[iso_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+
+		ax.set_xlim(np.percentile(ot_dist_contribution, [1, 99]) * np.array([0.9, 1.1]))
+		ax.set_ylim(np.percentile(isolation,            [1, 99]) * np.array([0.9, 1.1]))
+
+		ax.set_xscale("log")
+		ax.set_yscale("log")
+
+		if show_title_and_legend:
+			ax.set_title("Comparison of our heteogeneity index to\nthe isolation index")
+		ax.set_xlabel("Our optimal-transport based index")
+		ax.set_ylabel("Isolation index")
+
+		fig.tight_layout(pad=1.0)
+		if show_title_and_legend:
+			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+		fig.savefig(fig_file_name[filter_idx][6][7])
+		plt.close(fig)
+
+		""" ##########################################################
+		ploting the map of the comparison with the dissimilarity index
+		########################################################## """
+
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
+
+		pl = plot_categories(filtered_bvote_position_database, (diss_is_upper + diss_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			filters=dont_show_filter[filter_idx],
+			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
+
+		ax.set_aspect(map_ratio)
+		if show_title_and_legend:
+			ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
+		
+		ax.set_xticks([])
+		ax.set_yticks([])
+
+		fig.savefig(fig_file_name[filter_idx][6][8])
+		plt.close(fig)
+
+		""" ######################################################
+		ploting the map of the comparison with the isolation index
+		###################################################### """
+
+		fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
+
+		pl = plot_categories(filtered_bvote_position_database, (iso_is_upper + iso_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+			filters=dont_show_filter[filter_idx],
+			labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
+
+		ax.set_aspect(map_ratio)
+		if show_title_and_legend:
+			ax.set_title("map of the comparison of our heteogeneity index\nto the multiscalar heteogeneity index")
+		
+		ax.set_xticks([])
+		ax.set_yticks([])
+
+		fig.savefig(fig_file_name[filter_idx][6][9])
+		plt.close(fig)
+
+		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+			isolation_over_ot            = isolation_per_candidate[interesting_candidate_idx, :] / ot_dist_contribution_candidates[interesting_candidate_idx, :]
+			iso_upper_lim, iso_lower_lim = np.percentile(isolation_over_ot, comparison_percetiles[1]), np.percentile(isolation_over_ot, comparison_percetiles[0])
+			iso_is_upper, iso_is_lower   = isolation_over_ot > iso_upper_lim, isolation_over_ot < iso_lower_lim
+			iso_is_middle                = np.logical_and(np.logical_not(iso_is_upper), np.logical_not(iso_is_lower))
+
+			""" ########################################
+			plot comparison dissimilarity and difference
+			######################################## """
+
+			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
+
+			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_middle], isolation_per_candidate[interesting_candidate_idx, :][iso_is_middle], "+k", label=None)
+			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_upper],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_upper],  "+r", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_lower],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_lower],  "+b", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+
+			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[interesting_candidate_idx, :], [1, 99]) * 1.1)
+			ax.set_ylim(np.percentile(isolation_per_candidate[interesting_candidate_idx, :],         [1, 99]) * 1.1)
+
+			if show_title_and_legend:
+				ax.set_title(f"Comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
+			ax.set_xlabel("Our optimal-transport based dissimilarity")
+			ax.set_ylabel("vote excess/deficit")
+
+			fig.tight_layout(pad=1.0)
+			if show_title_and_legend:
+				fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
+			fig.savefig(fig_file_name[filter_idx][6][10][interesting_candidate_idx])
+			plt.close(fig)
+
+			""" ##########################################################
+			ploting the map of the comparison dissimilarity and difference
+			########################################################## """
+
+			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5))
+
+			pl = plot_categories(filtered_bvote_position_database, (iso_is_upper + iso_is_lower * 2), ["k", "b", "r"], filtered_election_database["id_brut_bv_reu"],
+				filters=dont_show_filter[filter_idx],
+				labels=[None, f"Lower { comparison_percetiles[0] }% of ratio of indeces", f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces"])
+
+			ax.set_aspect(map_ratio)
+			if show_title_and_legend:
+				ax.set_title(f"map of the comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
+			
+			ax.set_xticks([])
+			ax.set_yticks([])
+
+			fig.savefig(fig_file_name[filter_idx][6][11][interesting_candidate_idx])
+			plt.close(fig)
+
+
 		""" ############################################
 		################################################
 		comparison with between concave and convex index
@@ -763,7 +963,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_yticks([])
 
 		fig.tight_layout(pad=1.0)
-		fig.savefig(fig_file_name[filter_idx][6][6])
+		fig.savefig(fig_file_name[filter_idx][6][12])
 		plt.close(fig)
 
 		""" ############################################
@@ -790,7 +990,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		fig.tight_layout(pad=1.0)
 		if show_title_and_legend:
 			fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
-		fig.savefig(fig_file_name[filter_idx][6][7])
+		fig.savefig(fig_file_name[filter_idx][6][13])
 		plt.close(fig)
 
 		""" ###################################################################
@@ -810,7 +1010,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 		ax.set_xticks([])
 		ax.set_yticks([])
 
-		fig.savefig(fig_file_name[filter_idx][6][8])
+		fig.savefig(fig_file_name[filter_idx][6][14])
 		plt.close(fig)
 		
 		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
@@ -842,7 +1042,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_yticks([])
 
 			fig.tight_layout(pad=1.0)
-			fig.savefig(fig_file_name[filter_idx][6][9][interesting_candidate_idx])
+			fig.savefig(fig_file_name[filter_idx][6][15][interesting_candidate_idx])
 			plt.close(fig)
 
 			""" #########################################################################
@@ -866,7 +1066,7 @@ for filter_idx,geographical_filter in enumerate(commune):
 			fig.tight_layout(pad=1.0)
 			if show_title_and_legend:
 				fig.legend(loc="lower right", bbox_to_anchor=[0.9, 0.1])
-			fig.savefig(fig_file_name[filter_idx][6][10][interesting_candidate_idx])
+			fig.savefig(fig_file_name[filter_idx][6][16][interesting_candidate_idx])
 			plt.close(fig)
 
 			""" #############################################################################
@@ -886,6 +1086,6 @@ for filter_idx,geographical_filter in enumerate(commune):
 			ax.set_xticks([])
 			ax.set_yticks([])
 
-			fig.savefig(fig_file_name[filter_idx][6][11][interesting_candidate_idx])
+			fig.savefig(fig_file_name[filter_idx][6][17][interesting_candidate_idx])
 			plt.close(fig)
 
