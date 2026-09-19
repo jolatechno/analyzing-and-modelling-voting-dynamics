@@ -881,9 +881,26 @@ for filter_idx,geographical_filter in enumerate(commune):
 		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
 			candidate_idx = candidate_list.index(interesting_candidate)
 
-			isolation_over_ot            = isolation_per_candidate[interesting_candidate_idx, :] / ot_dist_contribution_candidates[candidate_idx, :]
-			iso_upper_lim, iso_lower_lim = np.percentile(isolation_over_ot, comparison_percetiles[1]), np.percentile(isolation_over_ot, comparison_percetiles[0])
-			iso_is_upper, iso_is_lower   = isolation_over_ot > iso_upper_lim, isolation_over_ot < iso_lower_lim
+			ot_dist_dissimilarity_is_negative   = ot_dist_dissimilarity[candidate_idx, :] < 0
+			ot_dist_dissimilarity_abs           = np.abs(ot_dist_dissimilarity[candidate_idx, :])
+			ot_dist_dissimilarity_clipped_limit = max(1e-6, np.percentile(ot_dist_dissimilarity_abs, 0.5))
+			ot_dist_dissimilarity_clipped       = np.clip(ot_dist_dissimilarity_abs, ot_dist_dissimilarity_clipped_limit, np.inf)
+			ot_dist_dissimilarity_clipped[ot_dist_dissimilarity_is_negative] *= -1
+
+			isolation_over_ot_intercept  = np.interp(0, ot_dist_dissimilarity[candidate_idx, :], isolation_per_candidate[interesting_candidate_idx, :])
+			isolation_over_ot            = (isolation_per_candidate[interesting_candidate_idx, :] - isolation_over_ot_intercept) / ot_dist_dissimilarity_clipped
+			iso_lower_lim_pos            = np.percentile(isolation_over_ot[np.logical_and(isolation_over_ot > 0, ot_dist_dissimilarity[candidate_idx, :] >  50)], comparison_percetiles[0])
+			iso_upper_lim_pos            = np.percentile(isolation_over_ot[np.logical_and(isolation_over_ot > 0, ot_dist_dissimilarity[candidate_idx, :] >  50)], comparison_percetiles[1])
+			iso_lower_lim_neg            = np.percentile(isolation_over_ot[np.logical_and(isolation_over_ot > 0, ot_dist_dissimilarity[candidate_idx, :] < -50)], comparison_percetiles[0])
+			iso_upper_lim_neg            = np.percentile(isolation_over_ot[np.logical_and(isolation_over_ot > 0, ot_dist_dissimilarity[candidate_idx, :] < -50)], comparison_percetiles[1])
+			iso_is_upper                 = np.logical_or(
+				np.logical_and(isolation_over_ot > iso_upper_lim_pos, ot_dist_dissimilarity[candidate_idx, :] >  50),
+				np.logical_and(isolation_over_ot > iso_upper_lim_neg, ot_dist_dissimilarity[candidate_idx, :] < -50)
+			)
+			iso_is_lower                 = np.logical_or(
+				np.logical_and(np.logical_and(isolation_over_ot < iso_lower_lim_pos, iso_lower_lim_pos > 0), ot_dist_dissimilarity[candidate_idx, :] >  50),
+				np.logical_and(np.logical_and(isolation_over_ot < iso_lower_lim_neg, iso_lower_lim_pos > 0), ot_dist_dissimilarity[candidate_idx, :] < -50)
+			)
 			iso_is_middle                = np.logical_and(np.logical_not(iso_is_upper), np.logical_not(iso_is_lower))
 
 			""" ########################################
@@ -892,17 +909,17 @@ for filter_idx,geographical_filter in enumerate(commune):
 
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
-			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][iso_is_middle], isolation_per_candidate[interesting_candidate_idx, :][iso_is_middle], "+k", label=None)
-			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][iso_is_upper],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][iso_is_lower],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][iso_is_middle], isolation_per_candidate[interesting_candidate_idx, :][iso_is_middle], "+k", label=None)
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][iso_is_upper],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_dissimilarity[candidate_idx, :][iso_is_lower],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
-			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[candidate_idx, :], [1, 99]) * 1.1)
-			ax.set_ylim(np.percentile(isolation_per_candidate[interesting_candidate_idx, :],         [1, 99]) * 1.1)
+			ax.set_xlim(np.percentile(ot_dist_dissimilarity[candidate_idx, :],               [1, 99]) * 1.1)
+			ax.set_ylim(np.percentile(isolation_per_candidate[interesting_candidate_idx, :], [1, 99]) * 1.1)
 
 			if show_title_and_legend:
 				ax.set_title(f"Comparison of our dissimilarity\nindex to the vote excess/deficit\nfor { interesting_candidate }")
-			ax.set_xlabel("Our optimal-transport based dissimilarity")
-			ax.set_ylabel("vote excess/deficit")
+			ax.set_xlabel("Our optimal-transport based signed dissimilarity")
+			ax.set_ylabel("Isolation index")
 
 			fig.tight_layout(pad=1.0)
 			if show_title_and_legend:
