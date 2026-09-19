@@ -94,8 +94,8 @@ for i,comparison in enumerate(index_comparison):
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_isolation.png",
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_diss_map.png",
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_isolation_map.png",
-			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_diss_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
-			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_diss_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]],
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_isolation_{ candidate.replace(" ", "_") }.png"     for candidate in interesting_candidates[i]],
+			[f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_isolation_map_{ candidate.replace(" ", "_") }.png" for candidate in interesting_candidates[i]],
 
 			 f"results/article/{ commune[i][0] }/comparison/convex/fig_{ commune[i][0] }_convex_map.png",
 			 f"results/article/{ commune[i][0] }/comparison/fig_{ commune[i][0] }_comparison_convex_concave.png",
@@ -759,17 +759,20 @@ for filter_idx,geographical_filter in enumerate(commune):
 		for candidate_idx, candidate in enumerate(candidate_list):
 			vote_distrib_candidate    = np.array(filtered_election_database[candidate + " Voix"]).astype(float)
 			distrib_population        = np.array(filtered_election_database["Votants"]).astype(float)
+			total_population          = np.sum(distrib_population)
 
-			dissimilarity += np.abs(L_in[candidate_idx, :] / L_i - vote_distrib_candidate / distrib_population)
+			dissimilarity += np.abs(L_in[candidate_idx, :] / L_i - total_vote_proportion_candidate[candidate_idx])
 
-			isolation += total_vote_proportion_candidate[candidate_idx] * vote_distrib_candidate / distrib_population * L_in[candidate_idx, :] / L_i
+			isolation += vote_distrib_candidate / total_population * L_in[candidate_idx, :] / L_i
 		dissimilarity /= I
 
 		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
+			candidate_idx = candidate_list.index(interesting_candidate)
+
 			vote_distrib_candidate    = np.array(filtered_election_database[interesting_candidate + " Voix"]).astype(float)
 			distrib_population        = np.array(filtered_election_database["Votants"]).astype(float)
 
-			isolation_per_candidate[interesting_candidate_idx, :] = vote_distrib_candidate / distrib_population * L_in[candidate_idx, :] / L_i
+			isolation_per_candidate[interesting_candidate_idx, :] = vote_distrib_candidate / (total_vote_proportion_candidate[candidate_idx] * total_population) * L_in[candidate_idx, :] / L_i
 
 		dissimilarity_over_ot          = dissimilarity / ot_dist_contribution
 		diss_upper_lim, diss_lower_lim = np.percentile(dissimilarity_over_ot, comparison_percetiles[1]), np.percentile(dissimilarity_over_ot, comparison_percetiles[0])
@@ -876,22 +879,24 @@ for filter_idx,geographical_filter in enumerate(commune):
 		plt.close(fig)
 
 		for interesting_candidate_idx,interesting_candidate in enumerate(interesting_candidates[filter_idx]):
-			isolation_over_ot            = isolation_per_candidate[interesting_candidate_idx, :] / np.log(ot_dist_contribution_candidates[interesting_candidate_idx, :])
+			candidate_idx = candidate_list.index(interesting_candidate)
+
+			isolation_over_ot            = isolation_per_candidate[interesting_candidate_idx, :] / ot_dist_contribution_candidates[candidate_idx, :]
 			iso_upper_lim, iso_lower_lim = np.percentile(isolation_over_ot, comparison_percetiles[1]), np.percentile(isolation_over_ot, comparison_percetiles[0])
 			iso_is_upper, iso_is_lower   = isolation_over_ot > iso_upper_lim, isolation_over_ot < iso_lower_lim
 			iso_is_middle                = np.logical_and(np.logical_not(iso_is_upper), np.logical_not(iso_is_lower))
 
 			""" ########################################
-			plot comparison dissimilarity and difference
+			plot comparison isolation and difference
 			######################################## """
 
 			fig, ax = plt.subplots(1, 1, figsize=(6 + 1, 6/map_ratio + 0.5 if every_fig_same_ratio else 6 + 1))
 
-			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_middle], isolation_per_candidate[interesting_candidate_idx, :][iso_is_middle], "+k", label=None)
-			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_upper],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
-			ax.plot(ot_dist_contribution_candidates[interesting_candidate_idx, :][iso_is_lower],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][iso_is_middle], isolation_per_candidate[interesting_candidate_idx, :][iso_is_middle], "+k", label=None)
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][iso_is_upper],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_upper],  "+b", label=f"Upper { 100 - comparison_percetiles[1] }% of ratio of indeces")
+			ax.plot(ot_dist_contribution_candidates[candidate_idx, :][iso_is_lower],  isolation_per_candidate[interesting_candidate_idx, :][iso_is_lower],  "+r", label=f"Lower { comparison_percetiles[0] }% of ratio of indeces")
 
-			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[interesting_candidate_idx, :], [1, 99]) * 1.1)
+			ax.set_xlim(np.percentile(ot_dist_contribution_candidates[candidate_idx, :], [1, 99]) * 1.1)
 			ax.set_ylim(np.percentile(isolation_per_candidate[interesting_candidate_idx, :],         [1, 99]) * 1.1)
 
 			if show_title_and_legend:
