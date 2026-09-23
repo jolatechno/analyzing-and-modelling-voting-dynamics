@@ -432,7 +432,10 @@ for idx,(n, m) in enumerate(zip(N, M)):
 if sum(seg_list != 0) == len(M) and (overwrite or not path.exists("selection_article/cherboard-size-heterogeneity_evolution.png")):
 	fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 
-	ax.plot(M, seg_list, "+-")
+	ax.plot(M, seg_list, "+-", label=None)
+
+	a,b = np.polyfit(np.log(M), np.log(seg_list), 1)
+	ax.plot(M, np.exp(b) * np.pow(M, a), "r--", label=r"${b}^{ax}$".replace('b', str(round(np.exp(b), 1))).replace('a', str(round(a, 1))))
 
 	#ax.set_title("Evolution of heterogeneity index vs\nthe number of subdivion of the checkerboard")
 	ax.set_xlabel("Number of segment per side of the square")
@@ -444,6 +447,7 @@ if sum(seg_list != 0) == len(M) and (overwrite or not path.exists("selection_art
 	ticks=[round(x, -int(np.floor(np.log10(abs(x))))) for x in seg_list]
 	ax.set_yticks(ticks, labels=[str(x) for x in ticks])
 
+	fig.legend()
 	fig.savefig(f"selection_article/cherboard-size-heterogeneity_evolution.png")
 	plt.close(fig)
 
